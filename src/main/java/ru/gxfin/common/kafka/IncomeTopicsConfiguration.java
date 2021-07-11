@@ -8,6 +8,7 @@ import java.util.Properties;
 /**
  * Интерфейс конфигурации обработки входящих очередей.
  */
+@SuppressWarnings("unused")
 public interface IncomeTopicsConfiguration {
     /**
      * Полчение описателя обработчика по топику.
@@ -25,6 +26,7 @@ public interface IncomeTopicsConfiguration {
      * @param mode Режим данных в очереди: Пообъектно и пакетно.
      * @return this.
      */
+    @SuppressWarnings("rawtypes")
     IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemRepo memRepo, TopicMessageMode mode);
 
     /**
@@ -37,6 +39,7 @@ public interface IncomeTopicsConfiguration {
      * @param partitions Разделы в топике.
      * @return this.
      */
+    @SuppressWarnings("rawtypes")
     IncomeTopicsConfiguration register(int priority, String topic, AbstractMemRepo memRepo, TopicMessageMode mode, Properties consumerProperties, int... partitions);
 
     /**

@@ -9,14 +9,16 @@ import java.time.Duration;
 /**
  * Интерфейс вспомогательного загрузчика, которые упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
  */
+@SuppressWarnings("unused")
 public interface IncomeTopicsLoader {
     /**
      * Чтение набора DataPackage-ей из очереди.
      * @param topic2MemRepo Описатель обработчика одной очереди.
      * @param durationOnPoll Длительность ожидания данных в очереди.
      * @return Набор DataPackage-ей из очереди.
-     * @throws JsonProcessingException
+     * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
+    @SuppressWarnings("rawtypes")
     Iterable<DataPackage> loadPackages(IncomeTopic2MemRepo topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
 
     /**
@@ -24,7 +26,7 @@ public interface IncomeTopicsLoader {
      * @param topic2MemRepo Описатель обработчика одной очереди.
      * @param durationOnPoll Длительность ожидания данных в очереди.
      * @return Набор DataObject-ов из очереди.
-     * @throws JsonProcessingException
+     * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     Iterable<DataObject> loadObjects(IncomeTopic2MemRepo topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
 }

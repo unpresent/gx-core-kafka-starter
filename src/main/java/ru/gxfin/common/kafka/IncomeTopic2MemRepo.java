@@ -25,12 +25,14 @@ public class IncomeTopic2MemRepo {
     /**
      * Объект-получатель сообщений.
      */
+    @SuppressWarnings("rawtypes")
     @Getter
     private final Consumer consumer;
 
     /**
      * Репозиторий, в который будут загружены входящие объекты.
      */
+    @SuppressWarnings("rawtypes")
     @Getter
     private final AbstractMemRepo memRepo;
 
@@ -40,6 +42,7 @@ public class IncomeTopic2MemRepo {
     @Getter
     private final TopicMessageMode messageMode;
 
+    @SuppressWarnings("rawtypes")
     public IncomeTopic2MemRepo(String topic, int priority, Consumer consumer, AbstractMemRepo memRepo, TopicMessageMode messageMode) {
         this.topic = topic;
         this.priority = priority;

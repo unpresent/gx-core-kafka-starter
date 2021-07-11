@@ -12,6 +12,7 @@ import java.util.*;
  * Базовая реализация конфигурации обработки входящих очередей.
  */
 @Slf4j
+@SuppressWarnings("unused")
 public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsConfiguration {
     /**
      * Список описателей по приоритету.
@@ -25,6 +26,7 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
      */
     private final Map<String, IncomeTopic2MemRepo> topics = new HashMap<>();
 
+    @SuppressWarnings("unused")
     protected AbstractIncomeTopicsConfiguration() {
         super();
     }
@@ -63,17 +65,20 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
         return this;
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemRepo memRepo, TopicMessageMode mode) {
         return register(new IncomeTopic2MemRepo(topic, priority, consumer, memRepo, mode));
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public IncomeTopicsConfiguration register(int priority, String topic, AbstractMemRepo memRepo, TopicMessageMode mode, Properties consumerProperties, int... partitions) {
         final var consumer = defineSimpleTopicConsumer(consumerProperties, topic, partitions);
         return register(new IncomeTopic2MemRepo(topic, priority, consumer, memRepo, mode));
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public Consumer defineSimpleTopicConsumer(Properties properties, String topic, int... partitions) {
         final var result = new KafkaConsumer(properties);
         final List<TopicPartition> topicPartitions = new ArrayList<>();

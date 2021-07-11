@@ -23,8 +23,9 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
      * @param topic2MemRepo Описатель обработчика одной очереди.
      * @param durationOnPoll Длительность ожидания данных в очереди.
      * @return Набор DataPackage-ей из очереди.
-     * @throws JsonProcessingException
+     * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
+    @SuppressWarnings("rawtypes")
     @Override
     public Iterable<DataPackage> loadPackages(IncomeTopic2MemRepo topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException {
         if (topic2MemRepo.getMessageMode() != TopicMessageMode.PACKAGE) {
@@ -56,7 +57,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
      * @param topic2MemRepo Описатель обработчика одной очереди.
      * @param durationOnPoll Длительность ожидания данных в очереди.
      * @return Набор DataObject-ов из очереди.
-     * @throws JsonProcessingException
+     * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     @Override
     public Iterable<DataObject> loadObjects(IncomeTopic2MemRepo topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException {
@@ -84,7 +85,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
         return result;
     }
 
-
+    @SuppressWarnings("unchecked")
     protected ConsumerRecords<Object, Object> internalPoll(IncomeTopic2MemRepo topic2MemRepo, Duration durationOnPoll) {
         final var consumer = topic2MemRepo.getConsumer();
         final ConsumerRecords<Object, Object> records = consumer.poll(durationOnPoll);
