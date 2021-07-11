@@ -47,7 +47,7 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
     @Override
     public AbstractIncomeTopicsConfiguration register(IncomeTopic2MemRepo item) {
         if (this.topics.containsKey(item.getTopic())) {
-            throw new IncomeTopicsConfigurationException("Topic " + item.getTopic() + " already registered!");
+            throw new IncomeTopicsConsumingException("Topic " + item.getTopic() + " already registered!");
         }
 
         final var priority = item.getPriority();
@@ -93,7 +93,7 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
     public AbstractIncomeTopicsConfiguration unregister(String topic) {
         final var item = this.topics.get(topic);
         if (item == null) {
-            throw new IncomeTopicsConfigurationException("Topic " + topic + " not registered!");
+            throw new IncomeTopicsConsumingException("Topic " + topic + " not registered!");
         }
 
         this.topics.remove(topic);
