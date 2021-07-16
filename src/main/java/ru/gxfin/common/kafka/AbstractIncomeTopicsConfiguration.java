@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
-import ru.gxfin.common.data.AbstractMemRepo;
+import ru.gxfin.common.data.AbstractMemoryRepository;
 
 import java.util.*;
 
@@ -67,13 +67,13 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
 
     @SuppressWarnings("rawtypes")
     @Override
-    public IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemRepo memRepo, TopicMessageMode mode) {
+    public IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemoryRepository memRepo, TopicMessageMode mode) {
         return register(new IncomeTopic2MemRepo(topic, priority, consumer, memRepo, mode));
     }
 
     @SuppressWarnings("rawtypes")
     @Override
-    public IncomeTopicsConfiguration register(int priority, String topic, AbstractMemRepo memRepo, TopicMessageMode mode, Properties consumerProperties, int... partitions) {
+    public IncomeTopicsConfiguration register(int priority, String topic, AbstractMemoryRepository memRepo, TopicMessageMode mode, Properties consumerProperties, int... partitions) {
         final var consumer = defineSimpleTopicConsumer(consumerProperties, topic, partitions);
         return register(new IncomeTopic2MemRepo(topic, priority, consumer, memRepo, mode));
     }

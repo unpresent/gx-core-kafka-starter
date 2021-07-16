@@ -2,7 +2,7 @@ package ru.gxfin.common.kafka;
 
 import lombok.Getter;
 import org.apache.kafka.clients.consumer.Consumer;
-import ru.gxfin.common.data.AbstractMemRepo;
+import ru.gxfin.common.data.AbstractMemoryRepository;
 
 /**
  * Описатель обработчика одной очереди.
@@ -34,7 +34,7 @@ public class IncomeTopic2MemRepo {
      */
     @SuppressWarnings("rawtypes")
     @Getter
-    private final AbstractMemRepo memRepo;
+    private final AbstractMemoryRepository memRepo;
 
     /**
      * Режим данных в очереди: Пообъектно и пакетно.
@@ -43,7 +43,7 @@ public class IncomeTopic2MemRepo {
     private final TopicMessageMode messageMode;
 
     @SuppressWarnings("rawtypes")
-    public IncomeTopic2MemRepo(String topic, int priority, Consumer consumer, AbstractMemRepo memRepo, TopicMessageMode messageMode) {
+    public IncomeTopic2MemRepo(String topic, int priority, Consumer consumer, AbstractMemoryRepository memRepo, TopicMessageMode messageMode) {
         this.topic = topic;
         this.priority = priority;
         this.consumer = consumer;
