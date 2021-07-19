@@ -20,33 +20,33 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
 
     /**
      * Чтение набора DataPackage-ей из очереди.
-     * @param topic2MemRepo Описатель обработчика одной очереди.
-     * @param durationOnPoll Длительность ожидания данных в очереди.
-     * @return Набор DataPackage-ей из очереди.
-     * @throws JsonProcessingException Ошибки при десериализации из Json-а.
+     * @param topic2MemoryRepository    Описатель обработчика одной очереди.
+     * @param durationOnPoll            Длительность ожидания данных в очереди.
+     * @return                          Набор DataPackage-ей из очереди.
+     * @throws JsonProcessingException  Ошибки при десериализации из Json-а.
      */
     @SuppressWarnings("rawtypes")
     @Override
-    public Iterable<DataPackage> loadPackages(IncomeTopic2MemRepo topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException {
-        if (topic2MemRepo.getMessageMode() != TopicMessageMode.PACKAGE) {
-            throw new IncomeTopicsConsumingException("Can't load packages from topic: " + topic2MemRepo.getTopic());
+    public Iterable<DataPackage> loadPackages(IncomeTopic2MemoryRepository topic2MemoryRepository, Duration durationOnPoll) throws JsonProcessingException {
+        if (topic2MemoryRepository.getMessageMode() != TopicMessageMode.PACKAGE) {
+            throw new IncomeTopicsConsumingException("Can't load packages from topic: " + topic2MemoryRepository.getTopic());
         }
-        final var records = internalPoll(topic2MemRepo, durationOnPoll);
+        final var records = internalPoll(topic2MemoryRepository, durationOnPoll);
         if (records.isEmpty()) {
             return null;
         }
 
-        final var memRepo = topic2MemRepo.getMemRepo();
+        final var memoryRepository = topic2MemoryRepository.getMemoryRepository();
         final var result = new ArrayList<DataPackage>();
         for (var rec : records) {
             final var value = rec.value();
             if (value instanceof String) {
                 final var valueString = (String) value;
                 log.trace("Polled: {}", valueString);
-                final var pack = memRepo.deserializePackage(valueString);
+                final var pack = memoryRepository.loadPackage(valueString);
                 result.add(pack);
             } else {
-                throw new IncomeTopicsConsumingException("Unsupported value type received by consumer! Topic: " + topic2MemRepo.getTopic());
+                throw new IncomeTopicsConsumingException("Unsupported value type received by consumer! Topic: " + topic2MemoryRepository.getTopic());
             }
         }
         return result;
@@ -54,42 +54,42 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
 
     /**
      * Чтение набора DataObject-ов из очереди.
-     * @param topic2MemRepo Описатель обработчика одной очереди.
-     * @param durationOnPoll Длительность ожидания данных в очереди.
-     * @return Набор DataObject-ов из очереди.
-     * @throws JsonProcessingException Ошибки при десериализации из Json-а.
+     * @param topic2MemoryRepository    Описатель обработчика одной очереди.
+     * @param durationOnPoll            Длительность ожидания данных в очереди.
+     * @return                          Набор DataObject-ов из очереди.
+     * @throws JsonProcessingException  Ошибки при десериализации из Json-а.
      */
     @Override
-    public Iterable<DataObject> loadObjects(IncomeTopic2MemRepo topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException {
-        if (topic2MemRepo.getMessageMode() != TopicMessageMode.OBJECT) {
-            throw new IncomeTopicsConsumingException("Can't load objects from topic: " + topic2MemRepo.getTopic());
+    public Iterable<DataObject> loadObjects(IncomeTopic2MemoryRepository topic2MemoryRepository, Duration durationOnPoll) throws JsonProcessingException {
+        if (topic2MemoryRepository.getMessageMode() != TopicMessageMode.OBJECT) {
+            throw new IncomeTopicsConsumingException("Can't load objects from topic: " + topic2MemoryRepository.getTopic());
         }
-        final var records = internalPoll(topic2MemRepo, durationOnPoll);
+        final var records = internalPoll(topic2MemoryRepository, durationOnPoll);
         if (records.isEmpty()) {
             return null;
         }
 
-        final var memRepo = topic2MemRepo.getMemRepo();
+        final var memoryRepository = topic2MemoryRepository.getMemoryRepository();
         final var result = new ArrayList<DataObject>();
         for (var rec : records) {
             final var value = rec.value();
             if (value instanceof String) {
                 final var valueString = (String) value;
                 log.trace("Polled: {}", valueString);
-                final var obj = memRepo.deserializeObject(valueString);
+                final var obj = memoryRepository.loadObject(valueString);
                 result.add(obj);
             } else {
-                throw new IncomeTopicsConsumingException("Unsupported value type received by consumer! Topic: " + topic2MemRepo.getTopic());
+                throw new IncomeTopicsConsumingException("Unsupported value type received by consumer! Topic: " + topic2MemoryRepository.getTopic());
             }
         }
         return result;
     }
 
     @SuppressWarnings("unchecked")
-    protected ConsumerRecords<Object, Object> internalPoll(IncomeTopic2MemRepo topic2MemRepo, Duration durationOnPoll) {
-        final var consumer = topic2MemRepo.getConsumer();
+    protected ConsumerRecords<Object, Object> internalPoll(IncomeTopic2MemoryRepository topic2MemoryRepository, Duration durationOnPoll) {
+        final var consumer = topic2MemoryRepository.getConsumer();
         final ConsumerRecords<Object, Object> records = consumer.poll(durationOnPoll);
-        log.debug("Topic: {}; polled: {} records", topic2MemRepo.getTopic(), records.count());
+        log.debug("Topic: {}; polled: {} records", topic2MemoryRepository.getTopic(), records.count());
         return records;
     }
 }

@@ -19,7 +19,7 @@ public interface IncomeTopicsLoader {
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     @SuppressWarnings("rawtypes")
-    Iterable<DataPackage> loadPackages(IncomeTopic2MemRepo topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
+    Iterable<DataPackage> loadPackages(IncomeTopic2MemoryRepository topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
 
     /**
      * Чтение набора DataObject-ов из очереди.
@@ -28,5 +28,5 @@ public interface IncomeTopicsLoader {
      * @return Набор DataObject-ов из очереди.
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
-    Iterable<DataObject> loadObjects(IncomeTopic2MemRepo topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
+    Iterable<DataObject> loadObjects(IncomeTopic2MemoryRepository topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
 }

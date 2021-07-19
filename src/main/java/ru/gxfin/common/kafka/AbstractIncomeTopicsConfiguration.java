@@ -8,46 +8,24 @@ import ru.gxfin.common.data.AbstractMemoryRepository;
 
 import java.util.*;
 
-/**
- * Базовая реализация конфигурации обработки входящих очередей.
- */
 @Slf4j
 @SuppressWarnings("unused")
 public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsConfiguration {
-    /**
-     * Список описателей по приоритету.
-     * Внешний список - список приоритетов.
-     * Внутренние списки - списки описателей одного приоритета.
-     */
-    private final List<List<IncomeTopic2MemRepo>> priorities = new ArrayList<>();
-
-    /**
-     * Список описателей по топику.
-     */
-    private final Map<String, IncomeTopic2MemRepo> topics = new HashMap<>();
+    private final List<List<IncomeTopic2MemoryRepository>> priorities = new ArrayList<>();
+    private final Map<String, IncomeTopic2MemoryRepository> topics = new HashMap<>();
 
     @SuppressWarnings("unused")
     protected AbstractIncomeTopicsConfiguration() {
         super();
     }
 
-    /**
-     * Полчение описателя обработчика по топику.
-     * @param topic Имя топика, для которого требуется получить описатель.
-     * @return Описатель обработчика одной очереди.
-     */
     @Override
-    public IncomeTopic2MemRepo get(String topic) {
+    public IncomeTopic2MemoryRepository get(String topic) {
         return this.topics.get(topic);
     }
 
-    /**
-     * Регистрация описателя обработчика одной очереди.
-     * @param item Описатель обработчика одной очереди.
-     * @return this.
-     */
     @Override
-    public AbstractIncomeTopicsConfiguration register(IncomeTopic2MemRepo item) {
+    public AbstractIncomeTopicsConfiguration register(IncomeTopic2MemoryRepository item) {
         if (this.topics.containsKey(item.getTopic())) {
             throw new IncomeTopicsConsumingException("Topic " + item.getTopic() + " already registered!");
         }
@@ -67,15 +45,15 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
 
     @SuppressWarnings("rawtypes")
     @Override
-    public IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemoryRepository memRepo, TopicMessageMode mode) {
-        return register(new IncomeTopic2MemRepo(topic, priority, consumer, memRepo, mode));
+    public IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemoryRepository memoryRepository, TopicMessageMode mode) {
+        return register(new IncomeTopic2MemoryRepository(topic, priority, consumer, memoryRepository, mode));
     }
 
     @SuppressWarnings("rawtypes")
     @Override
-    public IncomeTopicsConfiguration register(int priority, String topic, AbstractMemoryRepository memRepo, TopicMessageMode mode, Properties consumerProperties, int... partitions) {
+    public IncomeTopicsConfiguration register(int priority, String topic, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Properties consumerProperties, int... partitions) {
         final var consumer = defineSimpleTopicConsumer(consumerProperties, topic, partitions);
-        return register(new IncomeTopic2MemRepo(topic, priority, consumer, memRepo, mode));
+        return register(new IncomeTopic2MemoryRepository(topic, priority, consumer, memoryRepository, mode));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -89,11 +67,6 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
         return result;
     }
 
-    /**
-     * Дерегистрация обработчика очереди.
-     * @param topic Имя топика очереди.
-     * @return this.
-     */
     @Override
     public AbstractIncomeTopicsConfiguration unregister(String topic) {
         final var item = this.topics.get(topic);
@@ -111,21 +84,13 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
         return this;
     }
 
-    /**
-     * @return Количество приоритетов.
-     */
     @Override
     public int prioritiesCount() {
         return this.priorities.size();
     }
 
-    /**
-     * Получение списка описателей обработчиков очередей по приоритету.
-     * @param priority Приоритет.
-     * @return Список описателей обработчиков.
-     */
     @Override
-    public Iterable<IncomeTopic2MemRepo> getByPriority(int priority) {
-        return this.priorities.get(0);
+    public Iterable<IncomeTopic2MemoryRepository> getByPriority(int priority) {
+        return this.priorities.get(priority);
     }
 }

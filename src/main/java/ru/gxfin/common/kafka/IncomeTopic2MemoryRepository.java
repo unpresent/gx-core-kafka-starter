@@ -7,7 +7,7 @@ import ru.gxfin.common.data.AbstractMemoryRepository;
 /**
  * Описатель обработчика одной очереди.
  */
-public class IncomeTopic2MemRepo {
+public class IncomeTopic2MemoryRepository {
     /**
      * Имя топика очереди.
      */
@@ -34,7 +34,7 @@ public class IncomeTopic2MemRepo {
      */
     @SuppressWarnings("rawtypes")
     @Getter
-    private final AbstractMemoryRepository memRepo;
+    private final AbstractMemoryRepository memoryRepository;
 
     /**
      * Режим данных в очереди: Пообъектно и пакетно.
@@ -43,11 +43,11 @@ public class IncomeTopic2MemRepo {
     private final TopicMessageMode messageMode;
 
     @SuppressWarnings("rawtypes")
-    public IncomeTopic2MemRepo(String topic, int priority, Consumer consumer, AbstractMemoryRepository memRepo, TopicMessageMode messageMode) {
+    public IncomeTopic2MemoryRepository(String topic, int priority, Consumer consumer, AbstractMemoryRepository memoryRepository, TopicMessageMode messageMode) {
         this.topic = topic;
         this.priority = priority;
         this.consumer = consumer;
-        this.memRepo = memRepo;
+        this.memoryRepository = memoryRepository;
         this.messageMode = messageMode;
     }
 }

@@ -16,34 +16,34 @@ public interface IncomeTopicsConfiguration {
      * @param topic Имя топика, для которого требуется получить описатель.
      * @return Описатель обработчика одной очереди.
      */
-    IncomeTopic2MemRepo get(String topic);
+    IncomeTopic2MemoryRepository get(String topic);
 
     /**
      * Регистрация описателя обработчика одной очереди.
      *
-     * @param priority Приоритет очереди.
-     * @param topic    Имя топика очереди.
-     * @param consumer Объект-получатель.
-     * @param memRepo  Репозиторий, в который будут загружены входящие объекты.
-     * @param mode     Режим данных в очереди: Пообъектно и пакетно.
+     * @param priority          Приоритет очереди.
+     * @param topic             Имя топика очереди.
+     * @param consumer          Объект-получатель.
+     * @param memoryRepository  Репозиторий, в который будут загружены входящие объекты.
+     * @param mode              Режим данных в очереди: Пообъектно и пакетно.
      * @return this.
      */
     @SuppressWarnings("rawtypes")
-    IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemoryRepository memRepo, TopicMessageMode mode);
+    IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemoryRepository memoryRepository, TopicMessageMode mode);
 
     /**
      * Регистрация описателя обработчика одной очереди.
      *
      * @param priority           Приоритет очереди.
      * @param topic              Имя топика очереди.
-     * @param memRepo            Репозиторий, в который будут загружены входящие объекты.
+     * @param memoryRepository   Репозиторий, в который будут загружены входящие объекты.
      * @param mode               Режим данных в очереди: Пообъектно и пакетно.
      * @param consumerProperties Свойства consumer-а.
      * @param partitions         Разделы в топике.
      * @return this.
      */
     @SuppressWarnings("rawtypes")
-    IncomeTopicsConfiguration register(int priority, String topic, AbstractMemoryRepository memRepo, TopicMessageMode mode, Properties consumerProperties, int... partitions);
+    IncomeTopicsConfiguration register(int priority, String topic, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Properties consumerProperties, int... partitions);
 
     /**
      * Регистрация описателя обработчика одной очереди.
@@ -51,7 +51,7 @@ public interface IncomeTopicsConfiguration {
      * @param item Описатель обработчика одной очереди.
      * @return this.
      */
-    IncomeTopicsConfiguration register(IncomeTopic2MemRepo item);
+    IncomeTopicsConfiguration register(IncomeTopic2MemoryRepository item);
 
     /**
      * Дерегистрация обработчика очереди.
@@ -72,5 +72,5 @@ public interface IncomeTopicsConfiguration {
      * @param priority Приоритет.
      * @return Список описателей обработчиков.
      */
-    Iterable<IncomeTopic2MemRepo> getByPriority(int priority);
+    Iterable<IncomeTopic2MemoryRepository> getByPriority(int priority);
 }
