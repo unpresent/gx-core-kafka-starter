@@ -32,7 +32,7 @@ public interface IncomeTopicsConfiguration extends ObjectsLoadedFromIncomeTopicE
      * @param mode              Режим данных в очереди: Пообъектно и пакетно.
      * @return this.
      */
-    IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Class<ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass);
+    IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Class<? extends ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass);
 
     /**
      * Регистрация описателя обработчика одной очереди.
@@ -45,7 +45,7 @@ public interface IncomeTopicsConfiguration extends ObjectsLoadedFromIncomeTopicE
      * @param partitions         Разделы в топике.
      * @return this.
      */
-    IncomeTopicsConfiguration register(int priority, String topic, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Class<ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass, Properties consumerProperties, int... partitions);
+    IncomeTopicsConfiguration register(int priority, String topic, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Class<? extends ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass, Properties consumerProperties, int... partitions);
 
     /**
      * Регистрация описателя обработчика одной очереди.

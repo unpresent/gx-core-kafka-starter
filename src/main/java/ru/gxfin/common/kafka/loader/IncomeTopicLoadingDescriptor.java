@@ -45,7 +45,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject> {
     private final TopicMessageMode messageMode;
 
     @Getter
-    private final Class<ObjectsLoadedFromIncomeTopicEvent<O>> onLoadedEventClass;
+    private final Class<? extends ObjectsLoadedFromIncomeTopicEvent<O>> onLoadedEventClass;
 
     @SuppressWarnings("rawtypes")
     public IncomeTopicLoadingDescriptor(
@@ -54,7 +54,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject> {
             Consumer consumer,
             DataMemoryRepository<O> memoryRepository,
             TopicMessageMode messageMode,
-            Class<ObjectsLoadedFromIncomeTopicEvent<O>> onLoadedEventClass
+            Class<? extends ObjectsLoadedFromIncomeTopicEvent<O>> onLoadedEventClass
     ) {
         this.topic = topic;
         this.priority = priority;

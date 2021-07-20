@@ -61,7 +61,7 @@ public abstract class AbstractIncomeTopicsConfiguration
             Consumer consumer,
             AbstractMemoryRepository memoryRepository,
             TopicMessageMode mode,
-            Class<ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass
+            Class<? extends ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass
     ) {
         return register(new IncomeTopicLoadingDescriptor(topic, priority, consumer, memoryRepository, mode, onLoadedEventClass));
     }
@@ -72,7 +72,7 @@ public abstract class AbstractIncomeTopicsConfiguration
             String topic,
             AbstractMemoryRepository memoryRepository,
             TopicMessageMode mode,
-            Class<ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass,
+            Class<? extends ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass,
             Properties consumerProperties,
             int... partitions
     ) {
