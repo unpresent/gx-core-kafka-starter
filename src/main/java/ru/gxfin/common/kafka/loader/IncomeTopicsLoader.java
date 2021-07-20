@@ -1,8 +1,9 @@
-package ru.gxfin.common.kafka;
+package ru.gxfin.common.kafka.loader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ru.gxfin.common.data.DataObject;
 import ru.gxfin.common.data.DataPackage;
+import ru.gxfin.common.kafka.configuration.IncomeTopicsConfiguration;
 
 import java.time.Duration;
 
@@ -19,7 +20,7 @@ public interface IncomeTopicsLoader {
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     @SuppressWarnings("rawtypes")
-    Iterable<DataPackage> loadPackages(IncomeTopic2MemoryRepository topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
+    Iterable<DataPackage> loadPackages(IncomeTopicLoadingDescriptor topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
 
     /**
      * Чтение набора DataObject-ов из очереди.
@@ -28,5 +29,7 @@ public interface IncomeTopicsLoader {
      * @return Набор DataObject-ов из очереди.
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
-    Iterable<DataObject> loadObjects(IncomeTopic2MemoryRepository topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
+    Iterable<DataObject> loadObjects(IncomeTopicLoadingDescriptor topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
+
+    void loadTopicsByConfiguration(IncomeTopicsConfiguration configuration, Duration durationOnPoll) throws JsonProcessingException;
 }

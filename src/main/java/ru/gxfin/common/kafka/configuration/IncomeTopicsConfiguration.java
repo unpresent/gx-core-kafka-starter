@@ -1,7 +1,11 @@
-package ru.gxfin.common.kafka;
+package ru.gxfin.common.kafka.configuration;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import ru.gxfin.common.data.AbstractMemoryRepository;
+import ru.gxfin.common.kafka.TopicMessageMode;
+import ru.gxfin.common.kafka.events.ObjectsLoadedFromIncomeTopicEvent;
+import ru.gxfin.common.kafka.events.ObjectsLoadedFromIncomeTopicEventsFactory;
+import ru.gxfin.common.kafka.loader.IncomeTopicLoadingDescriptor;
 
 import java.util.Properties;
 
@@ -9,14 +13,14 @@ import java.util.Properties;
  * Интерфейс конфигурации обработки входящих очередей.
  */
 @SuppressWarnings("unused")
-public interface IncomeTopicsConfiguration {
+public interface IncomeTopicsConfiguration extends ObjectsLoadedFromIncomeTopicEventsFactory {
     /**
      * Полчение описателя обработчика по топику.
      *
      * @param topic Имя топика, для которого требуется получить описатель.
      * @return Описатель обработчика одной очереди.
      */
-    IncomeTopic2MemoryRepository get(String topic);
+    IncomeTopicLoadingDescriptor get(String topic);
 
     /**
      * Регистрация описателя обработчика одной очереди.
@@ -29,7 +33,7 @@ public interface IncomeTopicsConfiguration {
      * @return this.
      */
     @SuppressWarnings("rawtypes")
-    IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemoryRepository memoryRepository, TopicMessageMode mode);
+    IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Class<ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass);
 
     /**
      * Регистрация описателя обработчика одной очереди.
@@ -43,7 +47,7 @@ public interface IncomeTopicsConfiguration {
      * @return this.
      */
     @SuppressWarnings("rawtypes")
-    IncomeTopicsConfiguration register(int priority, String topic, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Properties consumerProperties, int... partitions);
+    IncomeTopicsConfiguration register(int priority, String topic, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Class<ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass, Properties consumerProperties, int... partitions);
 
     /**
      * Регистрация описателя обработчика одной очереди.
@@ -51,7 +55,8 @@ public interface IncomeTopicsConfiguration {
      * @param item Описатель обработчика одной очереди.
      * @return this.
      */
-    IncomeTopicsConfiguration register(IncomeTopic2MemoryRepository item);
+    @SuppressWarnings("rawtypes")
+    IncomeTopicsConfiguration register(IncomeTopicLoadingDescriptor item);
 
     /**
      * Дерегистрация обработчика очереди.
@@ -72,5 +77,5 @@ public interface IncomeTopicsConfiguration {
      * @param priority Приоритет.
      * @return Список описателей обработчиков.
      */
-    Iterable<IncomeTopic2MemoryRepository> getByPriority(int priority);
+    Iterable<IncomeTopicLoadingDescriptor> getByPriority(int priority);
 }

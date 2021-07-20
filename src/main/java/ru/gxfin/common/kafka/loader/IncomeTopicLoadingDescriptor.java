@@ -1,13 +1,16 @@
-package ru.gxfin.common.kafka;
+package ru.gxfin.common.kafka.loader;
 
 import lombok.Getter;
 import org.apache.kafka.clients.consumer.Consumer;
-import ru.gxfin.common.data.AbstractMemoryRepository;
+import ru.gxfin.common.data.DataMemoryRepository;
+import ru.gxfin.common.data.DataObject;
+import ru.gxfin.common.kafka.events.ObjectsLoadedFromIncomeTopicEvent;
+import ru.gxfin.common.kafka.TopicMessageMode;
 
 /**
  * Описатель обработчика одной очереди.
  */
-public class IncomeTopic2MemoryRepository {
+public class IncomeTopicLoadingDescriptor<O extends DataObject> {
     /**
      * Имя топика очереди.
      */
@@ -32,9 +35,8 @@ public class IncomeTopic2MemoryRepository {
     /**
      * Репозиторий, в который будут загружены входящие объекты.
      */
-    @SuppressWarnings("rawtypes")
     @Getter
-    private final AbstractMemoryRepository memoryRepository;
+    private final DataMemoryRepository<O> memoryRepository;
 
     /**
      * Режим данных в очереди: Пообъектно и пакетно.
@@ -42,12 +44,23 @@ public class IncomeTopic2MemoryRepository {
     @Getter
     private final TopicMessageMode messageMode;
 
+    @Getter
+    private final Class<ObjectsLoadedFromIncomeTopicEvent<O>> onLoadedEventClass;
+
     @SuppressWarnings("rawtypes")
-    public IncomeTopic2MemoryRepository(String topic, int priority, Consumer consumer, AbstractMemoryRepository memoryRepository, TopicMessageMode messageMode) {
+    public IncomeTopicLoadingDescriptor(
+            String topic,
+            int priority,
+            Consumer consumer,
+            DataMemoryRepository<O> memoryRepository,
+            TopicMessageMode messageMode,
+            Class<ObjectsLoadedFromIncomeTopicEvent<O>> onLoadedEventClass
+    ) {
         this.topic = topic;
         this.priority = priority;
         this.consumer = consumer;
         this.memoryRepository = memoryRepository;
         this.messageMode = messageMode;
+        this.onLoadedEventClass = onLoadedEventClass;
     }
 }
