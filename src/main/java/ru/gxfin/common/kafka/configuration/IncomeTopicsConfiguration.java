@@ -12,7 +12,7 @@ import java.util.Properties;
 /**
  * Интерфейс конфигурации обработки входящих очередей.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "rawtypes"})
 public interface IncomeTopicsConfiguration extends ObjectsLoadedFromIncomeTopicEventsFactory {
     /**
      * Полчение описателя обработчика по топику.
@@ -32,7 +32,6 @@ public interface IncomeTopicsConfiguration extends ObjectsLoadedFromIncomeTopicE
      * @param mode              Режим данных в очереди: Пообъектно и пакетно.
      * @return this.
      */
-    @SuppressWarnings("rawtypes")
     IncomeTopicsConfiguration register(int priority, String topic, Consumer consumer, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Class<ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass);
 
     /**
@@ -46,7 +45,6 @@ public interface IncomeTopicsConfiguration extends ObjectsLoadedFromIncomeTopicE
      * @param partitions         Разделы в топике.
      * @return this.
      */
-    @SuppressWarnings("rawtypes")
     IncomeTopicsConfiguration register(int priority, String topic, AbstractMemoryRepository memoryRepository, TopicMessageMode mode, Class<ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass, Properties consumerProperties, int... partitions);
 
     /**
@@ -55,7 +53,6 @@ public interface IncomeTopicsConfiguration extends ObjectsLoadedFromIncomeTopicE
      * @param item Описатель обработчика одной очереди.
      * @return this.
      */
-    @SuppressWarnings("rawtypes")
     IncomeTopicsConfiguration register(IncomeTopicLoadingDescriptor item);
 
     /**

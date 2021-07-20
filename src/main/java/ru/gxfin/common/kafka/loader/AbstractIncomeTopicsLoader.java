@@ -9,8 +9,6 @@ import ru.gxfin.common.data.DataPackage;
 import ru.gxfin.common.kafka.IncomeTopicsConsumingException;
 import ru.gxfin.common.kafka.TopicMessageMode;
 import ru.gxfin.common.kafka.configuration.IncomeTopicsConfiguration;
-import ru.gxfin.common.kafka.events.AbstractObjectsLoadedFromIncomeTopicEvent;
-import ru.gxfin.common.kafka.events.ObjectsLoadedFromIncomeTopicEvent;
 import ru.gxfin.common.kafka.events.ObjectsLoadedFromIncomeTopicEventsFactory;
 
 import java.time.Duration;
@@ -21,7 +19,7 @@ import java.util.ArrayList;
  */
 @Slf4j
 public abstract class AbstractIncomeTopicsLoader
-        implements IncomeTopicsLoader, ObjectsLoadedFromIncomeTopicEventsFactory {
+        implements IncomeTopicsLoader {
     private final ApplicationContext context;
 
     protected AbstractIncomeTopicsLoader(ApplicationContext context) {
@@ -70,6 +68,7 @@ public abstract class AbstractIncomeTopicsLoader
      * @return                          Набор DataObject-ов из очереди.
      * @throws JsonProcessingException  Ошибки при десериализации из Json-а.
      */
+    @SuppressWarnings("rawtypes")
     @Override
     public Iterable<DataObject> loadObjects(IncomeTopicLoadingDescriptor topic2MemoryRepository, Duration durationOnPoll) throws JsonProcessingException {
         if (topic2MemoryRepository.getMessageMode() != TopicMessageMode.OBJECT) {
@@ -103,18 +102,16 @@ public abstract class AbstractIncomeTopicsLoader
     public void loadTopicsByConfiguration(IncomeTopicsConfiguration configuration, Duration durationOnPoll) throws JsonProcessingException {
         final var pCount = configuration.prioritiesCount();
         for (int p = 0; p < pCount; p++) {
-            var priorityObjectsCount = 0;
             final var topicDescriptors = configuration.getByPriority(p);
             for (var topicDescriptor : topicDescriptors) {
                 log.debug("Loading working data from topic: {}", topicDescriptor.getTopic());
                 var n = internalLoadTopic(topicDescriptor, durationOnPoll, configuration);
-                priorityObjectsCount += n;
                 log.debug("Loaded working data from topic: {}; {} objects", topicDescriptor.getTopic(), n);
             }
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected int internalLoadTopic(IncomeTopicLoadingDescriptor topic, Duration durationOnPoll, ObjectsLoadedFromIncomeTopicEventsFactory eventsFactory) throws JsonProcessingException {
         var result = 0;
         Iterable<DataObject> objects;
@@ -123,7 +120,7 @@ public abstract class AbstractIncomeTopicsLoader
             if (objects == null) {
                 return 0;
             }
-            for (var o : objects) {
+            for (var ignored : objects) {
                 result++;
             }
         } else /*if (topic.getMessageMode() == TopicMessageMode.PACKAGE)*/ {
@@ -136,13 +133,17 @@ public abstract class AbstractIncomeTopicsLoader
                 result += pack.size();
                 objectsList.addAll(pack.getObjects());
             }
+            // TODO: Передаелать сборку списка(?) объектов в более элегантное решение
             objects = objectsList;
         }
 
-        final var event = eventsFactory.getOrCreateEvent(topic.getOnLoadedEventClass(), this, topic, objects);
-        if (event != null) {
-            // Вызываем обработчик события о чтении объектов
-            this.context.publishEvent(event);
+        final var eventClass = topic.getOnLoadedEventClass();
+        if (eventClass != null) {
+            final var event = eventsFactory.getOrCreateEvent(eventClass, this, topic, objects);
+            if (event != null) {
+                // Вызываем обработчик события о чтении объектов
+                this.context.publishEvent(event);
+            }
         }
 
         return result;
@@ -154,10 +155,5 @@ public abstract class AbstractIncomeTopicsLoader
         final ConsumerRecords<Object, Object> records = consumer.poll(durationOnPoll);
         log.debug("Topic: {}; polled: {} records", topic2MemoryRepository.getTopic(), records.count());
         return records;
-    }
-
-    @Override
-    public AbstractObjectsLoadedFromIncomeTopicEvent getOrCreateEvent(Class<ObjectsLoadedFromIncomeTopicEvent> eventClass, Object source, IncomeTopicLoadingDescriptor loadingDescriptor, Iterable<DataObject> objects) {
-        return null;
     }
 }

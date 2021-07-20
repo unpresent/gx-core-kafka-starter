@@ -2,15 +2,14 @@ package ru.gxfin.common.kafka.annotations;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.Ordered;
-import ru.gxfin.common.updatable.UpdatableRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +35,7 @@ public class IncomeTopicListenerAnnotationBeanPostProcessor implements BeanPostP
      * @throws BeansException   ошибка при обработке.
      */
     @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+    public Object postProcessBeforeInitialization(@NotNull Object bean, @NotNull String beanName) throws BeansException {
         if (StringUtils.isEmpty(beanName)) {
             return null;
         }
@@ -44,14 +43,12 @@ public class IncomeTopicListenerAnnotationBeanPostProcessor implements BeanPostP
         IncomeTopicListener annotation = beanFactory.findAnnotationOnBean(beanName, IncomeTopicListener.class);
         if (annotation != null) {
             final var beanDefinition = beanFactory.getBeanDefinition(beanName);
-            if (beanDefinition != null) {
-                final var scope = beanDefinition.getScope();
-                if (isNoneBlank(scope) && !SCOPE_SINGLETON.equals(scope)) {
-                    throw new IllegalStateException(
-                            String.format("Cannot use scope [%s] with annotation UpdatableBean in bean [%s]", scope, beanName));
-                }
-                beansMap.put(beanName, Pair.of(bean, annotation));
+            final var scope = beanDefinition.getScope();
+            if (isNoneBlank(scope) && !SCOPE_SINGLETON.equals(scope)) {
+                throw new IllegalStateException(
+                        String.format("Cannot use scope [%s] with annotation UpdatableBean in bean [%s]", scope, beanName));
             }
+            beansMap.put(beanName, Pair.of(bean, annotation));
         }
         return bean;
     }
@@ -65,7 +62,7 @@ public class IncomeTopicListenerAnnotationBeanPostProcessor implements BeanPostP
      * @throws BeansException ошибка при обработке.
      */
     @Override
-    public Object postProcessAfterInitialization(Object proxyBean, String beanName) throws BeansException {
+    public Object postProcessAfterInitialization(@NotNull Object proxyBean, @NotNull String beanName) throws BeansException {
 
         Pair<Object, IncomeTopicListener> pair = beansMap.get(beanName);
         if (pair != null) {
@@ -89,7 +86,7 @@ public class IncomeTopicListenerAnnotationBeanPostProcessor implements BeanPostP
      * @param beanFactory фабрика бинов.
      */
     @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+    public void setBeanFactory(@NotNull BeanFactory beanFactory) throws BeansException {
         if (!(beanFactory instanceof ConfigurableListableBeanFactory)) {
             throw new IllegalArgumentException(
                     getClass().getSimpleName() + " requires a ConfigurableListableBeanFactory: " + beanFactory);

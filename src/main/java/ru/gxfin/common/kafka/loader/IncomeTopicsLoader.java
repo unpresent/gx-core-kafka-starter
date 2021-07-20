@@ -29,6 +29,7 @@ public interface IncomeTopicsLoader {
      * @return Набор DataObject-ов из очереди.
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
+    @SuppressWarnings("rawtypes")
     Iterable<DataObject> loadObjects(IncomeTopicLoadingDescriptor topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
 
     void loadTopicsByConfiguration(IncomeTopicsConfiguration configuration, Duration durationOnPoll) throws JsonProcessingException;

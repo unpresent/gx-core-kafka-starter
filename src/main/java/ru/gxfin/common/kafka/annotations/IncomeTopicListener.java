@@ -17,6 +17,7 @@ public @interface IncomeTopicListener {
     @AliasFor("classes")
     Class<ObjectsLoadedFromIncomeTopicEvent>[] value() default {};
 
+    @SuppressWarnings("unused")
     @AliasFor("value")
     Class<ObjectsLoadedFromIncomeTopicEvent>[] classes() default {};
 }

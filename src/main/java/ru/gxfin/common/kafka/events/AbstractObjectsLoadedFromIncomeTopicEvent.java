@@ -16,6 +16,7 @@ public abstract class AbstractObjectsLoadedFromIncomeTopicEvent<O extends DataOb
         extends ApplicationEvent
         implements ObjectsLoadedFromIncomeTopicEvent<O> {
 
+    @SuppressWarnings("rawtypes")
     @Getter
     @Setter(AccessLevel.PROTECTED)
     private IncomeTopicLoadingDescriptor loadingDescriptor;
