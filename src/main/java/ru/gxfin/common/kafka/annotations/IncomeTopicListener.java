@@ -9,15 +9,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@SuppressWarnings("rawtypes")
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @EventListener
 public @interface IncomeTopicListener {
     @AliasFor("classes")
-    Class<ObjectsLoadedFromIncomeTopicEvent>[] value() default {};
+    Class<? extends ObjectsLoadedFromIncomeTopicEvent>[] value() default {};
 
     @SuppressWarnings("unused")
     @AliasFor("value")
-    Class<ObjectsLoadedFromIncomeTopicEvent>[] classes() default {};
+    Class<? extends ObjectsLoadedFromIncomeTopicEvent>[] classes() default {};
 }
