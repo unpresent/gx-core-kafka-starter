@@ -11,6 +11,7 @@ import ru.gxfin.common.kafka.IncomeTopicsConsumingException;
 import ru.gxfin.common.kafka.TopicMessageMode;
 import ru.gxfin.common.kafka.events.ObjectsLoadedFromIncomeTopicEvent;
 import ru.gxfin.common.kafka.loader.IncomeTopicLoadingDescriptor;
+import ru.gxfin.common.kafka.loader.PartitionOffset;
 
 import java.util.*;
 
@@ -30,11 +31,23 @@ public abstract class AbstractIncomeTopicsConfiguration
         this.context = context;
     }
 
+    /**
+     * Полчение описателя обработчика по топику.
+     *
+     * @param topic Имя топика, для которого требуется получить описатель.
+     * @return Описатель обработчика одной очереди.
+     */
     @Override
     public IncomeTopicLoadingDescriptor get(String topic) {
         return this.topics.get(topic);
     }
 
+    /**
+     * Регистрация описателя обработчика одной очереди.
+     *
+     * @param item Описатель обработчика одной очереди.
+     * @return this.
+     */
     @Override
     public AbstractIncomeTopicsConfiguration register(IncomeTopicLoadingDescriptor item) {
         if (this.topics.containsKey(item.getTopic())) {
@@ -54,18 +67,40 @@ public abstract class AbstractIncomeTopicsConfiguration
         return this;
     }
 
+    /**
+     * Регистрация описателя обработчика одной очереди.
+     *
+     * @param priority         Приоритет очереди.
+     * @param topic            Имя топика очереди.
+     * @param consumer         Объект-получатель.
+     * @param memoryRepository Репозиторий, в который будут загружены входящие объекты.
+     * @param mode             Режим данных в очереди: Пообъектно и пакетно.
+     * @return this.
+     */
     @Override
     public IncomeTopicsConfiguration register(
             int priority,
             String topic,
             Consumer consumer,
+            List<TopicPartition> topicPartitions,
             AbstractMemoryRepository memoryRepository,
             TopicMessageMode mode,
             Class<? extends ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass
     ) {
-        return register(new IncomeTopicLoadingDescriptor(topic, priority, consumer, memoryRepository, mode, onLoadedEventClass));
+        return register(new IncomeTopicLoadingDescriptor(topic, priority, consumer, topicPartitions, memoryRepository, mode, onLoadedEventClass));
     }
 
+    /**
+     * Регистрация описателя обработчика одной очереди.
+     *
+     * @param priority           Приоритет очереди.
+     * @param topic              Имя топика очереди.
+     * @param memoryRepository   Репозиторий, в который будут загружены входящие объекты.
+     * @param mode               Режим данных в очереди: Пообъектно и пакетно.
+     * @param consumerProperties Свойства consumer-а.
+     * @param partitions         Разделы в топике.
+     * @return this.
+     */
     @Override
     public IncomeTopicsConfiguration register(
             int priority,
@@ -76,20 +111,23 @@ public abstract class AbstractIncomeTopicsConfiguration
             Properties consumerProperties,
             int... partitions
     ) {
-        final var consumer = defineSimpleTopicConsumer(consumerProperties, topic, partitions);
-        return register(new IncomeTopicLoadingDescriptor(topic, priority, consumer, memoryRepository, mode, onLoadedEventClass));
-    }
-
-    public Consumer defineSimpleTopicConsumer(Properties properties, String topic, int... partitions) {
-        final var result = new KafkaConsumer(properties);
+        final List<Integer> partitionsList = new ArrayList<>();
         final List<TopicPartition> topicPartitions = new ArrayList<>();
-        for (var p : partitions) {
+        Arrays.stream(partitions).forEach(p -> {
             topicPartitions.add(new TopicPartition(topic, p));
-        }
-        result.assign(topicPartitions);
-        return result;
+            partitionsList.add(p);
+        });
+        final var consumer = new KafkaConsumer(consumerProperties);
+        consumer.assign(topicPartitions);
+        return register(new IncomeTopicLoadingDescriptor(topic, priority, consumer, partitionsList, memoryRepository, mode, onLoadedEventClass));
     }
 
+    /**
+     * Дерегистрация обработчика очереди.
+     *
+     * @param topic Имя топика очереди.
+     * @return this.
+     */
     @Override
     public AbstractIncomeTopicsConfiguration unregister(String topic) {
         final var item = this.topics.get(topic);
@@ -107,15 +145,33 @@ public abstract class AbstractIncomeTopicsConfiguration
         return this;
     }
 
+    /**
+     * @return Количество приоритетов.
+     */
     @Override
     public int prioritiesCount() {
         return this.priorities.size();
     }
 
+    /**
+     * Получение списка описателей обработчиков очередей по приоритету.
+     *
+     * @param priority Приоритет.
+     * @return Список описателей обработчиков.
+     */
     @Override
     public Iterable<IncomeTopicLoadingDescriptor> getByPriority(int priority) {
         return this.priorities.get(priority);
     }
+
+    /**
+     * @return Список всех описателей обработчиков очередей.
+     */
+    @Override
+    public Iterable<IncomeTopicLoadingDescriptor> getAll() {
+        return this.topics.values();
+    }
+
 
     /**
      * Получение объекта-события, заполненного параметрами.
@@ -130,5 +186,63 @@ public abstract class AbstractIncomeTopicsConfiguration
         final var result = this.context.getBean(eventClass);
         result.reset(source, loadingDescriptor, objects);
         return result;
+    }
+
+    /**
+     * Требование о смещении Offset-ов на начало для всех Topic-ов и всех Partition-ов.
+     */
+    @Override
+    public void seekAllToBegin() {
+        this.topics.values().forEach(topicDescriptor ->
+                topicDescriptor
+                        .getConsumer()
+                        .seekToBeginning(topicDescriptor.getTopicPartitions()));
+    }
+
+    /**
+     * Требование о смещении Offset-ов на конец для всех Topic-ов и всех Partition-ов.
+     */
+    @Override
+    public void seekAllToEnd() {
+        this.topics.values().forEach(topicDescriptor ->
+                topicDescriptor
+                        .getConsumer()
+                        .seekToEnd(topicDescriptor.getTopicPartitions()));
+    }
+
+    /**
+     * Требование о смещении Offset-ов на начало для всех Partition-ов для заданного Topic-а.
+     *
+     * @param topic Топик, для которого требуется сместить смещения.
+     */
+    @Override
+    public void seekTopicAllPartitionsToBegin(String topic) {
+        final var topicDescriptor = this.get(topic);
+        topicDescriptor.getConsumer().seekToBeginning(topicDescriptor.getTopicPartitions());
+    }
+
+    /**
+     * Требование о смещении Offset-ов на конец для всех Partition-ов для заданного Topic-а.
+     *
+     * @param topic Топик, для которого требуется сместить смещения.
+     */
+    @Override
+    public void seekTopicAllPartitionsToEnd(String topic) {
+        final var topicDescriptor = this.get(topic);
+        topicDescriptor.getConsumer().seekToEnd(topicDescriptor.getTopicPartitions());
+    }
+
+    /**
+     * Требование о смещении Offset-ов на заданные значения для заданного Topic-а.
+     *
+     * @param topic            Топик, для которого требуется сместить смещения.
+     * @param partitionOffsets Смещения (для каждого Partition-а свой Offset).
+     */
+    @Override
+    public void seekTopic(String topic, Iterable<PartitionOffset> partitionOffsets) {
+        final var topicDescriptor = this.get(topic);
+        topicDescriptor
+                .getPartitionOffsets()
+                .forEach((k, v) -> topicDescriptor.getConsumer().seek(new TopicPartition(topic, (int) k), (long) v));
     }
 }

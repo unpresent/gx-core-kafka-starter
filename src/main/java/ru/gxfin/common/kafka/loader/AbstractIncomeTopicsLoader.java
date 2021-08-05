@@ -57,6 +57,7 @@ public abstract class AbstractIncomeTopicsLoader
             } else {
                 throw new IncomeTopicsConsumingException("Unsupported value type received by consumer! Topic: " + topic2MemoryRepository.getTopic());
             }
+            topic2MemoryRepository.setDeserializedPartitionOffset(rec.partition(), rec.offset());
         }
         return result;
     }
@@ -91,6 +92,7 @@ public abstract class AbstractIncomeTopicsLoader
             } else {
                 throw new IncomeTopicsConsumingException("Unsupported value type received by consumer! Topic: " + topic2MemoryRepository.getTopic());
             }
+            topic2MemoryRepository.setDeserializedPartitionOffset(rec.partition(), rec.offset());
         }
         return result;
     }
@@ -115,6 +117,7 @@ public abstract class AbstractIncomeTopicsLoader
     protected int internalLoadTopic(IncomeTopicLoadingDescriptor topic, Duration durationOnPoll, ObjectsLoadedFromIncomeTopicEventsFactory eventsFactory) throws JsonProcessingException {
         var result = 0;
         Iterable<DataObject> objects;
+        final var started = System.currentTimeMillis();
         if (topic.getMessageMode() == TopicMessageMode.OBJECT) {
             objects = this.loadObjects(topic, durationOnPoll);
             if (objects == null) {
@@ -123,18 +126,22 @@ public abstract class AbstractIncomeTopicsLoader
             for (var ignored : objects) {
                 result++;
             }
+            log.info("Loaded and deserialized (offsets: {}) from kafka topic {}, {} objects in {} ms.", topic.getDeserializedPartitionsOffsetsForLog(), topic.getTopic(), result, System.currentTimeMillis() - started);
         } else /*if (topic.getMessageMode() == TopicMessageMode.PACKAGE)*/ {
+            var packagesCount = 0;
             final var packages = this.loadPackages(topic, durationOnPoll);
             final var objectsList = new ArrayList<DataObject>();
             if (packages == null) {
                 return 0;
             }
             for (var pack : packages) {
+                packagesCount++;
                 result += pack.size();
                 objectsList.addAll(pack.getObjects());
             }
-            // TODO: Передаелать сборку списка(?) объектов в более элегантное решение
+            // TODO: Переделать сборку списка(?) объектов в более элегантное решение
             objects = objectsList;
+            log.info("Loaded and deserialized (offset: {}) from kafka topic {}, {} objects, {} packages in {} ms.", topic.getDeserializedPartitionsOffsetsForLog(), topic.getTopic(), result, packagesCount, System.currentTimeMillis() - started);
         }
 
         final var eventClass = topic.getOnLoadedEventClass();
