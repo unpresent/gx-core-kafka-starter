@@ -17,6 +17,7 @@ import java.util.Map;
 import static org.apache.commons.lang3.StringUtils.isNoneBlank;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
+@Deprecated
 public class IncomeTopicListenerAnnotationBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware, Ordered {
 
     private final Map<String, Pair<Object, IncomeTopicListener>> beansMap = new HashMap<>();

@@ -2,11 +2,15 @@ package ru.gxfin.common.kafka.configuration;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.TopicPartition;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.lang.Nullable;
 import ru.gxfin.common.data.AbstractMemoryRepository;
+import ru.gxfin.common.data.DataObject;
+import ru.gxfin.common.data.DataPackage;
 import ru.gxfin.common.kafka.TopicMessageMode;
-import ru.gxfin.common.kafka.events.ObjectsLoadedFromIncomeTopicEvent;
-import ru.gxfin.common.kafka.events.ObjectsLoadedFromIncomeTopicEventsFactory;
+import ru.gxfin.common.kafka.events.OnObjectsLoadedFromIncomeTopicEvent;
 import ru.gxfin.common.kafka.loader.IncomeTopicLoadingDescriptor;
+import ru.gxfin.common.kafka.loader.LoadingMode;
 import ru.gxfin.common.kafka.loader.PartitionOffset;
 
 import java.util.List;
@@ -16,7 +20,7 @@ import java.util.Properties;
  * Интерфейс конфигурации обработки входящих очередей.
  */
 @SuppressWarnings({"unused", "rawtypes"})
-public interface IncomeTopicsConfiguration extends ObjectsLoadedFromIncomeTopicEventsFactory {
+public interface IncomeTopicsConfiguration {
     /**
      * Полчение описателя обработчика по топику.
      *
@@ -24,47 +28,6 @@ public interface IncomeTopicsConfiguration extends ObjectsLoadedFromIncomeTopicE
      * @return Описатель обработчика одной очереди.
      */
     IncomeTopicLoadingDescriptor get(String topic);
-
-    /**
-     * Регистрация описателя обработчика одной очереди.
-     *
-     * @param priority          Приоритет очереди.
-     * @param topic             Имя топика очереди.
-     * @param consumer          Объект-получатель.
-     * @param memoryRepository  Репозиторий, в который будут загружены входящие объекты.
-     * @param mode              Режим данных в очереди: Пообъектно и пакетно.
-     * @return this.
-     */
-    IncomeTopicsConfiguration register(
-            int priority,
-            String topic,
-            Consumer consumer,
-            List<TopicPartition> topicPartitions,
-            AbstractMemoryRepository memoryRepository,
-            TopicMessageMode mode,
-            Class<? extends ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass
-    );
-
-    /**
-     * Регистрация описателя обработчика одной очереди.
-     *
-     * @param priority           Приоритет очереди.
-     * @param topic              Имя топика очереди.
-     * @param memoryRepository   Репозиторий, в который будут загружены входящие объекты.
-     * @param mode               Режим данных в очереди: Пообъектно и пакетно.
-     * @param consumerProperties Свойства consumer-а.
-     * @param partitions         Разделы в топике.
-     * @return this.
-     */
-    IncomeTopicsConfiguration register(
-            int priority,
-            String topic,
-            AbstractMemoryRepository memoryRepository,
-            TopicMessageMode mode,
-            Class<? extends ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass,
-            Properties consumerProperties,
-            int... partitions
-    );
 
     /**
      * Регистрация описателя обработчика одной очереди.
@@ -81,6 +44,11 @@ public interface IncomeTopicsConfiguration extends ObjectsLoadedFromIncomeTopicE
      * @return this.
      */
     IncomeTopicsConfiguration unregister(String topic);
+
+    /**
+     * @return Настройки по умолчанию для новых описателей загрузки из топиков.
+     */
+    IncomeTopicLoadingDescriptorsDefaults getDescriptorsDefaults();
 
     /**
      * @return Количество приоритетов.

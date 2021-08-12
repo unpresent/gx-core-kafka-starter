@@ -1,5 +1,6 @@
 package ru.gxfin.common.kafka.annotations;
 
+@Deprecated
 public interface IncomeTopicListenerRegistry {
     /**
      * Регистрирует в реестре бин с обновляемыми свойствами.

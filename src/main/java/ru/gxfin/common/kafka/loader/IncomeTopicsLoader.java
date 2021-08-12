@@ -3,9 +3,12 @@ package ru.gxfin.common.kafka.loader;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ru.gxfin.common.data.DataObject;
 import ru.gxfin.common.data.DataPackage;
+import ru.gxfin.common.data.ObjectAlreadyExistsException;
+import ru.gxfin.common.data.ObjectNotExistsException;
 import ru.gxfin.common.kafka.configuration.IncomeTopicsConfiguration;
 
 import java.time.Duration;
+import java.util.Collection;
 
 /**
  * Интерфейс вспомогательного загрузчика, которые упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
@@ -13,24 +16,19 @@ import java.time.Duration;
 @SuppressWarnings("unused")
 public interface IncomeTopicsLoader {
     /**
-     * Чтение набора DataPackage-ей из очереди.
-     * @param topic2MemRepo Описатель обработчика одной очереди.
-     * @param durationOnPoll Длительность ожидания данных в очереди.
-     * @return Набор DataPackage-ей из очереди.
-     * @throws JsonProcessingException Ошибки при десериализации из Json-а.
+     * Загрузка и обработка данных по списку топиков по конфигурации.
+     * @param descriptor                        Описатель загрузки из Топика.
+     * @param durationOnPoll                    Длительность, в течение которой ожидать данных из Топика.
+     * @throws JsonProcessingException          Ошибки при десериализации из Json-а.
      */
     @SuppressWarnings("rawtypes")
-    Iterable<DataPackage> loadPackages(IncomeTopicLoadingDescriptor topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
+    int processByTopic(IncomeTopicLoadingDescriptor descriptor, Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
 
     /**
-     * Чтение набора DataObject-ов из очереди.
-     * @param topic2MemRepo Описатель обработчика одной очереди.
-     * @param durationOnPoll Длительность ожидания данных в очереди.
-     * @return Набор DataObject-ов из очереди.
-     * @throws JsonProcessingException Ошибки при десериализации из Json-а.
+     * Загрузка и обработка данных по списку топиков по конфигурации.
+     * @param configuration                     Конфигурация.
+     * @param durationOnPoll                    Длительность, в течение которой ожидать данных из Топика.
+     * @throws JsonProcessingException          Ошибки при десериализации из Json-а.
      */
-    @SuppressWarnings("rawtypes")
-    Iterable<DataObject> loadObjects(IncomeTopicLoadingDescriptor topic2MemRepo, Duration durationOnPoll) throws JsonProcessingException;
-
-    void loadTopicsByConfiguration(IncomeTopicsConfiguration configuration, Duration durationOnPoll) throws JsonProcessingException;
+    void processTopicsByConfiguration(IncomeTopicsConfiguration configuration, Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
 }

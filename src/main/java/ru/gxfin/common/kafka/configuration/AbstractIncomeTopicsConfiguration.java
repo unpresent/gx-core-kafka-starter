@@ -1,34 +1,38 @@
 package ru.gxfin.common.kafka.configuration;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
+import org.springframework.lang.Nullable;
 import ru.gxfin.common.data.AbstractMemoryRepository;
 import ru.gxfin.common.data.DataObject;
+import ru.gxfin.common.data.DataPackage;
 import ru.gxfin.common.kafka.IncomeTopicsConsumingException;
 import ru.gxfin.common.kafka.TopicMessageMode;
-import ru.gxfin.common.kafka.events.ObjectsLoadedFromIncomeTopicEvent;
+import ru.gxfin.common.kafka.events.OnObjectsLoadedFromIncomeTopicEvent;
 import ru.gxfin.common.kafka.loader.IncomeTopicLoadingDescriptor;
+import ru.gxfin.common.kafka.loader.LoadingMode;
 import ru.gxfin.common.kafka.loader.PartitionOffset;
 
 import java.util.*;
 
 @Slf4j
 @SuppressWarnings({"unused", "rawtypes", "unchecked"})
-public abstract class AbstractIncomeTopicsConfiguration
-        implements IncomeTopicsConfiguration {
-
-    private final ApplicationContext context;
+public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsConfiguration {
 
     private final List<List<IncomeTopicLoadingDescriptor>> priorities = new ArrayList<>();
 
     private final Map<String, IncomeTopicLoadingDescriptor> topics = new HashMap<>();
 
-    protected AbstractIncomeTopicsConfiguration(ApplicationContext context) {
+    @Getter
+    private final IncomeTopicLoadingDescriptorsDefaults descriptorsDefaults;
+
+    protected AbstractIncomeTopicsConfiguration() {
         super();
-        this.context = context;
+        this.descriptorsDefaults = new IncomeTopicLoadingDescriptorsDefaults();
     }
 
     /**
@@ -54,6 +58,10 @@ public abstract class AbstractIncomeTopicsConfiguration
             throw new IncomeTopicsConsumingException("Topic " + item.getTopic() + " already registered!");
         }
 
+        if (!item.isInitialized()) {
+            item.init(getDescriptorsDefaults().getConsumerProperties());
+        }
+
         final var priority = item.getPriority();
         while (priorities.size() <= priority) {
             priorities.add(new ArrayList<>());
@@ -65,61 +73,6 @@ public abstract class AbstractIncomeTopicsConfiguration
         topics.put(item.getTopic(), item);
 
         return this;
-    }
-
-    /**
-     * Регистрация описателя обработчика одной очереди.
-     *
-     * @param priority         Приоритет очереди.
-     * @param topic            Имя топика очереди.
-     * @param consumer         Объект-получатель.
-     * @param memoryRepository Репозиторий, в который будут загружены входящие объекты.
-     * @param mode             Режим данных в очереди: Пообъектно и пакетно.
-     * @return this.
-     */
-    @Override
-    public IncomeTopicsConfiguration register(
-            int priority,
-            String topic,
-            Consumer consumer,
-            List<TopicPartition> topicPartitions,
-            AbstractMemoryRepository memoryRepository,
-            TopicMessageMode mode,
-            Class<? extends ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass
-    ) {
-        return register(new IncomeTopicLoadingDescriptor(topic, priority, consumer, topicPartitions, memoryRepository, mode, onLoadedEventClass));
-    }
-
-    /**
-     * Регистрация описателя обработчика одной очереди.
-     *
-     * @param priority           Приоритет очереди.
-     * @param topic              Имя топика очереди.
-     * @param memoryRepository   Репозиторий, в который будут загружены входящие объекты.
-     * @param mode               Режим данных в очереди: Пообъектно и пакетно.
-     * @param consumerProperties Свойства consumer-а.
-     * @param partitions         Разделы в топике.
-     * @return this.
-     */
-    @Override
-    public IncomeTopicsConfiguration register(
-            int priority,
-            String topic,
-            AbstractMemoryRepository memoryRepository,
-            TopicMessageMode mode,
-            Class<? extends ObjectsLoadedFromIncomeTopicEvent> onLoadedEventClass,
-            Properties consumerProperties,
-            int... partitions
-    ) {
-        final List<Integer> partitionsList = new ArrayList<>();
-        final List<TopicPartition> topicPartitions = new ArrayList<>();
-        Arrays.stream(partitions).forEach(p -> {
-            topicPartitions.add(new TopicPartition(topic, p));
-            partitionsList.add(p);
-        });
-        final var consumer = new KafkaConsumer(consumerProperties);
-        consumer.assign(topicPartitions);
-        return register(new IncomeTopicLoadingDescriptor(topic, priority, consumer, partitionsList, memoryRepository, mode, onLoadedEventClass));
     }
 
     /**
@@ -170,22 +123,6 @@ public abstract class AbstractIncomeTopicsConfiguration
     @Override
     public Iterable<IncomeTopicLoadingDescriptor> getAll() {
         return this.topics.values();
-    }
-
-
-    /**
-     * Получение объекта-события, заполненного параметрами.
-     *
-     * @param source            Источник события.
-     * @param loadingDescriptor Описатель загрузчика из topic-а.
-     * @param objects           Прочитанные объекты при чтении из топика.
-     * @return Объект-событие.
-     */
-    @Override
-    public ObjectsLoadedFromIncomeTopicEvent getOrCreateEvent(Class<? extends ObjectsLoadedFromIncomeTopicEvent> eventClass, Object source, IncomeTopicLoadingDescriptor loadingDescriptor, Iterable<DataObject> objects) {
-        final var result = this.context.getBean(eventClass);
-        result.reset(source, loadingDescriptor, objects);
-        return result;
     }
 
     /**
