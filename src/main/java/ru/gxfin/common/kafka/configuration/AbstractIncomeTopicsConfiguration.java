@@ -2,22 +2,15 @@ package ru.gxfin.common.kafka.configuration;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.context.ApplicationContext;
-import org.springframework.lang.Nullable;
-import ru.gxfin.common.data.AbstractMemoryRepository;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
 import ru.gxfin.common.kafka.IncomeTopicsConsumingException;
-import ru.gxfin.common.kafka.TopicMessageMode;
-import ru.gxfin.common.kafka.events.OnObjectsLoadedFromIncomeTopicEvent;
 import ru.gxfin.common.kafka.loader.IncomeTopicLoadingDescriptor;
-import ru.gxfin.common.kafka.loader.LoadingMode;
 import ru.gxfin.common.kafka.loader.PartitionOffset;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @SuppressWarnings({"unused", "rawtypes", "unchecked"})
@@ -36,7 +29,7 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
     }
 
     /**
-     * Полчение описателя обработчика по топику.
+     * Получение описателя обработчика по топику.
      *
      * @param topic Имя топика, для которого требуется получить описатель.
      * @return Описатель обработчика одной очереди.

@@ -1,20 +1,7 @@
 package ru.gxfin.common.kafka.configuration;
 
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.common.TopicPartition;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.lang.Nullable;
-import ru.gxfin.common.data.AbstractMemoryRepository;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
-import ru.gxfin.common.kafka.TopicMessageMode;
-import ru.gxfin.common.kafka.events.OnObjectsLoadedFromIncomeTopicEvent;
 import ru.gxfin.common.kafka.loader.IncomeTopicLoadingDescriptor;
-import ru.gxfin.common.kafka.loader.LoadingMode;
 import ru.gxfin.common.kafka.loader.PartitionOffset;
-
-import java.util.List;
-import java.util.Properties;
 
 /**
  * Интерфейс конфигурации обработки входящих очередей.
@@ -22,7 +9,7 @@ import java.util.Properties;
 @SuppressWarnings({"unused", "rawtypes"})
 public interface IncomeTopicsConfiguration {
     /**
-     * Полчение описателя обработчика по топику.
+     * Получение описателя обработчика по топику.
      *
      * @param topic Имя топика, для которого требуется получить описатель.
      * @return Описатель обработчика одной очереди.
