@@ -216,7 +216,6 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected Collection<DataObject> internalLoadObjectsFromTopic(IncomeTopicLoadingDescriptor descriptor, Duration durationOnPoll) throws JsonProcessingException {
         Collection<DataObject> objects;
-        final var started = System.currentTimeMillis();
         if (descriptor.getMessageMode() == TopicMessageMode.OBJECT) {
             objects = this.internalLoadObjects(descriptor, durationOnPoll);
             if (objects == null) {

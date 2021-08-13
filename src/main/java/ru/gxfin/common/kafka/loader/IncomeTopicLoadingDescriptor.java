@@ -36,7 +36,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
     private final String topic;
 
     /**
-     * Приоритет, с которым надо обрабтавать очередь.
+     * Приоритет, с которым надо обрабатывать очередь.
      * 0 - высший.
      * > 0 - менее приоритетный.
      */

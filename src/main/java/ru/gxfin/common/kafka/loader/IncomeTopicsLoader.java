@@ -1,14 +1,11 @@
 package ru.gxfin.common.kafka.loader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
 import ru.gxfin.common.data.ObjectAlreadyExistsException;
 import ru.gxfin.common.data.ObjectNotExistsException;
 import ru.gxfin.common.kafka.configuration.IncomeTopicsConfiguration;
 
 import java.time.Duration;
-import java.util.Collection;
 
 /**
  * Интерфейс вспомогательного загрузчика, которые упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
