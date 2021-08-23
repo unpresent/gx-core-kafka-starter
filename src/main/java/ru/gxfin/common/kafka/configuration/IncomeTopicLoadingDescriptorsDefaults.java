@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import ru.gxfin.common.kafka.TopicMessageMode;
+import ru.gxfin.common.kafka.loader.LoadingFiltering;
 import ru.gxfin.common.kafka.loader.LoadingMode;
 
 import java.util.Properties;
@@ -19,7 +20,11 @@ public class IncomeTopicLoadingDescriptorsDefaults {
     private LoadingMode loadingMode = LoadingMode.Auto;
 
     @Setter
-    private TopicMessageMode topicMessageMode = TopicMessageMode.PACKAGE;
+    private TopicMessageMode topicMessageMode = TopicMessageMode.OBJECT;
+
+    @Getter
+    @Setter
+    private LoadingFiltering loadingFiltering;
 
     @Setter
     private Properties consumerProperties;

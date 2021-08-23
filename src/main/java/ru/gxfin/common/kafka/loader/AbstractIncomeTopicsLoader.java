@@ -96,7 +96,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
                 .setLoadedToRepositoryMs(msLoadedToRepository - msEventLoading)
                 .setOnLoadedEventMs(msFinish - msLoadedToRepository);
 
-        log.info("Loaded from topic {} (offset: {}), {} objects, {} packages [inserted: {}, updated: {}, replaced{}] in {} ms (loading: {}, changes: {}, eventLoading: {}, repository: {}, eventLoaded: {}).",
+        log.info("Loaded from topic {} (offset: {}), {} objects, {} packages [I:{}, U:{}, R:{}] in {} ms (L: {}, Ch: {}, eLing: {}, Rep: {}, eLed: {}).",
                 descriptor.getTopic(),
                 descriptor.getDeserializedPartitionsOffsetsForLog(),
                 statistics.getLoadedObjectsCount(),
@@ -149,13 +149,23 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
         if (descriptor.getMessageMode() != TopicMessageMode.PACKAGE) {
             throw new IncomeTopicsConsumingException("Can't load packages from topic: " + descriptor.getTopic());
         }
-        final var records = internalPoll(descriptor, durationOnPoll);
-        if (records.isEmpty()) {
-            return null;
-        }
 
         final var result = new ArrayList<DataPackage>();
+        final var records = internalPoll(descriptor, durationOnPoll);
+        if (records.isEmpty()) {
+            return result;
+        }
+
         for (var rec : records) {
+            // Фильтрация (если задана)
+            if (descriptor.getLoadingFiltering() != null) {
+                final var headers = rec.headers();
+                if (!descriptor.getLoadingFiltering().allowProcess(headers)) {
+                    continue;
+                }
+            }
+
+            // Десериализация
             final var value = rec.value();
             if (value instanceof String) {
                 final var valueString = (String) value;
@@ -183,13 +193,23 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
         if (descriptor.getMessageMode() != TopicMessageMode.OBJECT) {
             throw new IncomeTopicsConsumingException("Can't load objects from topic: " + descriptor.getTopic());
         }
-        final var records = internalPoll(descriptor, durationOnPoll);
-        if (records.isEmpty()) {
-            return null;
-        }
 
         final var result = new ArrayList<DataObject>();
+        final var records = internalPoll(descriptor, durationOnPoll);
+        if (records.isEmpty()) {
+            return result;
+        }
+
         for (var rec : records) {
+            // Фильтрация (если задана)
+            if (descriptor.getLoadingFiltering() != null) {
+                final var headers = rec.headers();
+                if (!descriptor.getLoadingFiltering().allowProcess(headers)) {
+                    continue;
+                }
+            }
+
+            // Десериализация
             final var value = rec.value();
             if (value instanceof String) {
                 final var valueString = (String) value;

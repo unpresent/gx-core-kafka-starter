@@ -173,6 +173,8 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
         final var topicDescriptor = this.get(topic);
         topicDescriptor
                 .getPartitionOffsets()
-                .forEach((k, v) -> topicDescriptor.getConsumer().seek(new TopicPartition(topic, (int) k), (long) v));
+                .forEach((k, v) ->
+                    topicDescriptor.getConsumer().seek(new TopicPartition(topic, (int) k), (long) v < 0 ? 0 : (long) v)
+                );
     }
 }

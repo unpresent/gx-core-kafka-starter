@@ -178,6 +178,13 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
     private LoadingMode loadingMode;
 
     @Getter
+    @Setter
+    private LoadingFiltering loadingFiltering;
+
+    /**
+     * Статистика чтения и обработки данных.
+     */
+    @Getter
     private final IncomeTopicLoadingStatistics loadingStatistics = new IncomeTopicLoadingStatistics();
 
     /**
@@ -224,7 +231,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
 
         final var thisClass = this.getClass();
         final var superClass = thisClass.getGenericSuperclass();
-        if (superClass != null) {
+        if (superClass instanceof ParameterizedType) {
             // TODO: Проверить!
             this.dataObjectClass = (Class<O>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
             this.dataPackageClass = (Class<P>) ((ParameterizedType) superClass).getActualTypeArguments()[1];
