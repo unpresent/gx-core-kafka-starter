@@ -19,6 +19,8 @@ import ru.gxfin.common.kafka.events.NewOldDataObjectsPair;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Базовая реализация загрузчика, который упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
@@ -49,9 +51,16 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="реализация IncomeTopicsLoader">
 
+    /**
+     * Загрузка и обработка данных по списку топиков по конфигурации.
+     * @param descriptor                        Описатель загрузки из Топика.
+     * @param durationOnPoll                    Длительность, в течение которой ожидать данных из Топика.
+     * @throws JsonProcessingException          Ошибки при десериализации из Json-а.
+     * @return                                  Список загруженных объектов.
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public int processByTopic(IncomeTopicLoadingDescriptor descriptor, Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
+    public Collection<DataObject> processByTopic(IncomeTopicLoadingDescriptor descriptor, Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         final var statistics = descriptor.getLoadingStatistics().reset();
         var msStart = System.currentTimeMillis();
         // Получаем данные из очереди.
@@ -112,24 +121,29 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
                 statistics.getOnLoadedEventMs()
         );
 
-        return loadedObjects.size();
+        return loadedObjects;
     }
 
     /**
      * Чтение объектов из очередей в порядке определенной в конфигурации.
      *
      * @param configuration Конфигурация топиков.
+     * @return Map-а, в которой для каждого дескриптора указан список загруженных объектов.
      */
-    public void processTopicsByConfiguration(IncomeTopicsConfiguration configuration, Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
+    @SuppressWarnings("rawtypes")
+    public Map<IncomeTopicLoadingDescriptor, Collection<DataObject>> processTopicsByConfiguration(IncomeTopicsConfiguration configuration, Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         final var pCount = configuration.prioritiesCount();
+        final var result = new HashMap<IncomeTopicLoadingDescriptor, Collection<DataObject>>();
         for (int p = 0; p < pCount; p++) {
             final var topicDescriptors = configuration.getByPriority(p);
             for (var topicDescriptor : topicDescriptors) {
                 log.debug("Loading working data from topic: {}", topicDescriptor.getTopic());
-                var n = processByTopic(topicDescriptor, durationOnPoll);
-                log.debug("Loaded working data from topic: {}; {} objects", topicDescriptor.getTopic(), n);
+                final var loadedObjects = processByTopic(topicDescriptor, durationOnPoll);
+                result.put(topicDescriptor, loadedObjects);
+                log.debug("Loaded working data from topic: {}; {} objects", topicDescriptor.getTopic(), loadedObjects.size());
             }
         }
+        return result;
     }
 
     // </editor-fold>
