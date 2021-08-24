@@ -364,14 +364,14 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader {
         for (var ch : changes) {
             if (ch.getAction() == ActionOnChangingDueLoading.ReplaceOrInsert) {
                 if (ch.getOldObject() == null) {
-                    memRepo.insert(ch.getKey(), ch.getNewObject());
+                    memRepo.insert(ch.getNewObject());
                     inserted++;
                 } else if (ch.getAction() == ActionOnChangingDueLoading.Update) {
-                    memRepo.replace(ch.getKey(), ch.getNewObject());
+                    memRepo.replace(ch.getNewObject());
                     replaced++;
                 }
             } else if (ch.getAction() == ActionOnChangingDueLoading.Update) {
-                memRepo.update(ch.getKey(), ch.getNewObject());
+                memRepo.update(ch.getNewObject());
                 updated++;
             }
         }
