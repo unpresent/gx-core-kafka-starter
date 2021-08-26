@@ -7,10 +7,7 @@ import ru.gxfin.common.kafka.IncomeTopicsConsumingException;
 import ru.gxfin.common.kafka.loader.IncomeTopicLoadingDescriptor;
 import ru.gxfin.common.kafka.loader.PartitionOffset;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @SuppressWarnings({"unused", "rawtypes", "unchecked"})
@@ -123,10 +120,7 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
      */
     @Override
     public void seekAllToBegin() {
-        this.topics.values().forEach(topicDescriptor ->
-                topicDescriptor
-                        .getConsumer()
-                        .seekToBeginning(topicDescriptor.getTopicPartitions()));
+        this.topics.values().forEach(this::internalSeekTopicAllPartitionsToBegin);
     }
 
     /**
@@ -134,10 +128,7 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
      */
     @Override
     public void seekAllToEnd() {
-        this.topics.values().forEach(topicDescriptor ->
-                topicDescriptor
-                        .getConsumer()
-                        .seekToEnd(topicDescriptor.getTopicPartitions()));
+        this.topics.values().forEach(this::internalSeekTopicAllPartitionsToEnd);
     }
 
     /**
@@ -148,7 +139,17 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
     @Override
     public void seekTopicAllPartitionsToBegin(String topic) {
         final var topicDescriptor = this.get(topic);
-        topicDescriptor.getConsumer().seekToBeginning(topicDescriptor.getTopicPartitions());
+        internalSeekTopicAllPartitionsToBegin(topicDescriptor);
+    }
+
+    protected void internalSeekTopicAllPartitionsToBegin(IncomeTopicLoadingDescriptor topicDescriptor) {
+        final Collection<TopicPartition> topicPartitions = topicDescriptor.getTopicPartitions();
+        final var consumer = topicDescriptor.getConsumer();
+        consumer.seekToBeginning(topicPartitions);
+        for (var tp : topicPartitions) {
+            final var position = consumer.position(tp);
+            topicDescriptor.setOffset(tp.partition(), position);
+        }
     }
 
     /**
@@ -159,8 +160,19 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
     @Override
     public void seekTopicAllPartitionsToEnd(String topic) {
         final var topicDescriptor = this.get(topic);
-        topicDescriptor.getConsumer().seekToEnd(topicDescriptor.getTopicPartitions());
+        internalSeekTopicAllPartitionsToEnd(topicDescriptor);
     }
+
+    protected void internalSeekTopicAllPartitionsToEnd(IncomeTopicLoadingDescriptor topicDescriptor) {
+        final Collection<TopicPartition> topicPartitions = topicDescriptor.getTopicPartitions();
+        final var consumer = topicDescriptor.getConsumer();
+        consumer.seekToEnd(topicPartitions);
+        for (var tp : topicPartitions) {
+            final var position = consumer.position(tp);
+            topicDescriptor.setOffset(tp.partition(), position);
+        }
+    }
+
 
     /**
      * Требование о смещении Offset-ов на заданные значения для заданного Topic-а.
@@ -171,10 +183,12 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
     @Override
     public void seekTopic(String topic, Iterable<PartitionOffset> partitionOffsets) {
         final var topicDescriptor = this.get(topic);
-        topicDescriptor
-                .getPartitionOffsets()
-                .forEach((k, v) ->
-                    topicDescriptor.getConsumer().seek(new TopicPartition(topic, (int) k), (long) v < 0 ? 0 : (long) v)
-                );
+        final var consumer = topicDescriptor.getConsumer();
+        partitionOffsets
+                .forEach(po -> {
+                    final var tp = new TopicPartition(topic, po.getPartition());
+                    consumer.seek(tp, po.getOffset() > 0 ? po.getOffset() : 0);
+                    topicDescriptor.setOffset(tp.partition(), consumer.position(tp));
+                });
     }
 }

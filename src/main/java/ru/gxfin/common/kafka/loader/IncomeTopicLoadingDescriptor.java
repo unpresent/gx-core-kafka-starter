@@ -63,8 +63,19 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      * Key - Partition.
      * Value - Offset.
      */
-    @Getter
     private final Map<Integer, Long> partitionOffsets = new HashMap<>();
+
+    public Collection<Integer> getPartitions() {
+        return this.partitionOffsets.keySet();
+    }
+
+    public long getOffset(int partition) {
+        return this.partitionOffsets.get(partition);
+    }
+
+    public void setOffset(int partition, long offset) {
+        this.partitionOffsets.put(partition, offset);
+    }
 
     /**
      * Получение коллекции TopicPartition. Формируется динамически. Изменять данную коллекцию нет смысла!
@@ -72,7 +83,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      */
     public Collection<TopicPartition> getTopicPartitions() {
         final var result = new ArrayList<TopicPartition>();
-        this.getPartitionOffsets()
+        this.partitionOffsets
                 .keySet()
                 .forEach(p -> result.add(new TopicPartition(getTopic(), p)));
         return result;
