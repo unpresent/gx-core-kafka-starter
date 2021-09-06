@@ -14,7 +14,6 @@ import ru.gxfin.common.data.DataMemoryRepository;
 import ru.gxfin.common.data.DataObject;
 import ru.gxfin.common.data.DataPackage;
 import ru.gxfin.common.kafka.TopicMessageMode;
-import ru.gxfin.common.kafka.configuration.IncomeTopicsConfiguration;
 import ru.gxfin.common.kafka.events.OnObjectsLoadedFromIncomeTopicEvent;
 import ru.gxfin.common.kafka.events.OnObjectsLoadingFromIncomeTopicEvent;
 
@@ -54,9 +53,8 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
     /**
      * Объект-получатель сообщений.
      */
-    @SuppressWarnings("rawtypes")
     @Getter
-    private Consumer consumer;
+    private Consumer<?, ?> consumer;
 
     /**
      * Список смещений для каждого Partition-а.
@@ -79,7 +77,8 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
 
     /**
      * Получение коллекции TopicPartition. Формируется динамически. Изменять данную коллекцию нет смысла!
-     * @return  Коллекция TopicPartition-ов.
+     *
+     * @return Коллекция TopicPartition-ов.
      */
     public Collection<TopicPartition> getTopicPartitions() {
         final var result = new ArrayList<TopicPartition>();
@@ -141,16 +140,13 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      * Класс объектов, которые будут читаться из очереди.
      */
     @Getter
-    @Setter
     private Class<? extends O> dataObjectClass;
 
     /**
      * Класс пакетов объектов, которые будут читаться из очереди.
      */
     @Getter
-    @Setter
     private Class<? extends P> dataPackageClass;
-
 
     /**
      * Класс объектов-событий при загрузке объектов - запрос с предоставлением списка Old-New.
@@ -199,7 +195,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
     private final IncomeTopicLoadingStatistics loadingStatistics = new IncomeTopicLoadingStatistics();
 
     /**
-     * @return  Строка с информацией об обработанных PartitionOffset-ах для логирования.
+     * @return Строка с информацией об обработанных PartitionOffset-ах для логирования.
      */
     public String getDeserializedPartitionsOffsetsForLog() {
         StringBuilder result = new StringBuilder();
@@ -220,6 +216,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
 
     /**
      * Настройка Descriptor-а должна заканчиваться этим методом.
+     *
      * @param consumerProperties Свойства consumer-а, который будет создан.
      * @return this.
      */
@@ -230,14 +227,13 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
         }
 
         this.consumer = new KafkaConsumer<>(consumerProperties);
-        //noinspection unchecked
         this.consumer.assign(getTopicPartitions());
         this.initialized = true;
         return this;
     }
 
     @SuppressWarnings({"unused", "unchecked"})
-    public IncomeTopicLoadingDescriptor(@NotNull IncomeTopicsConfiguration configuration, @NotNull String topic) {
+    public IncomeTopicLoadingDescriptor(@NotNull String topic, IncomeTopicLoadingDescriptorsDefaults defaults) {
         this.topic = topic;
 
         final var thisClass = this.getClass();
@@ -248,9 +244,11 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
             this.dataPackageClass = (Class<P>) ((ParameterizedType) superClass).getActualTypeArguments()[1];
         }
 
-        this
-                .setLoadingMode(configuration.getDescriptorsDefaults().getLoadingMode())
-                .setPartitions(configuration.getDescriptorsDefaults().getPartitions())
-                .setMessageMode(configuration.getDescriptorsDefaults().getTopicMessageMode());
+        if (defaults != null) {
+            this
+                    .setLoadingMode(defaults.getLoadingMode())
+                    .setPartitions(defaults.getPartitions())
+                    .setMessageMode(defaults.getTopicMessageMode());
+        }
     }
 }

@@ -19,8 +19,7 @@ public interface OnObjectsLoadingFromIncomeTopicEvent<O extends DataObject, P ex
     /**
      * @return Получение описателя загрузки из Топика.
      */
-    @SuppressWarnings("rawtypes")
-    IncomeTopicLoadingDescriptor getLoadingDescriptor();
+    IncomeTopicLoadingDescriptor<O, P> getLoadingDescriptor();
 
     /**
      * @return Список объектов, которые были загружены.
