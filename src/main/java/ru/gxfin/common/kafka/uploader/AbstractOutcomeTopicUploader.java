@@ -15,11 +15,6 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
     /**
-     * Объект контекста требуется для вызова событий.
-     */
-    private final ApplicationContext context;
-
-    /**
      * ObjectMapper требуется для десериализации данных в объекты.
      */
     private final ObjectMapper objectMapper;
@@ -27,8 +22,7 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    protected AbstractOutcomeTopicUploader(ApplicationContext context, ObjectMapper objectMapper) {
-        this.context = context;
+    protected AbstractOutcomeTopicUploader(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
