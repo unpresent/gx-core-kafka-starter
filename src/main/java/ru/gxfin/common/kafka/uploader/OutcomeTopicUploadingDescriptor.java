@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.apache.kafka.clients.producer.Producer;
+import org.jetbrains.annotations.NotNull;
 import ru.gxfin.common.data.DataObject;
 import ru.gxfin.common.data.DataPackage;
 import ru.gxfin.common.kafka.TopicMessageMode;
@@ -42,7 +43,7 @@ public class OutcomeTopicUploadingDescriptor<O extends DataObject, P extends Dat
     private Producer<Long, String> producer;
 
     @SuppressWarnings("unchecked")
-    public OutcomeTopicUploadingDescriptor(String topic) {
+    public OutcomeTopicUploadingDescriptor(@NotNull String topic, OutcomeTopicUploadingDescriptorsDefaults defaults) {
         this.topic = topic;
 
         final var thisClass = this.getClass();
@@ -50,6 +51,12 @@ public class OutcomeTopicUploadingDescriptor<O extends DataObject, P extends Dat
         if (superClass instanceof ParameterizedType) {
             this.dataObjectClass = (Class<O>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
             this.dataPackageClass = (Class<P>) ((ParameterizedType) superClass).getActualTypeArguments()[1];
+        }
+
+        if (defaults != null) {
+            this
+                    .setProducer(defaults.getProducer())
+                    .setMessageMode(defaults.getTopicMessageMode());
         }
     }
 }
