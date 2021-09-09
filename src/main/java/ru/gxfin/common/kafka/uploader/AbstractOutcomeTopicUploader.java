@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka.unloader;
+package ru.gxfin.common.kafka.uploader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +11,7 @@ import ru.gxfin.common.kafka.TopicMessageMode;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 
-public abstract class AbstractOutcomeTopicUnloader implements OutcomeTopicUnloader {
+public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUploader {
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
     /**
@@ -27,7 +27,7 @@ public abstract class AbstractOutcomeTopicUnloader implements OutcomeTopicUnload
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    protected AbstractOutcomeTopicUnloader(ApplicationContext context, ObjectMapper objectMapper) {
+    protected AbstractOutcomeTopicUploader(ApplicationContext context, ObjectMapper objectMapper) {
         this.context = context;
         this.objectMapper = objectMapper;
     }
@@ -35,53 +35,53 @@ public abstract class AbstractOutcomeTopicUnloader implements OutcomeTopicUnload
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> void unloadDataObject(OutcomeTopicUnloadingDescriptor<O, P> descriptor, O object) throws Exception {
+    public <O extends DataObject, P extends DataPackage<O>> void uploadDataObject(OutcomeTopicUploadingDescriptor<O, P> descriptor, O object) throws Exception {
         if (descriptor.getMessageMode() == TopicMessageMode.PACKAGE) {
             final var dataPackage = createPackage(descriptor);
             dataPackage.getObjects().add(object);
-            internalUnloadPackage(descriptor, dataPackage);
+            internalUploadPackage(descriptor, dataPackage);
         } else {
-            internalUnloadObject(descriptor, object);
+            internalUploadObject(descriptor, object);
         }
     }
 
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> void unloadDataObjects(OutcomeTopicUnloadingDescriptor<O, P> descriptor, Collection<O> objects) throws Exception {
+    public <O extends DataObject, P extends DataPackage<O>> void uploadDataObjects(OutcomeTopicUploadingDescriptor<O, P> descriptor, Collection<O> objects) throws Exception {
         if (descriptor.getMessageMode() == TopicMessageMode.PACKAGE) {
             final var dataPackage = createPackage(descriptor);
             dataPackage.getObjects().addAll(objects);
-            internalUnloadPackage(descriptor, dataPackage);
+            internalUploadPackage(descriptor, dataPackage);
         } else {
             for (var o : objects) {
-                internalUnloadObject(descriptor, o);
+                internalUploadObject(descriptor, o);
             }
         }
     }
 
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> void unloadDataPackage(OutcomeTopicUnloadingDescriptor<O, P> descriptor, P dataPackage) throws Exception {
+    public <O extends DataObject, P extends DataPackage<O>> void uploadDataPackage(OutcomeTopicUploadingDescriptor<O, P> descriptor, P dataPackage) throws Exception {
         if (descriptor.getMessageMode() == TopicMessageMode.PACKAGE) {
-            internalUnloadPackage(descriptor, dataPackage);
+            internalUploadPackage(descriptor, dataPackage);
         } else {
             for (var o : dataPackage.getObjects()) {
-                internalUnloadObject(descriptor, o);
+                internalUploadObject(descriptor, o);
             }
         }
     }
 
-    protected <O extends DataObject, P extends DataPackage<O>> void internalUnloadPackage(OutcomeTopicUnloadingDescriptor<O, P> descriptor, P dataPackage) throws JsonProcessingException, ExecutionException, InterruptedException {
+    protected <O extends DataObject, P extends DataPackage<O>> void internalUploadPackage(OutcomeTopicUploadingDescriptor<O, P> descriptor, P dataPackage) throws JsonProcessingException, ExecutionException, InterruptedException {
         final var message = this.objectMapper.writeValueAsString(dataPackage);
         final var producer = descriptor.getProducer();
         producer.send(new ProducerRecord<>(descriptor.getTopic(), message)).get();
     }
 
-    protected <O extends DataObject, P extends DataPackage<O>> void internalUnloadObject(OutcomeTopicUnloadingDescriptor<O, P> descriptor, O dataObject) throws JsonProcessingException, ExecutionException, InterruptedException {
+    protected <O extends DataObject, P extends DataPackage<O>> void internalUploadObject(OutcomeTopicUploadingDescriptor<O, P> descriptor, O dataObject) throws JsonProcessingException, ExecutionException, InterruptedException {
         final var message = this.objectMapper.writeValueAsString(dataObject);
         final var producer = descriptor.getProducer();
         producer.send(new ProducerRecord<>(descriptor.getTopic(), message)).get();
     }
 
-    protected <O extends DataObject, P extends DataPackage<O>> P createPackage(OutcomeTopicUnloadingDescriptor<O, P> descriptor) throws Exception {
+    protected <O extends DataObject, P extends DataPackage<O>> P createPackage(OutcomeTopicUploadingDescriptor<O, P> descriptor) throws Exception {
         final var packageClass = descriptor.getDataPackageClass();
         if (packageClass != null) {
             final var constructor = packageClass.getConstructor();

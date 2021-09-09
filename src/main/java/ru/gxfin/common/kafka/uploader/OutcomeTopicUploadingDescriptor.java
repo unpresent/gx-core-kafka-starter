@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka.unloader;
+package ru.gxfin.common.kafka.uploader;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import java.lang.reflect.ParameterizedType;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class OutcomeTopicUnloadingDescriptor<O extends DataObject, P extends DataPackage<O>> {
+public class OutcomeTopicUploadingDescriptor<O extends DataObject, P extends DataPackage<O>> {
     /**
      * Имя топика очереди.
      */
@@ -42,7 +42,7 @@ public class OutcomeTopicUnloadingDescriptor<O extends DataObject, P extends Dat
     private Producer<Long, String> producer;
 
     @SuppressWarnings("unchecked")
-    public OutcomeTopicUnloadingDescriptor(String topic) {
+    public OutcomeTopicUploadingDescriptor(String topic) {
         this.topic = topic;
 
         final var thisClass = this.getClass();
