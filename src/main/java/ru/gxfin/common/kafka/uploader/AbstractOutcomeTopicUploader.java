@@ -3,10 +3,11 @@ package ru.gxfin.common.kafka.uploader;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.springframework.context.ApplicationContext;
+import org.jetbrains.annotations.NotNull;
 import ru.gxfin.common.data.DataObject;
 import ru.gxfin.common.data.DataPackage;
 import ru.gxfin.common.kafka.TopicMessageMode;
+import ru.gxfin.common.kafka.loader.PartitionOffset;
 
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
@@ -22,60 +23,72 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    protected AbstractOutcomeTopicUploader(ObjectMapper objectMapper) {
+    protected AbstractOutcomeTopicUploader(@NotNull ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
+    // <editor-fold desc="Реализация OutcomeTopicUploader">
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> void uploadDataObject(OutcomeTopicUploadingDescriptor<O, P> descriptor, O object) throws Exception {
+    public <O extends DataObject, P extends DataPackage<O>> PartitionOffset uploadDataObject(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull O object) throws Exception {
         if (descriptor.getMessageMode() == TopicMessageMode.PACKAGE) {
             final var dataPackage = createPackage(descriptor);
             dataPackage.getObjects().add(object);
-            internalUploadPackage(descriptor, dataPackage);
+            return internalUploadPackage(descriptor, dataPackage);
         } else {
-            internalUploadObject(descriptor, object);
+            return internalUploadObject(descriptor, object);
         }
     }
 
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> void uploadDataObjects(OutcomeTopicUploadingDescriptor<O, P> descriptor, Collection<O> objects) throws Exception {
+    public <O extends DataObject, P extends DataPackage<O>> PartitionOffset uploadDataObjects(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull Collection<O> objects) throws Exception {
         if (descriptor.getMessageMode() == TopicMessageMode.PACKAGE) {
             final var dataPackage = createPackage(descriptor);
             dataPackage.getObjects().addAll(objects);
-            internalUploadPackage(descriptor, dataPackage);
+            return internalUploadPackage(descriptor, dataPackage);
         } else {
+            PartitionOffset result = null;
             for (var o : objects) {
-                internalUploadObject(descriptor, o);
+                final var rs = internalUploadObject(descriptor, o);
+                result = result == null ? rs : result;
             }
+            return result;
         }
     }
 
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> void uploadDataPackage(OutcomeTopicUploadingDescriptor<O, P> descriptor, P dataPackage) throws Exception {
+    public <O extends DataObject, P extends DataPackage<O>> PartitionOffset uploadDataPackage(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull P dataPackage) throws Exception {
         if (descriptor.getMessageMode() == TopicMessageMode.PACKAGE) {
-            internalUploadPackage(descriptor, dataPackage);
+            return internalUploadPackage(descriptor, dataPackage);
         } else {
+            PartitionOffset result = null;
             for (var o : dataPackage.getObjects()) {
-                internalUploadObject(descriptor, o);
+                final var rs = internalUploadObject(descriptor, o);
+                result = result == null ? rs : result;
             }
+            return result;
         }
     }
 
-    protected <O extends DataObject, P extends DataPackage<O>> void internalUploadPackage(OutcomeTopicUploadingDescriptor<O, P> descriptor, P dataPackage) throws JsonProcessingException, ExecutionException, InterruptedException {
+    // </editor-fold>
+    // -------------------------------------------------------------------------------------------------------------
+    // <editor-fold desc="Внутренняя логика">
+    protected <O extends DataObject, P extends DataPackage<O>> PartitionOffset internalUploadPackage(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull P dataPackage) throws JsonProcessingException, ExecutionException, InterruptedException {
         final var message = this.objectMapper.writeValueAsString(dataPackage);
         final var producer = descriptor.getProducer();
-        producer.send(new ProducerRecord<>(descriptor.getTopic(), message)).get();
+        final var recordMetadata = producer.send(new ProducerRecord<>(descriptor.getTopic(), message)).get();
+        return new PartitionOffset(recordMetadata.partition(), recordMetadata.offset());
     }
 
-    protected <O extends DataObject, P extends DataPackage<O>> void internalUploadObject(OutcomeTopicUploadingDescriptor<O, P> descriptor, O dataObject) throws JsonProcessingException, ExecutionException, InterruptedException {
+    protected <O extends DataObject, P extends DataPackage<O>> PartitionOffset internalUploadObject(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull O dataObject) throws JsonProcessingException, ExecutionException, InterruptedException {
         final var message = this.objectMapper.writeValueAsString(dataObject);
         final var producer = descriptor.getProducer();
-        producer.send(new ProducerRecord<>(descriptor.getTopic(), message)).get();
+        final var recordMetadata = producer.send(new ProducerRecord<>(descriptor.getTopic(), message)).get();
+        return new PartitionOffset(recordMetadata.partition(), recordMetadata.offset());
     }
 
-    protected <O extends DataObject, P extends DataPackage<O>> P createPackage(OutcomeTopicUploadingDescriptor<O, P> descriptor) throws Exception {
+    protected <O extends DataObject, P extends DataPackage<O>> P createPackage(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor) throws Exception {
         final var packageClass = descriptor.getDataPackageClass();
         if (packageClass != null) {
             final var constructor = packageClass.getConstructor();
@@ -84,4 +97,6 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
             throw new Exception("Can't create DataPackage!");
         }
     }
+    // </editor-fold>
+    // -------------------------------------------------------------------------------------------------------------
 }

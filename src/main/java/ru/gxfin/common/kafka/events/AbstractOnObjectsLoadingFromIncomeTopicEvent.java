@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEvent;
 import ru.gxfin.common.data.DataObject;
 import ru.gxfin.common.data.DataPackage;
@@ -45,7 +46,7 @@ public abstract class AbstractOnObjectsLoadingFromIncomeTopicEvent<O extends Dat
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public AbstractOnObjectsLoadingFromIncomeTopicEvent<O, P> reset(Object source, IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, Collection<NewOldDataObjectsPair<O>> changes) {
+    public AbstractOnObjectsLoadingFromIncomeTopicEvent<O, P> reset(Object source, @NotNull IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull Collection<NewOldDataObjectsPair<O>> changes) {
         super.source = source;
         return this
                 .setLoadingDescriptor(loadingDescriptor)

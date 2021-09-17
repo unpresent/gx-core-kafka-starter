@@ -1,6 +1,7 @@
 package ru.gxfin.common.kafka.loader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.jetbrains.annotations.NotNull;
 import ru.gxfin.common.data.DataObject;
 import ru.gxfin.common.data.DataPackage;
 import ru.gxfin.common.data.ObjectAlreadyExistsException;
@@ -23,7 +24,7 @@ public interface IncomeTopicsLoader {
      * @throws JsonProcessingException          Ошибки при десериализации из Json-а.
      * @return                                  Список загруженных объектов.
      */
-    <O extends DataObject, P extends DataPackage<O>> Collection<O> processByTopic(IncomeTopicLoadingDescriptor<O, P> descriptor, Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
+    <O extends DataObject, P extends DataPackage<O>> Collection<O> processByTopic(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
 
     /**
      * Загрузка и обработка данных по списку топиков по конфигурации.
@@ -31,5 +32,5 @@ public interface IncomeTopicsLoader {
      * @throws JsonProcessingException          Ошибки при десериализации из Json-а.
      * @return                                  Map-а, в которой для каждого дескриптора указан список загруженных объектов.
      */
-    Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
+    Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(@NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
 }

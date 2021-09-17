@@ -63,10 +63,12 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      */
     private final Map<Integer, Long> partitionOffsets = new HashMap<>();
 
+    @SuppressWarnings("unused")
     public Collection<Integer> getPartitions() {
         return this.partitionOffsets.keySet();
     }
 
+    @SuppressWarnings("unused")
     public long getOffset(int partition) {
         return this.partitionOffsets.get(partition);
     }
@@ -155,7 +157,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
     @Setter
     private Class<? extends OnObjectsLoadingFromIncomeTopicEvent<O, P>> onLoadingEventClass;
 
-    public OnObjectsLoadingFromIncomeTopicEvent<O, P> getOnLoadingEvent(ApplicationContext context) {
+    public OnObjectsLoadingFromIncomeTopicEvent<O, P> getOnLoadingEvent(@NotNull ApplicationContext context) {
         if (this.onLoadingEventClass != null) {
             return context.getBean(onLoadingEventClass);
         }
@@ -170,7 +172,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
     @Setter
     private Class<? extends OnObjectsLoadedFromIncomeTopicEvent<O, P>> onLoadedEventClass;
 
-    public OnObjectsLoadedFromIncomeTopicEvent<O, P> getOnLoadedEvent(ApplicationContext context) {
+    public OnObjectsLoadedFromIncomeTopicEvent<O, P> getOnLoadedEvent(@NotNull ApplicationContext context) {
         if (this.onLoadedEventClass != null) {
             return context.getBean(onLoadedEventClass);
         }
@@ -221,7 +223,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      * @return this.
      */
     @SuppressWarnings({"UnusedReturnValue", "unused"})
-    public IncomeTopicLoadingDescriptor<O, P> init(Properties consumerProperties) {
+    public IncomeTopicLoadingDescriptor<O, P> init(@NotNull Properties consumerProperties) {
         if (partitionOffsets.size() <= 0) {
             throw new InvalidParameterException("Not defined partitions for topic " + this.topic);
         }

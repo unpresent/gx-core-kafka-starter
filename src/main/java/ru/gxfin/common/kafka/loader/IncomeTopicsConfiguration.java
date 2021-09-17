@@ -1,11 +1,13 @@
 package ru.gxfin.common.kafka.loader;
 
+import org.jetbrains.annotations.NotNull;
 import ru.gxfin.common.data.DataObject;
 import ru.gxfin.common.data.DataPackage;
 
 /**
  * Интерфейс конфигурации обработки входящих очередей.
  */
+@SuppressWarnings("unused")
 public interface IncomeTopicsConfiguration {
 
     /**
@@ -14,7 +16,7 @@ public interface IncomeTopicsConfiguration {
      * @param topic Имя топика, для которого требуется получить описатель.
      * @return Описатель обработчика одной очереди.
      */
-    <O extends DataObject, P extends DataPackage<O>> IncomeTopicLoadingDescriptor<O, P> get(String topic);
+    <O extends DataObject, P extends DataPackage<O>> IncomeTopicLoadingDescriptor<O, P> get(@NotNull String topic);
 
     /**
      * Регистрация описателя обработчика одной очереди.
@@ -22,7 +24,7 @@ public interface IncomeTopicsConfiguration {
      * @param item Описатель обработчика одной очереди.
      * @return this.
      */
-    <O extends DataObject, P extends DataPackage<O>> IncomeTopicsConfiguration register(IncomeTopicLoadingDescriptor<O, P> item);
+    <O extends DataObject, P extends DataPackage<O>> IncomeTopicsConfiguration register(@NotNull IncomeTopicLoadingDescriptor<O, P> item);
 
     /**
      * Дерегистрация обработчика очереди.
@@ -30,7 +32,7 @@ public interface IncomeTopicsConfiguration {
      * @param topic Имя топика очереди.
      * @return this.
      */
-    IncomeTopicsConfiguration unregister(String topic);
+    IncomeTopicsConfiguration unregister(@NotNull String topic);
 
     /**
      * @return Настройки по умолчанию для новых описателей загрузки из топиков.
@@ -53,7 +55,6 @@ public interface IncomeTopicsConfiguration {
     /**
      * @return Список всех описателей обработчиков очередей.
      */
-    @SuppressWarnings("unused")
     Iterable<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> getAll();
 
     /**
@@ -71,14 +72,14 @@ public interface IncomeTopicsConfiguration {
      *
      * @param topic Топик, для которого требуется сместить смещения.
      */
-    void seekTopicAllPartitionsToBegin(String topic);
+    void seekTopicAllPartitionsToBegin(@NotNull String topic);
 
     /**
      * Требование о смещении Offset-ов на конец для всех Partition-ов для заданного Topic-а.
      *
      * @param topic Топик, для которого требуется сместить смещения.
      */
-    void seekTopicAllPartitionsToEnd(String topic);
+    void seekTopicAllPartitionsToEnd(@NotNull String topic);
 
     /**
      * Требование о смещении Offset-ов на заданные значения для заданного Topic-а.
@@ -86,5 +87,5 @@ public interface IncomeTopicsConfiguration {
      * @param topic            Топик, для которого требуется сместить смещения.
      * @param partitionOffsets Смещения (для каждого Partition-а свой Offset).
      */
-    void seekTopic(String topic, Iterable<PartitionOffset> partitionOffsets);
+    void seekTopic(@NotNull String topic, @NotNull Iterable<PartitionOffset> partitionOffsets);
 }

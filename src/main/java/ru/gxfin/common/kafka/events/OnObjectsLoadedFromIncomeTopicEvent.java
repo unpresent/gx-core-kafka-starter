@@ -1,5 +1,6 @@
 package ru.gxfin.common.kafka.events;
 
+import org.jetbrains.annotations.NotNull;
 import ru.gxfin.common.data.DataObject;
 import ru.gxfin.common.data.DataPackage;
 import ru.gxfin.common.kafka.IncomeTopicsLoaderContinueMode;
@@ -39,5 +40,5 @@ public interface OnObjectsLoadedFromIncomeTopicEvent<O extends DataObject, P ext
      * @return                      this.
      */
     @SuppressWarnings("UnusedReturnValue")
-    OnObjectsLoadedFromIncomeTopicEvent<O, P> reset(Object source, IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, Collection<O> objects);
+    OnObjectsLoadedFromIncomeTopicEvent<O, P> reset(Object source, @NotNull IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull Collection<O> objects);
 }

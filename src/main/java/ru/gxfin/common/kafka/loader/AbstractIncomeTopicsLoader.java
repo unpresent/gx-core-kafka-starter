@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
 import ru.gxfin.common.data.DataObject;
 import ru.gxfin.common.data.DataPackage;
@@ -54,7 +55,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    protected AbstractIncomeTopicsLoader(ApplicationContext context, ObjectMapper objectMapper) {
+    protected AbstractIncomeTopicsLoader(@NotNull ApplicationContext context, @NotNull ObjectMapper objectMapper) {
         super();
         this.context = context;
         this.objectMapper = objectMapper;
@@ -72,7 +73,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> IncomeTopicLoadingDescriptor<O, P> get(String topic) {
+    public <O extends DataObject, P extends DataPackage<O>> IncomeTopicLoadingDescriptor<O, P> get(@NotNull String topic) {
         return (IncomeTopicLoadingDescriptor<O, P>)this.topics.get(topic);
     }
 
@@ -83,7 +84,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return this.
      */
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> IncomeTopicsConfiguration register(IncomeTopicLoadingDescriptor<O, P> item) {
+    public <O extends DataObject, P extends DataPackage<O>> IncomeTopicsConfiguration register(@NotNull IncomeTopicLoadingDescriptor<O, P> item) {
         if (this.topics.containsKey(item.getTopic())) {
             throw new IncomeTopicsConsumingException("Topic " + item.getTopic() + " already registered!");
         }
@@ -113,7 +114,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return this.
      */
     @Override
-    public IncomeTopicsConfiguration unregister(String topic) {
+    public IncomeTopicsConfiguration unregister(@NotNull String topic) {
         final var item = this.topics.get(topic);
         if (item == null) {
             throw new IncomeTopicsConsumingException("Topic " + topic + " not registered!");
@@ -178,7 +179,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @param topic Топик, для которого требуется сместить смещения.
      */
     @Override
-    public void seekTopicAllPartitionsToBegin(String topic) {
+    public void seekTopicAllPartitionsToBegin(@NotNull String topic) {
         final IncomeTopicLoadingDescriptor<?, ?> topicDescriptor = this.get(topic);
         internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToBeginning);
     }
@@ -189,7 +190,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @param topic Топик, для которого требуется сместить смещения.
      */
     @Override
-    public void seekTopicAllPartitionsToEnd(String topic) {
+    public void seekTopicAllPartitionsToEnd(@NotNull String topic) {
         final var topicDescriptor = this.get(topic);
         internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToEnd);
     }
@@ -201,7 +202,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @param partitionOffsets Смещения (для каждого Partition-а свой Offset).
      */
     @Override
-    public void seekTopic(String topic, Iterable<PartitionOffset> partitionOffsets) {
+    public void seekTopic(@NotNull String topic, @NotNull Iterable<PartitionOffset> partitionOffsets) {
         final var topicDescriptor = this.get(topic);
         final var consumer = topicDescriptor.getConsumer();
         partitionOffsets
@@ -224,7 +225,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> Collection<O> processByTopic(IncomeTopicLoadingDescriptor<O, P> descriptor, Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
+    public <O extends DataObject, P extends DataPackage<O>> Collection<O> processByTopic(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         final var statistics = descriptor.getLoadingStatistics().reset();
         var msStart = System.currentTimeMillis();
         // Получаем данные из очереди.
@@ -293,7 +294,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      *
      * @return Map-а, в которой для каждого дескриптора указан список загруженных объектов.
      */
-    public Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
+    public Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(@NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         final var pCount = this.prioritiesCount();
         final var result = new HashMap<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>>();
         for (int p = 0; p < pCount; p++) {
@@ -309,7 +310,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     }
 
     @SuppressWarnings("unchecked")
-    private <O extends DataObject, P extends DataPackage<O>> Collection<O> invokeProcessByTopic(IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>> descriptor, Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
+    private <O extends DataObject, P extends DataPackage<O>> Collection<O> invokeProcessByTopic(@NotNull IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         final IncomeTopicLoadingDescriptor<O, P> localDescriptor = (IncomeTopicLoadingDescriptor<O, P>)descriptor;
         return this.processByTopic(localDescriptor, durationOnPoll);
     }
@@ -317,15 +318,15 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Внутренняя реализация">
-    protected void internalSeekTopicAllPartitionsToBegin(IncomeTopicLoadingDescriptor<?, ?> topicDescriptor) {
+    protected void internalSeekTopicAllPartitionsToBegin(@NotNull IncomeTopicLoadingDescriptor<?, ?> topicDescriptor) {
         this.internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToBeginning);
     }
 
-    protected void internalSeekTopicAllPartitionsToEnd(IncomeTopicLoadingDescriptor<?, ?> topicDescriptor) {
+    protected void internalSeekTopicAllPartitionsToEnd(@NotNull IncomeTopicLoadingDescriptor<?, ?> topicDescriptor) {
         this.internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToEnd);
     }
 
-    protected void internalSeekTopicAllPartitionsToBorder(IncomeTopicLoadingDescriptor<?, ?> topicDescriptor, ConsumerSeekToBorderFunction func) {
+    protected void internalSeekTopicAllPartitionsToBorder(@NotNull IncomeTopicLoadingDescriptor<?, ?> topicDescriptor, ConsumerSeekToBorderFunction func) {
         final Collection<TopicPartition> topicPartitions = topicDescriptor.getTopicPartitions();
         final var consumer = topicDescriptor.getConsumer();
         // consumer.seekToBeginning(topicPartitions);
@@ -345,7 +346,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return Набор DataPackage-ей из очереди.
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
-    protected <O extends DataObject, P extends DataPackage<O>> Collection<P> internalLoadPackages(IncomeTopicLoadingDescriptor<O, P> descriptor, Duration durationOnPoll) throws JsonProcessingException {
+    protected <O extends DataObject, P extends DataPackage<O>> Collection<P> internalLoadPackages(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException {
         if (descriptor.getMessageMode() != TopicMessageMode.PACKAGE) {
             throw new IncomeTopicsConsumingException("Can't load packages from topic: " + descriptor.getTopic());
         }
@@ -388,7 +389,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return Набор DataObject-ов из очереди.
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
-    protected <O extends DataObject, P extends DataPackage<O>> Collection<O> internalLoadObjects(IncomeTopicLoadingDescriptor<O, P> descriptor, Duration durationOnPoll) throws JsonProcessingException {
+    protected <O extends DataObject, P extends DataPackage<O>> Collection<O> internalLoadObjects(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException {
         if (descriptor.getMessageMode() != TopicMessageMode.OBJECT) {
             throw new IncomeTopicsConsumingException("Can't load objects from topic: " + descriptor.getTopic());
         }
@@ -432,7 +433,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return Список объектов данных.
      * @throws JsonProcessingException Ошибка десериализации из Json-а.
      */
-    protected <O extends DataObject, P extends DataPackage<O>> Collection<O> internalLoadObjectsFromTopic(IncomeTopicLoadingDescriptor<O, P> descriptor, Duration durationOnPoll) throws JsonProcessingException {
+    protected <O extends DataObject, P extends DataPackage<O>> Collection<O> internalLoadObjectsFromTopic(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException {
         Collection<O> objects;
         if (descriptor.getMessageMode() == TopicMessageMode.OBJECT) {
             objects = this.internalLoadObjects(descriptor, durationOnPoll);
@@ -471,7 +472,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return Записи Consumer-а.
      */
     @SuppressWarnings("unchecked")
-    protected <O extends DataObject, P extends DataPackage<O>> ConsumerRecords<Object, Object> internalPoll(IncomeTopicLoadingDescriptor<O, P> descriptor, Duration durationOnPoll) {
+    protected <O extends DataObject, P extends DataPackage<O>> ConsumerRecords<Object, Object> internalPoll(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) {
         final var consumer = descriptor.getConsumer();
         final ConsumerRecords<Object, Object> records = (ConsumerRecords<Object, Object>) consumer.poll(durationOnPoll);
         log.debug("Topic: {}; polled: {} records", descriptor.getTopic(), records.count());
@@ -485,7 +486,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @param loaded     Коллекция загруженных из Топика объектов.
      * @return Коллекция описателей изменений.
      */
-    protected <O extends DataObject, P extends DataPackage<O>> Collection<NewOldDataObjectsPair<O>> prepareChanges(IncomeTopicLoadingDescriptor<O, P> descriptor, Collection<O> loaded) {
+    protected <O extends DataObject, P extends DataPackage<O>> Collection<NewOldDataObjectsPair<O>> prepareChanges(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Collection<O> loaded) {
         final var result = new ArrayList<NewOldDataObjectsPair<O>>();
         final var memRepo = descriptor.getMemoryRepository();
         if (descriptor.getOnLoadingEventClass() != null && memRepo != null) {
@@ -533,7 +534,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @param descriptor Описатель загрузки из Топика.
      * @param changes    Коллекция описателей изменений.
      */
-    protected <O extends DataObject, P extends DataPackage<O>> void loadToRepository(IncomeTopicLoadingDescriptor<O, P> descriptor, Collection<NewOldDataObjectsPair<O>> changes) throws JsonMappingException, ObjectNotExistsException, ObjectAlreadyExistsException {
+    protected <O extends DataObject, P extends DataPackage<O>> void loadToRepository(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Collection<NewOldDataObjectsPair<O>> changes) throws JsonMappingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         final var memRepo = descriptor.getMemoryRepository();
         if (memRepo == null) {
             return;

@@ -1,6 +1,7 @@
 package ru.gxfin.common.kafka.loader;
 
 import org.apache.kafka.common.header.Headers;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * С помощью реализации данного интерфейса можно определять фильтрацию по загрузке данных.
@@ -11,5 +12,5 @@ public interface LoadingFiltering {
      * @param headers Заголовки полученных из Kafka данных.
      * @return  true - обрабатывать данные, false - проигнорировать данные.
      */
-    boolean allowProcess(Headers headers);
+    boolean allowProcess(@NotNull Headers headers);
 }
