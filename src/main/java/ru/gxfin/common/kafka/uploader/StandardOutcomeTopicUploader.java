@@ -12,6 +12,7 @@ public class StandardOutcomeTopicUploader extends AbstractOutcomeTopicUploader {
     }
 
     @Override
+    @NotNull
     public <O extends DataObject, P extends DataPackage<O>> P createPackage(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor) throws Exception {
         return super.createPackage(descriptor);
     }

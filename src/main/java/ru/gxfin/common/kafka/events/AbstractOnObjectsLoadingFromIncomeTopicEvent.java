@@ -1,9 +1,6 @@
 package ru.gxfin.common.kafka.events;
 
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEvent;
@@ -14,8 +11,11 @@ import ru.gxfin.common.kafka.loader.IncomeTopicLoadingDescriptor;
 
 import java.util.Collection;
 
+@Getter
+@Setter(AccessLevel.PROTECTED)
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
+@ToString
 public abstract class AbstractOnObjectsLoadingFromIncomeTopicEvent<O extends DataObject, P extends DataPackage<O>>
         extends ApplicationEvent
         implements OnObjectsLoadingFromIncomeTopicEvent<O, P> {
@@ -23,22 +23,16 @@ public abstract class AbstractOnObjectsLoadingFromIncomeTopicEvent<O extends Dat
     /**
      * Описатель загрузки из Топика.
      */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
     private IncomeTopicLoadingDescriptor<O, P> loadingDescriptor;
 
     /**
      * Список изменений.
      */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
     private Collection<NewOldDataObjectsPair<O>> changes;
 
     /**
      * Режим продолжения обработки других Топиков.
      */
-    @Getter
-    @Setter(AccessLevel.PROTECTED)
     private IncomeTopicsLoaderContinueMode continueMode;
 
     public AbstractOnObjectsLoadingFromIncomeTopicEvent(Object source) {
@@ -46,6 +40,7 @@ public abstract class AbstractOnObjectsLoadingFromIncomeTopicEvent<O extends Dat
     }
 
     @SuppressWarnings("UnusedReturnValue")
+    @NotNull
     public AbstractOnObjectsLoadingFromIncomeTopicEvent<O, P> reset(Object source, @NotNull IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull Collection<NewOldDataObjectsPair<O>> changes) {
         super.source = source;
         return this

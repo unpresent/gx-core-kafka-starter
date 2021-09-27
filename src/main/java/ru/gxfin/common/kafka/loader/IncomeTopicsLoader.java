@@ -24,6 +24,7 @@ public interface IncomeTopicsLoader {
      * @throws JsonProcessingException          Ошибки при десериализации из Json-а.
      * @return                                  Список загруженных объектов.
      */
+    @NotNull
     <O extends DataObject, P extends DataPackage<O>> Collection<O> processByTopic(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
 
     /**
@@ -32,5 +33,6 @@ public interface IncomeTopicsLoader {
      * @throws JsonProcessingException          Ошибки при десериализации из Json-а.
      * @return                                  Map-а, в которой для каждого дескриптора указан список загруженных объектов.
      */
+    @NotNull
     Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(@NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
 }

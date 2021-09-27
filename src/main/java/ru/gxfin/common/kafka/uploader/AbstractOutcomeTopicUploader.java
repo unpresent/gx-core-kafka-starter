@@ -31,6 +31,7 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Реализация OutcomeTopicUploader">
     @Override
+    @NotNull
     public <O extends DataObject, P extends DataPackage<O>> PartitionOffset uploadDataObject(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull O object) throws Exception {
         if (descriptor.getMessageMode() == TopicMessageMode.PACKAGE) {
             final var dataPackage = createPackage(descriptor);
@@ -42,6 +43,7 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
     }
 
     @Override
+    @NotNull
     public <O extends DataObject, P extends DataPackage<O>> PartitionOffset uploadDataObjects(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull Collection<O> objects) throws Exception {
         if (descriptor.getMessageMode() == TopicMessageMode.PACKAGE) {
             final var dataPackage = createPackage(descriptor);
@@ -53,11 +55,12 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
                 final var rs = internalUploadObject(descriptor, o);
                 result = result == null ? rs : result;
             }
-            return result;
+            return result != null ? result : new PartitionOffset(0, 0);
         }
     }
 
     @Override
+    @NotNull
     public <O extends DataObject, P extends DataPackage<O>> PartitionOffset uploadDataPackage(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull P dataPackage) throws Exception {
         if (descriptor.getMessageMode() == TopicMessageMode.PACKAGE) {
             return internalUploadPackage(descriptor, dataPackage);
@@ -67,13 +70,14 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
                 final var rs = internalUploadObject(descriptor, o);
                 result = result == null ? rs : result;
             }
-            return result;
+            return result != null ? result : new PartitionOffset(0, 0);
         }
     }
 
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Внутренняя логика">
+    @NotNull
     protected <O extends DataObject, P extends DataPackage<O>> PartitionOffset internalUploadPackage(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull P dataPackage) throws JsonProcessingException, ExecutionException, InterruptedException {
         final var message = this.objectMapper.writeValueAsString(dataPackage);
         final var producer = descriptor.getProducer();
@@ -81,6 +85,7 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
         return new PartitionOffset(recordMetadata.partition(), recordMetadata.offset());
     }
 
+    @NotNull
     protected <O extends DataObject, P extends DataPackage<O>> PartitionOffset internalUploadObject(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull O dataObject) throws JsonProcessingException, ExecutionException, InterruptedException {
         final var message = this.objectMapper.writeValueAsString(dataObject);
         final var producer = descriptor.getProducer();
@@ -88,6 +93,7 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
         return new PartitionOffset(recordMetadata.partition(), recordMetadata.offset());
     }
 
+    @NotNull
     protected <O extends DataObject, P extends DataPackage<O>> P createPackage(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor) throws Exception {
         final var packageClass = descriptor.getDataPackageClass();
         if (packageClass != null) {

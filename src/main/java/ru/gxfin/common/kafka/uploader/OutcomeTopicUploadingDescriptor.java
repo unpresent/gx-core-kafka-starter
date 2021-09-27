@@ -13,6 +13,7 @@ import ru.gxfin.common.kafka.TopicMessageMode;
 
 import java.lang.reflect.ParameterizedType;
 
+@Getter
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
@@ -20,25 +21,20 @@ public class OutcomeTopicUploadingDescriptor<O extends DataObject, P extends Dat
     /**
      * Имя топика очереди.
      */
-    @Getter
     private final String topic;
 
     /**
      * Режим данных в очереди: Пообъектно и пакетно.
      */
-    @Getter
     @Setter
     private TopicMessageMode messageMode;
 
-    @Getter
     @Setter
     private Class<? extends O> dataObjectClass;
 
-    @Getter
     @Setter
     private Class<? extends P> dataPackageClass;
 
-    @Getter
     @Setter
     private Producer<Long, String> producer;
 

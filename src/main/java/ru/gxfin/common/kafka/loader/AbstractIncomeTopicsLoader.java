@@ -32,11 +32,13 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     /**
      * Объект контекста требуется для вызова событий.
      */
+    @NotNull
     private final ApplicationContext context;
 
     /**
      * ObjectMapper требуется для десериализации данных в объекты.
      */
+    @NotNull
     private final ObjectMapper objectMapper;
 
     /**
@@ -50,6 +52,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     private final Map<String, IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> topics = new HashMap<>();
 
     @Getter
+    @NotNull
     private final IncomeTopicLoadingDescriptorsDefaults descriptorsDefaults;
 
     // </editor-fold>
@@ -225,6 +228,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     @Override
+    @NotNull
     public <O extends DataObject, P extends DataPackage<O>> Collection<O> processByTopic(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         final var statistics = descriptor.getLoadingStatistics().reset();
         var msStart = System.currentTimeMillis();
@@ -294,6 +298,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      *
      * @return Map-а, в которой для каждого дескриптора указан список загруженных объектов.
      */
+    @NotNull
     public Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(@NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         final var pCount = this.prioritiesCount();
         final var result = new HashMap<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>>();
@@ -310,6 +315,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     }
 
     @SuppressWarnings("unchecked")
+    @NotNull
     private <O extends DataObject, P extends DataPackage<O>> Collection<O> invokeProcessByTopic(@NotNull IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         final IncomeTopicLoadingDescriptor<O, P> localDescriptor = (IncomeTopicLoadingDescriptor<O, P>)descriptor;
         return this.processByTopic(localDescriptor, durationOnPoll);
@@ -336,7 +342,6 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
             topicDescriptor.setOffset(tp.partition(), position);
         }
     }
-
 
     /**
      * Чтение набора DataPackage-ей из очереди.
@@ -472,6 +477,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return Записи Consumer-а.
      */
     @SuppressWarnings("unchecked")
+    @NotNull
     protected <O extends DataObject, P extends DataPackage<O>> ConsumerRecords<Object, Object> internalPoll(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) {
         final var consumer = descriptor.getConsumer();
         final ConsumerRecords<Object, Object> records = (ConsumerRecords<Object, Object>) consumer.poll(durationOnPoll);
@@ -486,6 +492,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @param loaded     Коллекция загруженных из Топика объектов.
      * @return Коллекция описателей изменений.
      */
+    @NotNull
     protected <O extends DataObject, P extends DataPackage<O>> Collection<NewOldDataObjectsPair<O>> prepareChanges(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Collection<O> loaded) {
         final var result = new ArrayList<NewOldDataObjectsPair<O>>();
         final var memRepo = descriptor.getMemoryRepository();

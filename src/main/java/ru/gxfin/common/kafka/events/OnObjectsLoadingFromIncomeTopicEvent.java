@@ -20,16 +20,19 @@ public interface OnObjectsLoadingFromIncomeTopicEvent<O extends DataObject, P ex
     /**
      * @return Получение описателя загрузки из Топика.
      */
+    @NotNull
     IncomeTopicLoadingDescriptor<O, P> getLoadingDescriptor();
 
     /**
      * @return Список объектов, которые были загружены.
      */
+    @NotNull
     Collection<NewOldDataObjectsPair<O>> getChanges();
 
     /**
      * @return Режим продолжения обработки других Топиков.
      */
+    @NotNull
     IncomeTopicsLoaderContinueMode getContinueMode();
 
     /**
@@ -40,5 +43,6 @@ public interface OnObjectsLoadingFromIncomeTopicEvent<O extends DataObject, P ex
      * @return                      this.
      */
     @SuppressWarnings("UnusedReturnValue")
+    @NotNull
     OnObjectsLoadingFromIncomeTopicEvent<O, P> reset(Object source, @NotNull IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull Collection<NewOldDataObjectsPair<O>> changes);
 }

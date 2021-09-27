@@ -20,7 +20,6 @@ public class IncomeTopicLoadingDescriptorsDefaults {
     @Setter
     private TopicMessageMode topicMessageMode = TopicMessageMode.OBJECT;
 
-    @Getter
     @Setter
     private LoadingFiltering loadingFiltering;
 

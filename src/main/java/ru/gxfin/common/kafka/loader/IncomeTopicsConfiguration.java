@@ -37,7 +37,7 @@ public interface IncomeTopicsConfiguration {
     /**
      * @return Настройки по умолчанию для новых описателей загрузки из топиков.
      */
-    IncomeTopicLoadingDescriptorsDefaults getDescriptorsDefaults();
+    @NotNull IncomeTopicLoadingDescriptorsDefaults getDescriptorsDefaults();
 
     /**
      * @return Количество приоритетов.
