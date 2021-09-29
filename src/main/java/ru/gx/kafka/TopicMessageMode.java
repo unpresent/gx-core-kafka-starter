@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka;
+package ru.gx.kafka;
 
 /**
  * Режим представления данных в очереди - пообъектно или пакетно.

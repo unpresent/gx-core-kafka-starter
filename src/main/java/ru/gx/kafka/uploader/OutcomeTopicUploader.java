@@ -1,9 +1,9 @@
-package ru.gxfin.common.kafka.uploader;
+package ru.gx.kafka.uploader;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
-import ru.gxfin.common.kafka.loader.PartitionOffset;
+import ru.gx.kafka.loader.PartitionOffset;
+import ru.gx.data.DataObject;
+import ru.gx.data.DataPackage;
 
 import java.util.Collection;
 

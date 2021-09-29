@@ -1,14 +1,23 @@
-package ru.gxfin.common.kafka.loader;
+package ru.gx.kafka.loader;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
+import org.jetbrains.annotations.Nullable;
+import ru.gx.data.DataObject;
+import ru.gx.data.DataPackage;
+
+import java.security.InvalidParameterException;
 
 /**
  * Интерфейс конфигурации обработки входящих очередей.
  */
 @SuppressWarnings("unused")
 public interface IncomeTopicsConfiguration {
+    /**
+     * Проверка регистрации описателя топика в конфигурации.
+     * @param topic Топик.
+     * @return true - описатель топика зарегистрирован.
+     */
+    boolean contains(@NotNull final String topic);
 
     /**
      * Получение описателя обработчика по топику.
@@ -16,7 +25,8 @@ public interface IncomeTopicsConfiguration {
      * @param topic Имя топика, для которого требуется получить описатель.
      * @return Описатель обработчика одной очереди.
      */
-    <O extends DataObject, P extends DataPackage<O>> IncomeTopicLoadingDescriptor<O, P> get(@NotNull String topic);
+    @NotNull
+    <O extends DataObject, P extends DataPackage<O>> IncomeTopicLoadingDescriptor<O, P> get(@NotNull final String topic);
 
     /**
      * Регистрация описателя обработчика одной очереди.
@@ -24,7 +34,8 @@ public interface IncomeTopicsConfiguration {
      * @param item Описатель обработчика одной очереди.
      * @return this.
      */
-    <O extends DataObject, P extends DataPackage<O>> IncomeTopicsConfiguration register(@NotNull IncomeTopicLoadingDescriptor<O, P> item);
+    @NotNull
+    <O extends DataObject, P extends DataPackage<O>> IncomeTopicsConfiguration register(@NotNull final IncomeTopicLoadingDescriptor<O, P> item) throws InvalidParameterException;
 
     /**
      * Дерегистрация обработчика очереди.
@@ -32,12 +43,14 @@ public interface IncomeTopicsConfiguration {
      * @param topic Имя топика очереди.
      * @return this.
      */
-    IncomeTopicsConfiguration unregister(@NotNull String topic);
+    @NotNull
+    IncomeTopicsConfiguration unregister(@NotNull final String topic);
 
     /**
      * @return Настройки по умолчанию для новых описателей загрузки из топиков.
      */
-    @NotNull IncomeTopicLoadingDescriptorsDefaults getDescriptorsDefaults();
+    @NotNull
+    IncomeTopicLoadingDescriptorsDefaults getDescriptorsDefaults();
 
     /**
      * @return Количество приоритетов.
@@ -50,11 +63,13 @@ public interface IncomeTopicsConfiguration {
      * @param priority Приоритет.
      * @return Список описателей обработчиков.
      */
+    @Nullable
     Iterable<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> getByPriority(int priority);
 
     /**
      * @return Список всех описателей обработчиков очередей.
      */
+    @NotNull
     Iterable<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> getAll();
 
     /**

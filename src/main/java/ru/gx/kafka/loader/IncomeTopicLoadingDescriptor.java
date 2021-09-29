@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka.loader;
+package ru.gx.kafka.loader;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -9,13 +9,14 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
-import ru.gxfin.common.data.DataMemoryRepository;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
-import ru.gxfin.common.kafka.TopicMessageMode;
-import ru.gxfin.common.kafka.events.OnObjectsLoadedFromIncomeTopicEvent;
-import ru.gxfin.common.kafka.events.OnObjectsLoadingFromIncomeTopicEvent;
+import ru.gx.kafka.TopicMessageMode;
+import ru.gx.kafka.events.OnObjectsLoadedFromIncomeTopicEvent;
+import ru.gx.kafka.events.OnObjectsLoadingFromIncomeTopicEvent;
+import ru.gx.data.DataMemoryRepository;
+import ru.gx.data.DataObject;
+import ru.gx.data.DataPackage;
 
 import java.lang.reflect.ParameterizedType;
 import java.security.InvalidParameterException;
@@ -32,6 +33,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      * Имя топика очереди.
      */
     @Getter
+    @NotNull
     private final String topic;
 
     /**
@@ -48,12 +50,14 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      */
     @Getter
     @Setter
+    @NotNull
     private TopicMessageMode messageMode;
 
     /**
      * Объект-получатель сообщений.
      */
     @Getter
+    // @NotNull
     private Consumer<?, ?> consumer;
 
     /**
@@ -61,6 +65,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      * Key - Partition.
      * Value - Offset.
      */
+    @NotNull
     private final Map<Integer, Long> partitionOffsets = new HashMap<>();
 
     @SuppressWarnings("unused")
@@ -136,18 +141,21 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      */
     @Getter
     @Setter
+    @Nullable
     private DataMemoryRepository<O, P> memoryRepository;
 
     /**
      * Класс объектов, которые будут читаться из очереди.
      */
     @Getter
+    @Nullable
     private Class<? extends O> dataObjectClass;
 
     /**
      * Класс пакетов объектов, которые будут читаться из очереди.
      */
     @Getter
+    @Nullable
     private Class<? extends P> dataPackageClass;
 
     /**
@@ -155,6 +163,7 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      */
     @Getter
     @Setter
+    @Nullable
     private Class<? extends OnObjectsLoadingFromIncomeTopicEvent<O, P>> onLoadingEventClass;
 
     public OnObjectsLoadingFromIncomeTopicEvent<O, P> getOnLoadingEvent(@NotNull ApplicationContext context) {
@@ -170,9 +179,10 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      */
     @Getter
     @Setter
+    @Nullable
     private Class<? extends OnObjectsLoadedFromIncomeTopicEvent<O, P>> onLoadedEventClass;
 
-    public OnObjectsLoadedFromIncomeTopicEvent<O, P> getOnLoadedEvent(@NotNull ApplicationContext context) {
+    public OnObjectsLoadedFromIncomeTopicEvent<O, P> getOnLoadedEvent(@NotNull final ApplicationContext context) {
         if (this.onLoadedEventClass != null) {
             return context.getBean(onLoadedEventClass);
         }
@@ -184,16 +194,19 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      */
     @Getter
     @Setter
+    @NotNull
     private LoadingMode loadingMode;
 
     @Getter
     @Setter
+    @Nullable
     private LoadingFiltering loadingFiltering;
 
     /**
      * Статистика чтения и обработки данных.
      */
     @Getter
+    @NotNull
     private final IncomeTopicLoadingStatistics loadingStatistics = new IncomeTopicLoadingStatistics();
 
     /**
@@ -223,9 +236,17 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      * @return this.
      */
     @SuppressWarnings({"UnusedReturnValue", "unused"})
-    public IncomeTopicLoadingDescriptor<O, P> init(@NotNull Properties consumerProperties) {
+    @NotNull
+    public IncomeTopicLoadingDescriptor<O, P> init(@NotNull final Properties consumerProperties) throws InvalidParameterException {
         if (partitionOffsets.size() <= 0) {
             throw new InvalidParameterException("Not defined partitions for topic " + this.topic);
+        }
+
+        if (this.dataObjectClass == null) {
+            throw new InvalidParameterException("Can't init descriptor " + this.getClass().getSimpleName() + " due undefined generic parameter[0].");
+        }
+        if (this.dataPackageClass == null) {
+            throw new InvalidParameterException("Can't init descriptor " + this.getClass().getSimpleName() + " due undefined generic parameter[1].");
         }
 
         this.consumer = new KafkaConsumer<>(consumerProperties);
@@ -235,13 +256,12 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
     }
 
     @SuppressWarnings({"unused", "unchecked"})
-    public IncomeTopicLoadingDescriptor(@NotNull String topic, IncomeTopicLoadingDescriptorsDefaults defaults) {
+    public IncomeTopicLoadingDescriptor(@NotNull final String topic, @Nullable final IncomeTopicLoadingDescriptorsDefaults defaults) {
         this.topic = topic;
 
         final var thisClass = this.getClass();
         final var superClass = thisClass.getGenericSuperclass();
         if (superClass instanceof ParameterizedType) {
-            // TODO: Проверить!
             this.dataObjectClass = (Class<O>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
             this.dataPackageClass = (Class<P>) ((ParameterizedType) superClass).getActualTypeArguments()[1];
         }

@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka.events;
+package ru.gx.kafka.events;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -7,8 +7,9 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.gxfin.common.data.DataObject;
+import ru.gx.data.DataObject;
 
+@Getter
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
@@ -16,36 +17,35 @@ public class NewOldDataObjectsPair<T extends DataObject> {
     /**
      * Ключ данной пары объектов.
      */
-    @Getter
+    @Nullable
     private final Object key;
 
     /**
      * Новый объект при загрузке.
      */
-    @Getter
     @Setter
+    @NotNull
     private T newObject;
 
     /**
      * Старый объект, который соответствует новому. Если null, то старого объекта нет.
      */
-    @Getter
+    @Nullable
     private final T oldObject;
 
     /**
      * Действие, которое требуется совершить с новым объектом.
      */
-    @Getter
     @Setter
+    @NotNull
     private ActionOnChangingDueLoading action;
 
     /**
      * Равны ли старый и новый объекты.
      */
-    @Getter
     private final boolean isEqual;
 
-    public NewOldDataObjectsPair(@Nullable Object key, @NotNull T newObject, @Nullable T oldObject, ActionOnChangingDueLoading action) {
+    public NewOldDataObjectsPair(@Nullable final Object key, @NotNull final T newObject, @Nullable final T oldObject, @NotNull final ActionOnChangingDueLoading action) {
         this.key = key;
         this.newObject = newObject;
         this.oldObject = oldObject;

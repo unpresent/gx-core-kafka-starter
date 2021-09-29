@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka.loader;
+package ru.gx.kafka.loader;
 
 @SuppressWarnings("unused")
 public enum LoadingMode {

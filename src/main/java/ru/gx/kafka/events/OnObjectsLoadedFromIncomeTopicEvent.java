@@ -1,10 +1,10 @@
-package ru.gxfin.common.kafka.events;
+package ru.gx.kafka.events;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
-import ru.gxfin.common.kafka.IncomeTopicsLoaderContinueMode;
-import ru.gxfin.common.kafka.loader.IncomeTopicLoadingDescriptor;
+import ru.gx.kafka.IncomeTopicsLoaderContinueMode;
+import ru.gx.data.DataObject;
+import ru.gx.data.DataPackage;
+import ru.gx.kafka.loader.IncomeTopicLoadingDescriptor;
 
 import java.util.Collection;
 
@@ -20,16 +20,19 @@ public interface OnObjectsLoadedFromIncomeTopicEvent<O extends DataObject, P ext
     /**
      * @return Получение описателя загрузки из Топика.
      */
+    @NotNull
     IncomeTopicLoadingDescriptor<O, P> getLoadingDescriptor();
 
     /**
      * @return Список объектов, которые были загружены.
      */
+    @NotNull
     Collection<O> getObjects();
 
     /**
      * @return Режим продолжения обработки других Топиков.
      */
+    @NotNull
     IncomeTopicsLoaderContinueMode getContinueMode();
 
     /**
@@ -40,5 +43,6 @@ public interface OnObjectsLoadedFromIncomeTopicEvent<O extends DataObject, P ext
      * @return                      this.
      */
     @SuppressWarnings("UnusedReturnValue")
-    OnObjectsLoadedFromIncomeTopicEvent<O, P> reset(Object source, @NotNull IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull Collection<O> objects);
+    @NotNull
+    OnObjectsLoadedFromIncomeTopicEvent<O, P> reset(@NotNull final Object source, @NotNull final IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull final Collection<O> objects);
 }

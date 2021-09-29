@@ -1,12 +1,13 @@
-package ru.gxfin.common.kafka.loader;
+package ru.gx.kafka.loader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.jetbrains.annotations.NotNull;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
-import ru.gxfin.common.data.ObjectAlreadyExistsException;
-import ru.gxfin.common.data.ObjectNotExistsException;
+import ru.gx.data.DataObject;
+import ru.gx.data.DataPackage;
+import ru.gx.data.ObjectAlreadyExistsException;
+import ru.gx.data.ObjectNotExistsException;
 
+import java.security.InvalidParameterException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
@@ -25,7 +26,7 @@ public interface IncomeTopicsLoader {
      * @return                                  Список загруженных объектов.
      */
     @NotNull
-    <O extends DataObject, P extends DataPackage<O>> Collection<O> processByTopic(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
+    <O extends DataObject, P extends DataPackage<O>> Collection<O> processByTopic(@NotNull final IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull final Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
 
     /**
      * Загрузка и обработка данных по списку топиков по конфигурации.
@@ -34,5 +35,5 @@ public interface IncomeTopicsLoader {
      * @return                                  Map-а, в которой для каждого дескриптора указан список загруженных объектов.
      */
     @NotNull
-    Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(@NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
+    Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(@NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException, InvalidParameterException;
 }

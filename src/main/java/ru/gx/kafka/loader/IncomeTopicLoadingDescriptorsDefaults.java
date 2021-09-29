@@ -1,11 +1,13 @@
-package ru.gxfin.common.kafka.loader;
+package ru.gx.kafka.loader;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import ru.gxfin.common.kafka.TopicMessageMode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import ru.gx.kafka.TopicMessageMode;
 
 import java.util.Properties;
 
@@ -15,15 +17,19 @@ import java.util.Properties;
 @ToString
 public class IncomeTopicLoadingDescriptorsDefaults {
     @Setter
+    @NotNull
     private LoadingMode loadingMode = LoadingMode.Auto;
 
     @Setter
+    @NotNull
     private TopicMessageMode topicMessageMode = TopicMessageMode.OBJECT;
 
     @Setter
+    @Nullable
     private LoadingFiltering loadingFiltering;
 
     @Setter
+    @Nullable
     private Properties consumerProperties;
 
     private int[] partitions = new int[]{0};

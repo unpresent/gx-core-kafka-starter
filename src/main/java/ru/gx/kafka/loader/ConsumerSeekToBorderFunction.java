@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka.loader;
+package ru.gx.kafka.loader;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.TopicPartition;
@@ -8,5 +8,5 @@ import java.util.Collection;
 
 @FunctionalInterface
 public interface ConsumerSeekToBorderFunction {
-    void seek(@NotNull Consumer<?, ?> consumer, Collection<TopicPartition> topicPartitions);
+    void seek(@NotNull final Consumer<?, ?> consumer, @NotNull final Collection<TopicPartition> topicPartitions);
 }

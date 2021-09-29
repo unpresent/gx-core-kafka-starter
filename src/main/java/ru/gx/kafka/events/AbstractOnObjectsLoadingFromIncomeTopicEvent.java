@@ -1,18 +1,20 @@
-package ru.gxfin.common.kafka.events;
+package ru.gx.kafka.events;
 
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEvent;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
-import ru.gxfin.common.kafka.IncomeTopicsLoaderContinueMode;
-import ru.gxfin.common.kafka.loader.IncomeTopicLoadingDescriptor;
+import ru.gx.kafka.IncomeTopicsLoaderContinueMode;
+import ru.gx.data.DataObject;
+import ru.gx.data.DataPackage;
+import ru.gx.kafka.loader.IncomeTopicLoadingDescriptor;
 
 import java.util.Collection;
 
+import static lombok.AccessLevel.*;
+
 @Getter
-@Setter(AccessLevel.PROTECTED)
+@Setter(PROTECTED)
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString
@@ -23,16 +25,19 @@ public abstract class AbstractOnObjectsLoadingFromIncomeTopicEvent<O extends Dat
     /**
      * Описатель загрузки из Топика.
      */
+    @NotNull
     private IncomeTopicLoadingDescriptor<O, P> loadingDescriptor;
 
     /**
      * Список изменений.
      */
+    @NotNull
     private Collection<NewOldDataObjectsPair<O>> changes;
 
     /**
      * Режим продолжения обработки других Топиков.
      */
+    @NotNull
     private IncomeTopicsLoaderContinueMode continueMode;
 
     public AbstractOnObjectsLoadingFromIncomeTopicEvent(Object source) {
@@ -41,7 +46,7 @@ public abstract class AbstractOnObjectsLoadingFromIncomeTopicEvent<O extends Dat
 
     @SuppressWarnings("UnusedReturnValue")
     @NotNull
-    public AbstractOnObjectsLoadingFromIncomeTopicEvent<O, P> reset(Object source, @NotNull IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull Collection<NewOldDataObjectsPair<O>> changes) {
+    public AbstractOnObjectsLoadingFromIncomeTopicEvent<O, P> reset(@NotNull final Object source, @NotNull final IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull final Collection<NewOldDataObjectsPair<O>> changes) {
         super.source = source;
         return this
                 .setLoadingDescriptor(loadingDescriptor)

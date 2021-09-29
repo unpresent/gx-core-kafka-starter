@@ -1,9 +1,9 @@
-package ru.gxfin.common.kafka.uploader;
+package ru.gx.kafka.uploader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
+import ru.gx.data.DataObject;
+import ru.gx.data.DataPackage;
 
 @SuppressWarnings("unused")
 public class StandardOutcomeTopicUploader extends AbstractOutcomeTopicUploader {

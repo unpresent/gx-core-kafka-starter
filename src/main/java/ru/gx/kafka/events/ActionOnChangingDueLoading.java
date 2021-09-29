@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka.events;
+package ru.gx.kafka.events;
 
 public enum ActionOnChangingDueLoading {
     /**

@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>ru.gxfin.common</groupId>
-    <artifactId>gxfin-common-kafka-starter</artifactId>
-    <version>1.0</version>
+    <groupId>ru.gx</groupId>
+    <artifactId>gx-kafka-starter</artifactId>
+    <version>1.1</version>
 
     <properties>
         <encoding>UTF-8</encoding>
 
-        <gxfin-common-starter.version>1.0</gxfin-common-starter.version>
+        <gx-starter.version>1.1</gx-starter.version>
 
         <org.springframework.boot.version>2.5.0</org.springframework.boot.version>
 
@@ -45,9 +45,9 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.gxfin.common</groupId>
-            <artifactId>gxfin-common-starter</artifactId>
-            <version>${gxfin-common-starter.version}</version>
+            <groupId>ru.gx</groupId>
+            <artifactId>gx-starter</artifactId>
+            <version>${gx-starter.version}</version>
         </dependency>
 
         <dependency>

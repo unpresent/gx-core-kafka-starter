@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka.loader;
+package ru.gx.kafka.loader;
 
 import org.apache.kafka.common.header.Headers;
 import org.jetbrains.annotations.NotNull;
@@ -12,5 +12,5 @@ public interface LoadingFiltering {
      * @param headers Заголовки полученных из Kafka данных.
      * @return  true - обрабатывать данные, false - проигнорировать данные.
      */
-    boolean allowProcess(@NotNull Headers headers);
+    boolean allowProcess(@NotNull final Headers headers);
 }

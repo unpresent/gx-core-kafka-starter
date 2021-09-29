@@ -1,13 +1,13 @@
-package ru.gxfin.common.kafka.uploader;
+package ru.gx.kafka.uploader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.jetbrains.annotations.NotNull;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
-import ru.gxfin.common.kafka.TopicMessageMode;
-import ru.gxfin.common.kafka.loader.PartitionOffset;
+import ru.gx.kafka.loader.PartitionOffset;
+import ru.gx.data.DataObject;
+import ru.gx.data.DataPackage;
+import ru.gx.kafka.TopicMessageMode;
 
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
@@ -32,7 +32,7 @@ public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUpload
     // <editor-fold desc="Реализация OutcomeTopicUploader">
     @Override
     @NotNull
-    public <O extends DataObject, P extends DataPackage<O>> PartitionOffset uploadDataObject(@NotNull OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull O object) throws Exception {
+    public <O extends DataObject, P extends DataPackage<O>> PartitionOffset uploadDataObject(@NotNull final OutcomeTopicUploadingDescriptor<O, P> descriptor, @NotNull final O object) throws Exception {
         if (descriptor.getMessageMode() == TopicMessageMode.PACKAGE) {
             final var dataPackage = createPackage(descriptor);
             dataPackage.getObjects().add(object);

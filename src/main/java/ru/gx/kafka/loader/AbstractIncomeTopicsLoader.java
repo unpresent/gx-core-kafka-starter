@@ -1,24 +1,29 @@
-package ru.gxfin.common.kafka.loader;
+package ru.gx.kafka.loader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidNullException;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
-import ru.gxfin.common.data.ObjectAlreadyExistsException;
-import ru.gxfin.common.data.ObjectNotExistsException;
-import ru.gxfin.common.kafka.IncomeTopicsConsumingException;
-import ru.gxfin.common.kafka.TopicMessageMode;
-import ru.gxfin.common.kafka.events.ActionOnChangingDueLoading;
-import ru.gxfin.common.kafka.events.NewOldDataObjectsPair;
+import org.springframework.context.ApplicationContextAware;
+import ru.gx.kafka.TopicMessageMode;
+import ru.gx.kafka.events.NewOldDataObjectsPair;
+import ru.gx.data.DataObject;
+import ru.gx.data.DataPackage;
+import ru.gx.data.ObjectAlreadyExistsException;
+import ru.gx.data.ObjectNotExistsException;
+import ru.gx.kafka.IncomeTopicsConsumingException;
+import ru.gx.kafka.events.ActionOnChangingDueLoading;
 
+import java.security.InvalidParameterException;
 import java.time.Duration;
 import java.util.*;
 
@@ -26,14 +31,15 @@ import java.util.*;
  * Базовая реализация загрузчика, который упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
  */
 @Slf4j
-public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, IncomeTopicsConfiguration {
+public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, IncomeTopicsConfiguration, ApplicationContextAware {
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
     /**
      * Объект контекста требуется для вызова событий.
      */
-    @NotNull
-    private final ApplicationContext context;
+    @Getter
+    @Setter
+    private ApplicationContext applicationContext;
 
     /**
      * ObjectMapper требуется для десериализации данных в объекты.
@@ -44,11 +50,13 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     /**
      * Список описателей сгруппированные по приоритетам.
      */
+    @NotNull
     private final List<List<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>>> priorities = new ArrayList<>();
 
     /**
      * Список описателей с группировкой по топикам.
      */
+    @NotNull
     private final Map<String, IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> topics = new HashMap<>();
 
     @Getter
@@ -58,15 +66,24 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    protected AbstractIncomeTopicsLoader(@NotNull ApplicationContext context, @NotNull ObjectMapper objectMapper) {
+    protected AbstractIncomeTopicsLoader(@NotNull final ObjectMapper objectMapper) {
         super();
-        this.context = context;
         this.objectMapper = objectMapper;
         this.descriptorsDefaults = new IncomeTopicLoadingDescriptorsDefaults();
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="реализация IncomeTopicsConfiguration">
+
+    /**
+     * Проверка регистрации описателя топика в конфигурации.
+     * @param topic Топик.
+     * @return true - описатель топика зарегистрирован.
+     */
+    @Override
+    public boolean contains(@NotNull final String topic) {
+        return this.topics.containsKey(topic);
+    }
 
     /**
      * Получение описателя обработчика по топику.
@@ -76,8 +93,13 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> IncomeTopicLoadingDescriptor<O, P> get(@NotNull String topic) {
-        return (IncomeTopicLoadingDescriptor<O, P>)this.topics.get(topic);
+    @NotNull
+    public <O extends DataObject, P extends DataPackage<O>> IncomeTopicLoadingDescriptor<O, P> get(@NotNull final String topic) {
+        final var result = (IncomeTopicLoadingDescriptor<O, P>)this.topics.get(topic);
+        if (result == null) {
+            throw new InvalidParameterException("Can't find description for topic " + topic);
+        }
+        return result;
     }
 
     /**
@@ -87,13 +109,18 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return this.
      */
     @Override
-    public <O extends DataObject, P extends DataPackage<O>> IncomeTopicsConfiguration register(@NotNull IncomeTopicLoadingDescriptor<O, P> item) {
+    @NotNull
+    public <O extends DataObject, P extends DataPackage<O>> IncomeTopicsConfiguration register(@NotNull final IncomeTopicLoadingDescriptor<O, P> item) throws InvalidParameterException {
         if (this.topics.containsKey(item.getTopic())) {
             throw new IncomeTopicsConsumingException("Topic " + item.getTopic() + " already registered!");
         }
 
         if (!item.isInitialized()) {
-            item.init(getDescriptorsDefaults().getConsumerProperties());
+            final var props = getDescriptorsDefaults().getConsumerProperties();
+            if (props == null) {
+                throw new InvalidParameterException("Invalid null value getDescriptorsDefaults().getConsumerProperties()!");
+            }
+            item.init(props);
         }
 
         final var priority = item.getPriority();
@@ -117,7 +144,8 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return this.
      */
     @Override
-    public IncomeTopicsConfiguration unregister(@NotNull String topic) {
+    @NotNull
+    public IncomeTopicsConfiguration unregister(@NotNull final String topic) {
         final var item = this.topics.get(topic);
         if (item == null) {
             throw new IncomeTopicsConsumingException("Topic " + topic + " not registered!");
@@ -148,6 +176,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return Список описателей обработчиков.
      */
     @Override
+    @Nullable
     public Iterable<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> getByPriority(int priority) {
         return this.priorities.get(priority);
     }
@@ -156,6 +185,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return Список всех описателей обработчиков очередей.
      */
     @Override
+    @NotNull
     public Iterable<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> getAll() {
         return this.topics.values();
     }
@@ -182,7 +212,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @param topic Топик, для которого требуется сместить смещения.
      */
     @Override
-    public void seekTopicAllPartitionsToBegin(@NotNull String topic) {
+    public void seekTopicAllPartitionsToBegin(@NotNull final String topic) {
         final IncomeTopicLoadingDescriptor<?, ?> topicDescriptor = this.get(topic);
         internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToBeginning);
     }
@@ -241,10 +271,10 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
         var msChanges = System.currentTimeMillis();
 
         // Бросаем событие об изменениях со списком
-        final var eventLoading = descriptor.getOnLoadingEvent(this.context);
+        final var eventLoading = descriptor.getOnLoadingEvent(this.applicationContext);
         if (eventLoading != null) {
             eventLoading.reset(this, descriptor, changes);
-            this.context.publishEvent(eventLoading);
+            this.applicationContext.publishEvent(eventLoading);
         }
         var msEventLoading = System.currentTimeMillis();
 
@@ -259,10 +289,10 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
         );
 
         // Бросаем событие о завершении загрузки
-        final var eventLoaded = descriptor.getOnLoadedEvent(this.context);
+        final var eventLoaded = descriptor.getOnLoadedEvent(this.applicationContext);
         if (eventLoaded != null) {
             eventLoaded.reset(this, descriptor, resultObjects);
-            this.context.publishEvent(eventLoaded);
+            this.applicationContext.publishEvent(eventLoaded);
         }
 
         var msFinish = System.currentTimeMillis();
@@ -299,11 +329,14 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      * @return Map-а, в которой для каждого дескриптора указан список загруженных объектов.
      */
     @NotNull
-    public Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(@NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
+    public Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(@NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException, InvalidParameterException {
         final var pCount = this.prioritiesCount();
         final var result = new HashMap<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>>();
         for (int p = 0; p < pCount; p++) {
             final var topicDescriptors = this.getByPriority(p);
+            if (topicDescriptors == null) {
+                throw new InvalidParameterException("Invalid null value getByPriority(" + p + ")");
+            }
             for (var topicDescriptor : topicDescriptors) {
                 log.debug("Loading working data from topic: {}", topicDescriptor.getTopic());
                 final var loadedObjects = invokeProcessByTopic(topicDescriptor, durationOnPoll);

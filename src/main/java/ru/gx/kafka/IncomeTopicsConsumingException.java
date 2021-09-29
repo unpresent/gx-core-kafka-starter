@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka;
+package ru.gx.kafka;
 
 public class IncomeTopicsConsumingException extends RuntimeException {
     public IncomeTopicsConsumingException(String message) {

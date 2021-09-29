@@ -1,10 +1,11 @@
-package ru.gxfin.common.kafka.loader;
+package ru.gx.kafka.loader;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.jetbrains.annotations.NotNull;
 
 @Getter
 @Setter
@@ -25,6 +26,7 @@ public class IncomeTopicLoadingStatistics {
     private long loadedToRepositoryMs;
     private long onLoadedEventMs;
 
+    @NotNull
     public IncomeTopicLoadingStatistics reset() {
         this.loadedPackagesCount = -1;
         this.loadedObjectsCount = -1;

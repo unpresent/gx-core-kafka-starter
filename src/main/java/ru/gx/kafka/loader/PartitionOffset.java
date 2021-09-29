@@ -1,12 +1,14 @@
-package ru.gxfin.common.kafka.loader;
+package ru.gx.kafka.loader;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
 public class PartitionOffset implements Serializable {

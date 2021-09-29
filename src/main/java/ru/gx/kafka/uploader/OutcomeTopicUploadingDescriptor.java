@@ -1,4 +1,4 @@
-package ru.gxfin.common.kafka.uploader;
+package ru.gx.kafka.uploader;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -7,9 +7,9 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.apache.kafka.clients.producer.Producer;
 import org.jetbrains.annotations.NotNull;
-import ru.gxfin.common.data.DataObject;
-import ru.gxfin.common.data.DataPackage;
-import ru.gxfin.common.kafka.TopicMessageMode;
+import ru.gx.kafka.TopicMessageMode;
+import ru.gx.data.DataObject;
+import ru.gx.data.DataPackage;
 
 import java.lang.reflect.ParameterizedType;
 
