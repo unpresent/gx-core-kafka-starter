@@ -1,10 +1,10 @@
-package ru.gx.kafka.uploader;
+package ru.gx.kafka.upload;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.jetbrains.annotations.NotNull;
-import ru.gx.kafka.loader.PartitionOffset;
+import ru.gx.kafka.PartitionOffset;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
 import ru.gx.kafka.TopicMessageMode;

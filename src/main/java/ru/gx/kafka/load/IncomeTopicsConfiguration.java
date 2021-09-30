@@ -1,9 +1,10 @@
-package ru.gx.kafka.loader;
+package ru.gx.kafka.load;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
+import ru.gx.kafka.PartitionOffset;
 
 import java.security.InvalidParameterException;
 

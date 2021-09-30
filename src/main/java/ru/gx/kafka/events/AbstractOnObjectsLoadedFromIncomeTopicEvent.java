@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationEvent;
 import ru.gx.kafka.IncomeTopicsLoaderContinueMode;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
-import ru.gx.kafka.loader.IncomeTopicLoadingDescriptor;
+import ru.gx.kafka.load.IncomeTopicLoadingDescriptor;
 
 import java.util.Collection;
 

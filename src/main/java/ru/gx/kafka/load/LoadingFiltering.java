@@ -1,4 +1,4 @@
-package ru.gx.kafka.loader;
+package ru.gx.kafka.load;
 
 import org.apache.kafka.common.header.Headers;
 import org.jetbrains.annotations.NotNull;

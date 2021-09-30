@@ -1,9 +1,8 @@
-package ru.gx.kafka.loader;
+package ru.gx.kafka.load;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.InvalidNullException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import ru.gx.kafka.PartitionOffset;
 import ru.gx.kafka.TopicMessageMode;
 import ru.gx.kafka.events.NewOldDataObjectsPair;
 import ru.gx.data.DataObject;

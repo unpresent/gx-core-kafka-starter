@@ -1,7 +1,7 @@
-package ru.gx.kafka.uploader;
+package ru.gx.kafka.upload;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gx.kafka.loader.PartitionOffset;
+import ru.gx.kafka.PartitionOffset;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
 

@@ -1,4 +1,4 @@
-package ru.gx.kafka.loader;
+package ru.gx.kafka.load;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.jetbrains.annotations.NotNull;

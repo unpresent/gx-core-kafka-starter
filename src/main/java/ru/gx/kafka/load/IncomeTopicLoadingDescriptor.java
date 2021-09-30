@@ -1,4 +1,4 @@
-package ru.gx.kafka.loader;
+package ru.gx.kafka.load;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
