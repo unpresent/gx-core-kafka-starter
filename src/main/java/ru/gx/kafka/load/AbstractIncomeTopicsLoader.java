@@ -40,6 +40,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     // <editor-fold desc="Fields">
     /**
      * Объект контекста требуется для вызова событий.
+     * А также для получения бинов.
      */
     @Getter
     @Setter
@@ -48,7 +49,7 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     /**
      * ObjectMapper требуется для десериализации данных в объекты.
      */
-    @Getter
+    @Getter(PROTECTED)
     @Setter(value = PROTECTED, onMethod_ = @Autowired)
     private ObjectMapper objectMapper;
 
