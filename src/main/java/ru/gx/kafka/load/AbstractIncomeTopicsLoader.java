@@ -3,6 +3,7 @@ package ru.gx.kafka.load;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import ru.gx.kafka.PartitionOffset;
@@ -26,6 +28,8 @@ import ru.gx.kafka.events.ActionOnChangingDueLoading;
 import java.security.InvalidParameterException;
 import java.time.Duration;
 import java.util.*;
+
+import static lombok.AccessLevel.*;
 
 /**
  * Базовая реализация загрузчика, который упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
@@ -44,8 +48,12 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     /**
      * ObjectMapper требуется для десериализации данных в объекты.
      */
+    @Getter
+    @Setter(value = PROTECTED, onMethod_ = @Autowired)
+    private ObjectMapper objectMapper;
+
     @NotNull
-    private final ObjectMapper objectMapper;
+    private final String readerName;
 
     /**
      * Список описателей сгруппированные по приоритетам.
@@ -66,14 +74,23 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    protected AbstractIncomeTopicsLoader(@NotNull final ObjectMapper objectMapper) {
+    protected AbstractIncomeTopicsLoader(@NotNull final String readerName) {
         super();
-        this.objectMapper = objectMapper;
+        this.readerName = readerName;
         this.descriptorsDefaults = new IncomeTopicLoadingDescriptorsDefaults();
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="реализация IncomeTopicsConfiguration">
+
+    /**
+     * @return Логическое имя читателя
+     */
+    @Override
+    @NotNull
+    public String getReaderName() {
+        return this.readerName;
+    }
 
     /**
      * Проверка регистрации описателя топика в конфигурации.

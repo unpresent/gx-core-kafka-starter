@@ -13,6 +13,9 @@ import java.security.InvalidParameterException;
  */
 @SuppressWarnings("unused")
 public interface IncomeTopicsConfiguration {
+    @NotNull
+    String getReaderName();
+
     /**
      * Проверка регистрации описателя топика в конфигурации.
      * @param topic Топик.

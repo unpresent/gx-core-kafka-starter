@@ -1,14 +1,13 @@
 package ru.gx.kafka.upload;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
 
 @SuppressWarnings("unused")
 public class SimpleOutcomeTopicUploader extends AbstractOutcomeTopicUploader {
-    public SimpleOutcomeTopicUploader(@NotNull ObjectMapper objectMapper) {
-        super(objectMapper);
+    public SimpleOutcomeTopicUploader() {
+        super();
     }
 
     @Override

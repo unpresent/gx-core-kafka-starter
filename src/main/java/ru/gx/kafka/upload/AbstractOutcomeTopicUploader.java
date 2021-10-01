@@ -2,8 +2,11 @@ package ru.gx.kafka.upload;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.gx.kafka.PartitionOffset;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
@@ -12,19 +15,23 @@ import ru.gx.kafka.TopicMessageMode;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 
+import static lombok.AccessLevel.PROTECTED;
+
 public abstract class AbstractOutcomeTopicUploader implements OutcomeTopicUploader {
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
     /**
      * ObjectMapper требуется для десериализации данных в объекты.
      */
-    private final ObjectMapper objectMapper;
+    @Getter
+    @Setter(value = PROTECTED, onMethod_ = @Autowired)
+    @NotNull
+    private ObjectMapper objectMapper;
 
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    protected AbstractOutcomeTopicUploader(@NotNull ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    protected AbstractOutcomeTopicUploader() {
     }
 
     // </editor-fold>
