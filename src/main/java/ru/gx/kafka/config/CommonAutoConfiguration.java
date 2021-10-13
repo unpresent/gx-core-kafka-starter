@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.gx.kafka.load.BootstrapIncomeTopicsLoader;
 import ru.gx.kafka.load.IncomeTopicsConfiguratorCaller;
 import ru.gx.kafka.load.SimpleIncomeTopicsLoader;
 import ru.gx.kafka.upload.OutcomeTopicsConfiguratorCaller;
@@ -20,6 +21,13 @@ public class CommonAutoConfiguration {
     @ConditionalOnProperty(value = "service.income-topics.simple-loader.enabled", havingValue = "true")
     public SimpleIncomeTopicsLoader simpleIncomeTopicsLoader() {
         return new SimpleIncomeTopicsLoader(this.serviceName);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(value = "service.income-topics.boostrap-loader.enabled", havingValue = "true")
+    public BootstrapIncomeTopicsLoader bootstrapIncomeTopicsLoader() {
+        return new BootstrapIncomeTopicsLoader(this.serviceName);
     }
 
     @Bean

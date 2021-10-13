@@ -1,9 +1,6 @@
 package ru.gx.kafka.load;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -11,16 +8,18 @@ import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
-import ru.gx.kafka.TopicMessageMode;
-import ru.gx.kafka.events.OnObjectsLoadedFromIncomeTopicEvent;
-import ru.gx.kafka.events.OnObjectsLoadingFromIncomeTopicEvent;
 import ru.gx.data.DataMemoryRepository;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
+import ru.gx.kafka.TopicMessageMode;
+import ru.gx.kafka.events.OnObjectsLoadedFromIncomeTopicEvent;
+import ru.gx.kafka.events.OnObjectsLoadingFromIncomeTopicEvent;
 
 import java.lang.reflect.ParameterizedType;
 import java.security.InvalidParameterException;
 import java.util.*;
+
+import static lombok.AccessLevel.*;
 
 /**
  * Описатель обработчика одной очереди.
@@ -148,14 +147,12 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      * Класс объектов, которые будут читаться из очереди.
      */
     @Getter
-    @Nullable
     private Class<? extends O> dataObjectClass;
 
     /**
      * Класс пакетов объектов, которые будут читаться из очереди.
      */
     @Getter
-    @Nullable
     private Class<? extends P> dataPackageClass;
 
     /**
@@ -166,13 +163,24 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
     @Nullable
     private Class<? extends OnObjectsLoadingFromIncomeTopicEvent<O, P>> onLoadingEventClass;
 
-    public OnObjectsLoadingFromIncomeTopicEvent<O, P> getOnLoadingEvent(@NotNull ApplicationContext context) {
+    /**
+     * Класс (не определенный с точностью до Dto-объекта) объектов-событий при загрузке объектов - запрос с предоставлением списка Old-New.
+     */
+    @SuppressWarnings("rawtypes")
+    @Getter
+    @Setter
+    @Nullable
+    private Class<? extends OnObjectsLoadingFromIncomeTopicEvent> onLoadingEventBaseClass;
+
+    @SuppressWarnings("rawtypes")
+    public OnObjectsLoadingFromIncomeTopicEvent getOnLoadingEvent(@NotNull ApplicationContext context) {
         if (this.onLoadingEventClass != null) {
             return context.getBean(onLoadingEventClass);
+        } else if (this.onLoadingEventBaseClass != null) {
+            return context.getBean(onLoadingEventBaseClass);
         }
         return null;
     }
-
 
     /**
      * Класс объектов-событий после чтения объектов (и загрузки в репозиторий).
@@ -182,9 +190,21 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
     @Nullable
     private Class<? extends OnObjectsLoadedFromIncomeTopicEvent<O, P>> onLoadedEventClass;
 
-    public OnObjectsLoadedFromIncomeTopicEvent<O, P> getOnLoadedEvent(@NotNull final ApplicationContext context) {
+    /**
+     * Класс (не определенный с точностью до Dto-объекта) объектов-событий после чтения объектов (и загрузки в репозиторий).
+     */
+    @SuppressWarnings("rawtypes")
+    @Getter
+    @Setter
+    @Nullable
+    private Class<? extends OnObjectsLoadedFromIncomeTopicEvent> onLoadedEventBaseClass;
+
+    @SuppressWarnings("rawtypes")
+    public OnObjectsLoadedFromIncomeTopicEvent getOnLoadedEvent(@NotNull final ApplicationContext context) {
         if (this.onLoadedEventClass != null) {
             return context.getBean(onLoadedEventClass);
+        } else if (this.onLoadedEventBaseClass != null) {
+            return context.getBean(onLoadedEventBaseClass);
         }
         return null;
     }
@@ -226,6 +246,9 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
         return result.toString();
     }
 
+    /**
+     * Признак того, что описатель инициализирован.
+     */
     @Getter
     private boolean initialized;
 
@@ -238,10 +261,6 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
     @SuppressWarnings({"UnusedReturnValue", "unused"})
     @NotNull
     public IncomeTopicLoadingDescriptor<O, P> init(@NotNull final Properties consumerProperties) throws InvalidParameterException {
-        if (partitionOffsets.size() <= 0) {
-            throw new InvalidParameterException("Not defined partitions for topic " + this.topic);
-        }
-
         if (this.dataObjectClass == null) {
             throw new InvalidParameterException("Can't init descriptor " + this.getClass().getSimpleName() + " due undefined generic parameter[0].");
         }
@@ -249,9 +268,19 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
             throw new InvalidParameterException("Can't init descriptor " + this.getClass().getSimpleName() + " due undefined generic parameter[1].");
         }
 
+        if (this.partitionOffsets.size() <= 0) {
+            throw new InvalidParameterException("Not defined partitions for topic " + this.topic);
+        }
         this.consumer = new KafkaConsumer<>(consumerProperties);
         this.consumer.assign(getTopicPartitions());
         this.initialized = true;
+        return this;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public IncomeTopicLoadingDescriptor<O, P> unInit() {
+        this.initialized = false;
+        this.consumer = null;
         return this;
     }
 

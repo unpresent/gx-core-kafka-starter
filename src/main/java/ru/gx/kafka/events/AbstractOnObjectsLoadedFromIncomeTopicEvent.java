@@ -4,7 +4,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEvent;
-import ru.gx.kafka.IncomeTopicsLoaderContinueMode;
+import ru.gx.kafka.load.IncomeTopicsLoaderContinueMode;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
 import ru.gx.kafka.load.IncomeTopicLoadingDescriptor;
