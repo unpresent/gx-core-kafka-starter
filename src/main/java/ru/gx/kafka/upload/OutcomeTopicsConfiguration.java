@@ -4,9 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
-import ru.gx.kafka.PartitionOffset;
-import ru.gx.kafka.load.IncomeTopicLoadingDescriptor;
-import ru.gx.kafka.load.IncomeTopicLoadingDescriptorsDefaults;
 
 import java.security.InvalidParameterException;
 
@@ -31,6 +28,17 @@ public interface OutcomeTopicsConfiguration {
     @NotNull
     <O extends DataObject, P extends DataPackage<O>>
     OutcomeTopicUploadingDescriptor<O, P> get(@NotNull final String topic);
+
+
+    /**
+     * Получение описателя обработчика по топику.
+     *
+     * @param topic Имя топика, для которого требуется получить описатель.
+     * @return Описатель обработчика одной очереди. Если не найден, то возвращается null.
+     */
+    @Nullable
+    <O extends DataObject, P extends DataPackage<O>>
+    OutcomeTopicUploadingDescriptor<O, P> tryGet(@NotNull final String topic);
 
     /**
      * Регистрация описателя обработчика одной очереди.

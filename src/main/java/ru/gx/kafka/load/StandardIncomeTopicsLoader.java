@@ -6,15 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import ru.gx.kafka.PartitionOffset;
 import ru.gx.kafka.TopicMessageMode;
 import ru.gx.kafka.events.NewOldDataObjectsPair;
 import ru.gx.data.DataObject;
@@ -33,7 +29,7 @@ import static lombok.AccessLevel.*;
  * Базовая реализация загрузчика, который упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
  */
 @Slf4j
-public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, IncomeTopicsConfiguration, ApplicationContextAware {
+public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, ApplicationContextAware {
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
     /**
@@ -50,218 +46,10 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     @Setter(value = PROTECTED, onMethod_ = @Autowired)
     private ObjectMapper objectMapper;
 
-    @NotNull
-    private final String readerName;
-
-    /**
-     * Список описателей сгруппированные по приоритетам.
-     */
-    @NotNull
-    private final List<List<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>>> priorities = new ArrayList<>();
-
-    /**
-     * Список описателей с группировкой по топикам.
-     */
-    @NotNull
-    private final Map<String, IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> topics = new HashMap<>();
-
-    @Getter
-    @NotNull
-    private final IncomeTopicLoadingDescriptorsDefaults descriptorsDefaults;
-
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    protected AbstractIncomeTopicsLoader(@NotNull final String readerName) {
-        super();
-        this.readerName = readerName;
-        this.descriptorsDefaults = new IncomeTopicLoadingDescriptorsDefaults();
-    }
-    // </editor-fold>
-    // -------------------------------------------------------------------------------------------------------------
-    // <editor-fold desc="реализация IncomeTopicsConfiguration">
-
-    /**
-     * @return Логическое имя читателя
-     */
-    @Override
-    @NotNull
-    public String getReaderName() {
-        return this.readerName;
-    }
-
-    /**
-     * Проверка регистрации описателя топика в конфигурации.
-     * @param topic Топик.
-     * @return true - описатель топика зарегистрирован.
-     */
-    @Override
-    public boolean contains(@NotNull final String topic) {
-        return this.topics.containsKey(topic);
-    }
-
-    /**
-     * Получение описателя обработчика по топику.
-     *
-     * @param topic Имя топика, для которого требуется получить описатель.
-     * @return Описатель обработчика одной очереди.
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    IncomeTopicLoadingDescriptor<O, P> get(@NotNull final String topic) {
-        final var result = (IncomeTopicLoadingDescriptor<O, P>)this.topics.get(topic);
-        if (result == null) {
-            throw new IncomeTopicsConfigurationException("Can't find description for topic " + topic);
-        }
-        return result;
-    }
-
-    /**
-     * Регистрация описателя обработчика одной очереди.
-     *
-     * @param item Описатель обработчика одной очереди.
-     * @return this.
-     */
-    @Override
-    @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    IncomeTopicsConfiguration register(@NotNull final IncomeTopicLoadingDescriptor<O, P> item) throws InvalidParameterException {
-        if (contains(item.getTopic())) {
-            throw new IncomeTopicsConfigurationException("Topic " + item.getTopic() + " already registered!");
-        }
-
-        if (!item.isInitialized()) {
-            final var props = getDescriptorsDefaults().getConsumerProperties();
-            if (props == null) {
-                throw new IncomeTopicsConfigurationException("Invalid null value getDescriptorsDefaults().getConsumerProperties()!");
-            }
-            item.init(props);
-        }
-
-        final var priority = item.getPriority();
-        while (priorities.size() <= priority) {
-            priorities.add(new ArrayList<>());
-        }
-
-        final var itemsList = priorities.get(priority);
-
-        final var localItem = (IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>)item;
-        itemsList.add(localItem);
-        topics.put(item.getTopic(), localItem);
-
-        return this;
-    }
-
-    /**
-     * Дерегистрация обработчика очереди.
-     *
-     * @param topic Имя топика очереди.
-     * @return this.
-     */
-    @Override
-    @NotNull
-    public IncomeTopicsConfiguration unregister(@NotNull final String topic) {
-        final var item = this.topics.get(topic);
-        if (item == null) {
-            throw new IncomeTopicsConfigurationException("Topic " + topic + " not registered!");
-        }
-
-        this.topics.remove(topic);
-        for (var pList : this.priorities) {
-            if (pList.remove(item)) {
-                item.unInit();
-                break;
-            }
-        }
-
-        return this;
-    }
-
-    /**
-     * @return Количество приоритетов.
-     */
-    @Override
-    public int prioritiesCount() {
-        return this.priorities.size();
-    }
-
-    /**
-     * Получение списка описателей обработчиков очередей по приоритету.
-     *
-     * @param priority Приоритет.
-     * @return Список описателей обработчиков.
-     */
-    @Override
-    @Nullable
-    public Iterable<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> getByPriority(int priority) {
-        return this.priorities.get(priority);
-    }
-
-    /**
-     * @return Список всех описателей обработчиков очередей.
-     */
-    @Override
-    @NotNull
-    public Iterable<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> getAll() {
-        return this.topics.values();
-    }
-
-    /**
-     * Требование о смещении Offset-ов на начало для всех Topic-ов и всех Partition-ов.
-     */
-    @Override
-    public void seekAllToBegin() {
-        this.topics.values().forEach(this::internalSeekTopicAllPartitionsToBegin);
-    }
-
-    /**
-     * Требование о смещении Offset-ов на конец для всех Topic-ов и всех Partition-ов.
-     */
-    @Override
-    public void seekAllToEnd() {
-        this.topics.values().forEach(this::internalSeekTopicAllPartitionsToEnd);
-    }
-
-    /**
-     * Требование о смещении Offset-ов на начало для всех Partition-ов для заданного Topic-а.
-     *
-     * @param topic Топик, для которого требуется сместить смещения.
-     */
-    @Override
-    public void seekTopicAllPartitionsToBegin(@NotNull final String topic) {
-        final IncomeTopicLoadingDescriptor<?, ?> topicDescriptor = this.get(topic);
-        internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToBeginning);
-    }
-
-    /**
-     * Требование о смещении Offset-ов на конец для всех Partition-ов для заданного Topic-а.
-     *
-     * @param topic Топик, для которого требуется сместить смещения.
-     */
-    @Override
-    public void seekTopicAllPartitionsToEnd(@NotNull String topic) {
-        final var topicDescriptor = this.get(topic);
-        internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToEnd);
-    }
-
-    /**
-     * Требование о смещении Offset-ов на заданные значения для заданного Topic-а.
-     *
-     * @param topic            Топик, для которого требуется сместить смещения.
-     * @param partitionOffsets Смещения (для каждого Partition-а свой Offset).
-     */
-    @Override
-    public void seekTopic(@NotNull String topic, @NotNull Iterable<PartitionOffset> partitionOffsets) {
-        final var topicDescriptor = this.get(topic);
-        final var consumer = topicDescriptor.getConsumer();
-        partitionOffsets
-                .forEach(po -> {
-                    final var tp = new TopicPartition(topic, po.getPartition());
-                    consumer.seek(tp, po.getOffset() > 0 ? po.getOffset() : 0);
-                    topicDescriptor.setOffset(tp.partition(), consumer.position(tp));
-                });
+    public StandardIncomeTopicsLoader() {
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
@@ -351,12 +139,14 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
      *
      * @return Map-а, в которой для каждого дескриптора указан список загруженных объектов.
      */
+    @Override
     @NotNull
-    public Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(@NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException, InvalidParameterException {
-        final var pCount = this.prioritiesCount();
+    public Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>>
+    processAllTopics(@NotNull final IncomeTopicsConfiguration configuration, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException, InvalidParameterException {
+        final var pCount = configuration.prioritiesCount();
         final var result = new HashMap<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>>();
         for (int p = 0; p < pCount; p++) {
-            final var topicDescriptors = this.getByPriority(p);
+            final var topicDescriptors = configuration.getByPriority(p);
             if (topicDescriptors == null) {
                 throw new IncomeTopicsConfigurationException("Invalid null value getByPriority(" + p + ")");
             }
@@ -391,25 +181,6 @@ public abstract class AbstractIncomeTopicsLoader implements IncomeTopicsLoader, 
     void checkDescriptorIsInitialized(@NotNull IncomeTopicLoadingDescriptor<O, P> descriptor) {
         if (!descriptor.isInitialized()) {
             throw new IncomeTopicsConfigurationException("Topic descriptor " + descriptor.getTopic() + " is not initialized!");
-        }
-    }
-
-    protected void internalSeekTopicAllPartitionsToBegin(@NotNull IncomeTopicLoadingDescriptor<?, ?> topicDescriptor) {
-        this.internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToBeginning);
-    }
-
-    protected void internalSeekTopicAllPartitionsToEnd(@NotNull IncomeTopicLoadingDescriptor<?, ?> topicDescriptor) {
-        this.internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToEnd);
-    }
-
-    protected void internalSeekTopicAllPartitionsToBorder(@NotNull IncomeTopicLoadingDescriptor<?, ?> topicDescriptor, ConsumerSeekToBorderFunction func) {
-        final Collection<TopicPartition> topicPartitions = topicDescriptor.getTopicPartitions();
-        final var consumer = topicDescriptor.getConsumer();
-        // consumer.seekToBeginning(topicPartitions);
-        func.seek(consumer, topicPartitions);
-        for (var tp : topicPartitions) {
-            final var position = consumer.position(tp);
-            topicDescriptor.setOffset(tp.partition(), position);
         }
     }
 

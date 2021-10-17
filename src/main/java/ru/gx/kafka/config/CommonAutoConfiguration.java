@@ -5,11 +5,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.gx.kafka.load.BootstrapIncomeTopicsLoader;
 import ru.gx.kafka.load.IncomeTopicsConfiguratorCaller;
-import ru.gx.kafka.load.SimpleIncomeTopicsLoader;
+import ru.gx.kafka.load.SimpleIncomeTopicsConfiguration;
+import ru.gx.kafka.load.StandardIncomeTopicsLoader;
+import ru.gx.kafka.load.StandardIncomeTopicsOffsetsController;
 import ru.gx.kafka.upload.OutcomeTopicsConfiguratorCaller;
-import ru.gx.kafka.upload.SimpleOutcomeTopicUploader;
+import ru.gx.kafka.upload.StandardOutcomeTopicsUploader;
 
 @Configuration
 public class CommonAutoConfiguration {
@@ -18,16 +19,23 @@ public class CommonAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "service.income-topics.simple-loader.enabled", havingValue = "true")
-    public SimpleIncomeTopicsLoader simpleIncomeTopicsLoader() {
-        return new SimpleIncomeTopicsLoader(this.serviceName);
+    @ConditionalOnProperty(value = "service.income-topics.simple-configuration.enabled", havingValue = "true")
+    public SimpleIncomeTopicsConfiguration simpleIncomeTopicsConfiguration() {
+        return new SimpleIncomeTopicsConfiguration(serviceName);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "service.income-topics.boostrap-loader.enabled", havingValue = "true")
-    public BootstrapIncomeTopicsLoader bootstrapIncomeTopicsLoader() {
-        return new BootstrapIncomeTopicsLoader(this.serviceName);
+    @ConditionalOnProperty(value = "service.income-topics.standard-loader.enabled", havingValue = "true")
+    public StandardIncomeTopicsLoader standardIncomeTopicsLoader() {
+        return new StandardIncomeTopicsLoader();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(value = "service.income-topics.standard-offsets-controller.enabled", havingValue = "true")
+    public StandardIncomeTopicsOffsetsController standardIncomeTopicsOffsetsController() {
+        return new StandardIncomeTopicsOffsetsController();
     }
 
     @Bean
@@ -39,9 +47,9 @@ public class CommonAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "service.outcome-topics.simple-uploader.enabled", havingValue = "true")
-    public SimpleOutcomeTopicUploader simpleOutcomeTopicUploader() {
-        return new SimpleOutcomeTopicUploader();
+    @ConditionalOnProperty(value = "service.outcome-topics.standard-uploader.enabled", havingValue = "true")
+    public StandardOutcomeTopicsUploader standardOutcomeTopicsUploader() {
+        return new StandardOutcomeTopicsUploader();
     }
 
     @Bean

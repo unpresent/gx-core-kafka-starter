@@ -5,8 +5,8 @@ import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
 
 @SuppressWarnings("unused")
-public class SimpleOutcomeTopicUploader extends AbstractOutcomeTopicUploader {
-    public SimpleOutcomeTopicUploader() {
+public class StandardOutcomeTopicsUploader extends AbstractOutcomeTopicsUploader {
+    public StandardOutcomeTopicsUploader() {
         super();
     }
 

@@ -1,15 +1,11 @@
 package ru.gx.kafka.upload;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.kafka.common.header.Header;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.gx.kafka.PartitionOffset;
+import ru.gx.kafka.offsets.PartitionOffset;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
-
-import java.util.Collection;
-import java.util.concurrent.ExecutionException;
 
 @SuppressWarnings("unused")
 public interface OutcomeTopicUploader {
