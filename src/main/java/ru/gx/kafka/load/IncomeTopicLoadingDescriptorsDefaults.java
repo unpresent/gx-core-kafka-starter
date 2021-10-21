@@ -35,7 +35,7 @@ public class IncomeTopicLoadingDescriptorsDefaults {
     private int[] partitions = new int[]{0};
 
     @SuppressWarnings("unused")
-    protected IncomeTopicLoadingDescriptorsDefaults setPartitions(int... partitions) {
+    public IncomeTopicLoadingDescriptorsDefaults setPartitions(int... partitions) {
         this.partitions = partitions;
         return this;
     }
