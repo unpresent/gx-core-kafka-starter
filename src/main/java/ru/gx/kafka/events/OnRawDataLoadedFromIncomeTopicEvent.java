@@ -1,33 +1,29 @@
 package ru.gx.kafka.events;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.jetbrains.annotations.NotNull;
-import ru.gx.kafka.load.IncomeTopicsLoaderContinueMode;
-import ru.gx.data.DataObject;
-import ru.gx.data.DataPackage;
-import ru.gx.kafka.load.StandardIncomeTopicLoadingDescriptor;
+import ru.gx.kafka.load.*;
 
 import java.util.Collection;
 
 /**
  * Интерфейс объектов-событий, которые бросаются после загрузки объектов.
  * Если в загрузке участвует репозиторий, то после сохранения в репозиторий.
- * @param <O>   Класс загружаемых объектов.
- * @param <P>   Класс пакетов загружаемых объектов.
  */
 @SuppressWarnings("unused")
-public interface OnObjectsLoadedFromIncomeTopicEvent<O extends DataObject, P extends DataPackage<O>> {
+public interface OnRawDataLoadedFromIncomeTopicEvent {
 
     /**
      * @return Получение описателя загрузки из Топика.
      */
     @NotNull
-    StandardIncomeTopicLoadingDescriptor<O, P> getLoadingDescriptor();
+    RawDataIncomeTopicLoadingDescriptor getLoadingDescriptor();
 
     /**
      * @return Список объектов, которые были загружены.
      */
     @NotNull
-    Collection<O> getObjects();
+    Collection<ConsumerRecord<?, ?>> getData();
 
     /**
      * @return Режим продолжения обработки других Топиков.
@@ -39,10 +35,10 @@ public interface OnObjectsLoadedFromIncomeTopicEvent<O extends DataObject, P ext
      * Установка начальных значений перед "бросанием" события.
      * @param source                Источник события.
      * @param loadingDescriptor     Описатель загрузки из Топика.
-     * @param objects               Список объектов, которые были загружены.
+     * @param records               Список прочитанных записей.
      * @return                      this.
      */
     @SuppressWarnings("UnusedReturnValue")
     @NotNull
-    OnObjectsLoadedFromIncomeTopicEvent<O, P> reset(@NotNull final Object source, @NotNull final StandardIncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull final Collection<O> objects);
+    OnRawDataLoadedFromIncomeTopicEvent reset(@NotNull final Object source, @NotNull final RawDataIncomeTopicLoadingDescriptor loadingDescriptor, @NotNull final IncomeTopicsLoaderContinueMode continueMode, @NotNull final Collection<ConsumerRecord<?, ?>> records);
 }

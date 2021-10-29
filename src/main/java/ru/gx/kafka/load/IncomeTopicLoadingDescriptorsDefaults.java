@@ -28,9 +28,9 @@ public class IncomeTopicLoadingDescriptorsDefaults {
     @Nullable
     private LoadingFiltering loadingFiltering;
 
-    @Setter
-    @Nullable
-    private Properties consumerProperties;
+    @Getter
+    @NotNull
+    private final Properties consumerProperties = new Properties();
 
     private int[] partitions = new int[]{0};
 

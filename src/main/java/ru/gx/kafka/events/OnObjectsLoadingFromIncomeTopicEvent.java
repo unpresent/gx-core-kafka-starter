@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
 import ru.gx.kafka.load.IncomeTopicsLoaderContinueMode;
-import ru.gx.kafka.load.IncomeTopicLoadingDescriptor;
+import ru.gx.kafka.load.StandardIncomeTopicLoadingDescriptor;
 
 import java.util.Collection;
 
@@ -21,7 +21,7 @@ public interface OnObjectsLoadingFromIncomeTopicEvent<O extends DataObject, P ex
      * @return Получение описателя загрузки из Топика.
      */
     @NotNull
-    IncomeTopicLoadingDescriptor<O, P> getLoadingDescriptor();
+    StandardIncomeTopicLoadingDescriptor<O, P> getLoadingDescriptor();
 
     /**
      * @return Список объектов, которые были загружены.
@@ -44,5 +44,5 @@ public interface OnObjectsLoadingFromIncomeTopicEvent<O extends DataObject, P ex
      */
     @SuppressWarnings("UnusedReturnValue")
     @NotNull
-    OnObjectsLoadingFromIncomeTopicEvent<O, P> reset(@NotNull final Object source, @NotNull final IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull final Collection<NewOldDataObjectsPair<O>> changes);
+    OnObjectsLoadingFromIncomeTopicEvent<O, P> reset(@NotNull final Object source, @NotNull final StandardIncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull final Collection<NewOldDataObjectsPair<O>> changes);
 }

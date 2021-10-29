@@ -24,7 +24,7 @@ public class OutcomeTopicsConfiguratorCaller {
 
     @Getter(PROTECTED)
     @Setter(value = PROTECTED, onMethod_ = @Autowired)
-    private Collection<OutcomeTopicUploader> uploaders;
+    private Collection<OutcomeTopicsConfiguration> configurations;
 
     /**
      * Обработчик события о том, что все бины построены. Приложение готово к запуску.
@@ -36,13 +36,13 @@ public class OutcomeTopicsConfiguratorCaller {
         if (this.outcomeTopicsConfigurator == null) {
             throw new BeanInitializationException("Not initialized bean OutcomeTopicsConfigurator!");
         }
-        if (this.uploaders == null) {
-            throw new BeanInitializationException("Not initialized bean Collection<OutcomeTopicUploader>!");
+        if (this.configurations == null) {
+            throw new BeanInitializationException("Not initialized bean Collection<OutcomeTopicsConfiguration>!");
         }
-        this.uploaders.forEach(uploader -> {
-            log.info("Starting configure OutcomeTopicUploader: {}", uploader);
-            this.outcomeTopicsConfigurator.configureOutcomeTopics(uploader);
-            log.info("Finished configure OutcomeTopicUploader: {}", uploader);
+        this.configurations.forEach(configuration -> {
+            log.info("Starting configure OutcomeTopicUploader: {}", configuration);
+            this.outcomeTopicsConfigurator.configureOutcomeTopics(configuration);
+            log.info("Finished configure OutcomeTopicUploader: {}", configuration);
         });
     }
 }

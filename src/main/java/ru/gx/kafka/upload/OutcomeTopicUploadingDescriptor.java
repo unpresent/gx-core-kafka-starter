@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.header.Header;
@@ -15,12 +14,10 @@ import ru.gx.data.DataMemoryRepository;
 import ru.gx.kafka.TopicMessageMode;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
-import ru.gx.kafka.load.IncomeTopicLoadingDescriptor;
 
 import java.lang.reflect.ParameterizedType;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Properties;
 
 @Accessors(chain = true)

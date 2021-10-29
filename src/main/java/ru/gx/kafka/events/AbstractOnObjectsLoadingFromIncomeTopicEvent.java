@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationEvent;
 import ru.gx.kafka.load.IncomeTopicsLoaderContinueMode;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
-import ru.gx.kafka.load.IncomeTopicLoadingDescriptor;
+import ru.gx.kafka.load.StandardIncomeTopicLoadingDescriptor;
 
 import java.util.Collection;
 
@@ -26,7 +26,7 @@ public abstract class AbstractOnObjectsLoadingFromIncomeTopicEvent<O extends Dat
      * Описатель загрузки из Топика.
      */
     @NotNull
-    private IncomeTopicLoadingDescriptor<O, P> loadingDescriptor;
+    private StandardIncomeTopicLoadingDescriptor<O, P> loadingDescriptor;
 
     /**
      * Список изменений.
@@ -40,13 +40,13 @@ public abstract class AbstractOnObjectsLoadingFromIncomeTopicEvent<O extends Dat
     @NotNull
     private IncomeTopicsLoaderContinueMode continueMode;
 
-    public AbstractOnObjectsLoadingFromIncomeTopicEvent(Object source) {
+    protected AbstractOnObjectsLoadingFromIncomeTopicEvent(Object source) {
         super(source);
     }
 
     @SuppressWarnings("UnusedReturnValue")
     @NotNull
-    public AbstractOnObjectsLoadingFromIncomeTopicEvent<O, P> reset(@NotNull final Object source, @NotNull final IncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull final Collection<NewOldDataObjectsPair<O>> changes) {
+    public AbstractOnObjectsLoadingFromIncomeTopicEvent<O, P> reset(@NotNull final Object source, @NotNull final StandardIncomeTopicLoadingDescriptor<O, P> loadingDescriptor, @NotNull final Collection<NewOldDataObjectsPair<O>> changes) {
         super.source = source;
         return this
                 .setLoadingDescriptor(loadingDescriptor)

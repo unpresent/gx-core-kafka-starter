@@ -1,129 +1,92 @@
 package ru.gx.kafka.load;
 
-import lombok.*;
-import lombok.experimental.Accessors;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
-import ru.gx.data.DataMemoryRepository;
-import ru.gx.data.DataObject;
-import ru.gx.data.DataPackage;
 import ru.gx.kafka.TopicMessageMode;
-import ru.gx.kafka.events.OnObjectsLoadedFromIncomeTopicEvent;
-import ru.gx.kafka.events.OnObjectsLoadingFromIncomeTopicEvent;
+import ru.gx.kafka.events.OnRawDataLoadedFromIncomeTopicEvent;
 
-import java.lang.reflect.ParameterizedType;
 import java.security.InvalidParameterException;
-import java.util.*;
-
-import static lombok.AccessLevel.*;
+import java.util.Collection;
+import java.util.Properties;
 
 /**
  * Описатель обработчика одной очереди.
  */
-@Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-@ToString
-public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPackage<O>> {
+@SuppressWarnings("UnusedReturnValue")
+public interface IncomeTopicLoadingDescriptor {
     /**
      * Имя топика очереди.
      */
-    @Getter
     @NotNull
-    private final String topic;
+    String getTopic();
 
     /**
      * Приоритет, с которым надо обрабатывать очередь.
      * 0 - высший.
      * > 0 - менее приоритетный.
      */
-    @Getter
-    @Setter
-    private int priority;
+    int getPriority();
+
+    /**
+     * Установка приоритета у топика.
+     * @param priority приоритет.
+     * @return this.
+     */
+    @NotNull
+    IncomeTopicLoadingDescriptor setPriority(int priority);
 
     /**
      * Режим данных в очереди: Пообъектно и пакетно.
      */
-    @Getter
-    @Setter
     @NotNull
-    private TopicMessageMode messageMode;
+    TopicMessageMode getMessageMode();
+
+    /**
+     * Установка режима данных в очереди.
+     * @param messageMode режим данных в очереди.
+     * @return this.
+     */
+    @NotNull
+    IncomeTopicLoadingDescriptor setMessageMode(@NotNull final TopicMessageMode messageMode);
 
     /**
      * Объект-получатель сообщений.
      */
-    @Getter
-    // @NotNull
-    private Consumer<?, ?> consumer;
+    @NotNull
+    Consumer<?, ?> getConsumer();
+
+    @NotNull
+    Collection<Integer> getPartitions();
+
+    long getOffset(final int partition);
 
     /**
-     * Список смещений для каждого Partition-а.
-     * Key - Partition.
-     * Value - Offset.
+     * Метод предназначен только для сохранения смещения.
+     * @param partition раздел, по которому запоминаем смещение в описателе.
+     * @param offset само смещение, которое запоминаем в описателе.
      */
     @NotNull
-    private final Map<Integer, Long> partitionOffsets = new HashMap<>();
-
-    @SuppressWarnings("unused")
-    public Collection<Integer> getPartitions() {
-        return this.partitionOffsets.keySet();
-    }
-
-    @SuppressWarnings("unused")
-    public long getOffset(int partition) {
-        return this.partitionOffsets.get(partition);
-    }
-
-    public void setOffset(int partition, long offset) {
-        this.partitionOffsets.put(partition, offset);
-    }
+    IncomeTopicLoadingDescriptor setOffset(final int partition, final long offset);
 
     /**
      * Получение коллекции TopicPartition. Формируется динамически. Изменять данную коллекцию нет смысла!
      *
      * @return Коллекция TopicPartition-ов.
      */
-    public Collection<TopicPartition> getTopicPartitions() {
-        final var result = new ArrayList<TopicPartition>();
-        this.partitionOffsets
-                .keySet()
-                .forEach(p -> result.add(new TopicPartition(getTopic(), p)));
-        return result;
-    }
+    @NotNull
+    Collection<TopicPartition> getTopicPartitions();
 
     /**
-     * Из списка {@link #partitionOffsets} удаляем те, где key не в списке {@param partitions}.
-     * И добавляем в {@link #partitionOffsets} новые записи с key = p, value = -1 (т.к. не знаем смещения).
-     * Если в списке смещений, уже есть такой partition, то его не трогаем.
+     * Полная перезапись списка Partition-ов.
      *
      * @param partitions Список Partition-ов, который должен быть у нас.
      * @return this.
      */
-    @SuppressWarnings({"UnusedReturnValue", "Convert2MethodRef"})
-    public IncomeTopicLoadingDescriptor<O, P> setPartitions(int... partitions) {
-        // Готовим список ключей для удаления - такие PartitionOffset-ы, которых нет в списке partitions:
-        final var keyForRemove = new ArrayList<Integer>();
-        this.partitionOffsets.keySet().stream()
-                .filter(pkey -> Arrays.stream(partitions).noneMatch(p -> p == pkey))
-                .forEach(pkey -> keyForRemove.add(pkey));
-
-        // Удаляем:
-        for (var k : keyForRemove) {
-            this.partitionOffsets.remove(k);
-        }
-
-        // Добавляем только, если нет:
-        Arrays.stream(partitions).forEach(p -> {
-            if (!this.partitionOffsets.containsKey(p)) {
-                this.partitionOffsets.put(p, (long) -1);
-            }
-        });
-
-        return this;
-    }
+    @NotNull
+    IncomeTopicLoadingDescriptor setPartitions(int... partitions);
 
     /**
      * Установка смещения для Партиции очереди.
@@ -131,126 +94,46 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      * @param partition Партиция.
      * @param offset    Смещение.
      */
-    public void setDeserializedPartitionOffset(int partition, long offset) {
-        this.partitionOffsets.put(partition, offset);
-    }
-
-    /**
-     * Репозиторий, в который будут загружены входящие объекты.
-     */
-    @Getter
-    @Setter
-    @Nullable
-    private DataMemoryRepository<O, P> memoryRepository;
-
-    /**
-     * Класс объектов, которые будут читаться из очереди.
-     */
-    @Getter
-    private Class<? extends O> dataObjectClass;
-
-    /**
-     * Класс пакетов объектов, которые будут читаться из очереди.
-     */
-    @Getter
-    private Class<? extends P> dataPackageClass;
-
-    /**
-     * Класс объектов-событий при загрузке объектов - запрос с предоставлением списка Old-New.
-     */
-    @Getter
-    @Setter
-    @Nullable
-    private Class<? extends OnObjectsLoadingFromIncomeTopicEvent<O, P>> onLoadingEventClass;
-
-    /**
-     * Класс (не определенный с точностью до Dto-объекта) объектов-событий при загрузке объектов - запрос с предоставлением списка Old-New.
-     */
-    @SuppressWarnings("rawtypes")
-    @Getter
-    @Setter
-    @Nullable
-    private Class<? extends OnObjectsLoadingFromIncomeTopicEvent> onLoadingEventBaseClass;
-
-    @SuppressWarnings("rawtypes")
-    public OnObjectsLoadingFromIncomeTopicEvent getOnLoadingEvent(@NotNull ApplicationContext context) {
-        if (this.onLoadingEventClass != null) {
-            return context.getBean(onLoadingEventClass);
-        } else if (this.onLoadingEventBaseClass != null) {
-            return context.getBean(onLoadingEventBaseClass);
-        }
-        return null;
-    }
-
-    /**
-     * Класс объектов-событий после чтения объектов (и загрузки в репозиторий).
-     */
-    @Getter
-    @Setter
-    @Nullable
-    private Class<? extends OnObjectsLoadedFromIncomeTopicEvent<O, P>> onLoadedEventClass;
-
-    /**
-     * Класс (не определенный с точностью до Dto-объекта) объектов-событий после чтения объектов (и загрузки в репозиторий).
-     */
-    @SuppressWarnings("rawtypes")
-    @Getter
-    @Setter
-    @Nullable
-    private Class<? extends OnObjectsLoadedFromIncomeTopicEvent> onLoadedEventBaseClass;
-
-    @SuppressWarnings("rawtypes")
-    public OnObjectsLoadedFromIncomeTopicEvent getOnLoadedEvent(@NotNull final ApplicationContext context) {
-        if (this.onLoadedEventClass != null) {
-            return context.getBean(onLoadedEventClass);
-        } else if (this.onLoadedEventBaseClass != null) {
-            return context.getBean(onLoadedEventBaseClass);
-        }
-        return null;
-    }
-
-    /**
-     * Режим чтения данных из очереди (с сохранением в репозиторий, без сохранения).
-     */
-    @Getter
-    @Setter
     @NotNull
-    private LoadingMode loadingMode;
-
-    @Getter
-    @Setter
-    @Nullable
-    private LoadingFiltering loadingFiltering;
-
-    /**
-     * Статистика чтения и обработки данных.
-     */
-    @Getter
-    @NotNull
-    private final IncomeTopicLoadingStatistics loadingStatistics = new IncomeTopicLoadingStatistics();
+    IncomeTopicLoadingDescriptor setProcessedPartitionOffset(int partition, long offset);
 
     /**
      * @return Строка с информацией об обработанных PartitionOffset-ах для логирования.
      */
-    public String getDeserializedPartitionsOffsetsForLog() {
-        StringBuilder result = new StringBuilder();
-        for (final var p : this.partitionOffsets.keySet()) {
-            if (result.length() > 0) {
-                result.append("; ");
-            }
-            result
-                    .append(p.toString())
-                    .append(':')
-                    .append(this.partitionOffsets.get(p));
-        }
-        return result.toString();
-    }
+    @NotNull
+    String getProcessedPartitionsOffsetsInfoForLog();
+
+    /**
+     * Получение объекта-события после чтения объектов (и загрузки в репозиторий).
+     */
+    @Nullable
+    OnRawDataLoadedFromIncomeTopicEvent getOnRawDataLoadedEvent(@NotNull final ApplicationContext context);
+
+    /**
+     * Режим чтения данных из очереди (с сохранением в репозиторий, без сохранения).
+     */
+    @NotNull
+    LoadingMode getLoadingMode();
+
+    @NotNull
+    IncomeTopicLoadingDescriptor setLoadingMode(@NotNull final LoadingMode loadingMode);
+
+    @Nullable
+    LoadingFiltering getLoadingFiltering();
+
+    @NotNull
+    IncomeTopicLoadingDescriptor setLoadingFiltering(@Nullable final LoadingFiltering loadingFiltering);
+
+    /**
+     * Статистика чтения и обработки данных.
+     */
+    @NotNull
+    IncomeTopicLoadingStatistics getLoadingStatistics();
 
     /**
      * Признак того, что описатель инициализирован.
      */
-    @Getter
-    private boolean initialized;
+    boolean isInitialized();
 
     /**
      * Настройка Descriptor-а должна заканчиваться этим методом.
@@ -258,48 +141,16 @@ public class IncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPa
      * @param consumerProperties Свойства consumer-а, который будет создан.
      * @return this.
      */
-    @SuppressWarnings({"UnusedReturnValue", "unused"})
     @NotNull
-    public IncomeTopicLoadingDescriptor<O, P> init(@NotNull final Properties consumerProperties) throws InvalidParameterException {
-        if (this.dataObjectClass == null) {
-            throw new InvalidParameterException("Can't init descriptor " + this.getClass().getSimpleName() + " due undefined generic parameter[0].");
-        }
-        if (this.dataPackageClass == null) {
-            throw new InvalidParameterException("Can't init descriptor " + this.getClass().getSimpleName() + " due undefined generic parameter[1].");
-        }
+    IncomeTopicLoadingDescriptor init(@NotNull final Properties consumerProperties) throws InvalidParameterException;
 
-        if (this.partitionOffsets.size() <= 0) {
-            throw new InvalidParameterException("Not defined partitions for topic " + this.topic);
-        }
-        this.consumer = new KafkaConsumer<>(consumerProperties);
-        this.consumer.assign(getTopicPartitions());
-        this.initialized = true;
-        return this;
-    }
+    /**
+     * Настройка Descriptor-а должна заканчиваться этим методом.
+     *
+     * @return this.
+     */
+    @NotNull
+    IncomeTopicLoadingDescriptor init() throws InvalidParameterException;
 
-    @SuppressWarnings("UnusedReturnValue")
-    public IncomeTopicLoadingDescriptor<O, P> unInit() {
-        this.initialized = false;
-        this.consumer = null;
-        return this;
-    }
-
-    @SuppressWarnings({"unused", "unchecked"})
-    public IncomeTopicLoadingDescriptor(@NotNull final String topic, @Nullable final IncomeTopicLoadingDescriptorsDefaults defaults) {
-        this.topic = topic;
-
-        final var thisClass = this.getClass();
-        final var superClass = thisClass.getGenericSuperclass();
-        if (superClass instanceof ParameterizedType) {
-            this.dataObjectClass = (Class<O>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
-            this.dataPackageClass = (Class<P>) ((ParameterizedType) superClass).getActualTypeArguments()[1];
-        }
-
-        if (defaults != null) {
-            this
-                    .setLoadingMode(defaults.getLoadingMode())
-                    .setPartitions(defaults.getPartitions())
-                    .setMessageMode(defaults.getTopicMessageMode());
-        }
-    }
+    IncomeTopicLoadingDescriptor unInit();
 }

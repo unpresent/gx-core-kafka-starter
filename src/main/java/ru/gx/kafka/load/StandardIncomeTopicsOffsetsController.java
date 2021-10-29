@@ -8,6 +8,7 @@ import ru.gx.data.DataPackage;
 import ru.gx.kafka.offsets.PartitionOffset;
 import ru.gx.kafka.offsets.TopicPartitionOffset;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +20,7 @@ public class StandardIncomeTopicsOffsetsController implements IncomeTopicsOffset
      * Смещения
      */
     @NotNull
-    private final Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Map<Integer, LoadingFiltering>> offsets = new HashMap<>();
+    private final Map<StandardIncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Map<Integer, LoadingFiltering>> offsets = new HashMap<>();
 
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
@@ -56,7 +57,7 @@ public class StandardIncomeTopicsOffsetsController implements IncomeTopicsOffset
      * @param topicDescriptor Топик, для которого требуется сместить смещения.
      */
     @Override
-    public void seekTopicAllPartitionsToBegin(@NotNull final IncomeTopicLoadingDescriptor<?, ?> topicDescriptor) {
+    public void seekTopicAllPartitionsToBegin(@NotNull final IncomeTopicLoadingDescriptor topicDescriptor) {
         internalSeekTopicAllPartitionsToBegin(topicDescriptor);
     }
 
@@ -66,7 +67,7 @@ public class StandardIncomeTopicsOffsetsController implements IncomeTopicsOffset
      * @param topicDescriptor Топик, для которого требуется сместить смещения.
      */
     @Override
-    public void seekTopicAllPartitionsToEnd(@NotNull final IncomeTopicLoadingDescriptor<?, ?> topicDescriptor) {
+    public void seekTopicAllPartitionsToEnd(@NotNull final IncomeTopicLoadingDescriptor topicDescriptor) {
         internalSeekTopicAllPartitionsToEnd(topicDescriptor);
     }
 
@@ -77,7 +78,7 @@ public class StandardIncomeTopicsOffsetsController implements IncomeTopicsOffset
      * @param partitionOffsets Смещения (для каждого Partition-а свой Offset).
      */
     @Override
-    public void seekTopic(@NotNull final IncomeTopicLoadingDescriptor<?, ?> topicDescriptor, @NotNull Iterable<PartitionOffset> partitionOffsets) {
+    public void seekTopic(@NotNull final IncomeTopicLoadingDescriptor topicDescriptor, @NotNull Iterable<PartitionOffset> partitionOffsets) {
         partitionOffsets
                 .forEach(po -> internalSeekItem(topicDescriptor, po.getPartition(), po.getOffset()));
     }
@@ -85,18 +86,17 @@ public class StandardIncomeTopicsOffsetsController implements IncomeTopicsOffset
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Внутренняя реализация">
 
-    protected void internalSeekTopicAllPartitionsToBegin(@NotNull IncomeTopicLoadingDescriptor<?, ?> topicDescriptor) {
+    protected void internalSeekTopicAllPartitionsToBegin(@NotNull IncomeTopicLoadingDescriptor topicDescriptor) {
         this.internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToBeginning);
     }
 
-    protected void internalSeekTopicAllPartitionsToEnd(@NotNull IncomeTopicLoadingDescriptor<?, ?> topicDescriptor) {
+    protected void internalSeekTopicAllPartitionsToEnd(@NotNull IncomeTopicLoadingDescriptor topicDescriptor) {
         this.internalSeekTopicAllPartitionsToBorder(topicDescriptor, Consumer::seekToEnd);
     }
 
-    protected void internalSeekTopicAllPartitionsToBorder(@NotNull IncomeTopicLoadingDescriptor<?, ?> topicDescriptor, ConsumerSeekToBorderFunction func) {
+    protected void internalSeekTopicAllPartitionsToBorder(@NotNull IncomeTopicLoadingDescriptor topicDescriptor, ConsumerSeekToBorderFunction func) {
         final Collection<TopicPartition> topicPartitions = topicDescriptor.getTopicPartitions();
         final var consumer = topicDescriptor.getConsumer();
-        // consumer.seekToBeginning(topicPartitions);
         func.seek(consumer, topicPartitions);
         for (var tp : topicPartitions) {
             final var position = consumer.position(tp);
@@ -104,11 +104,25 @@ public class StandardIncomeTopicsOffsetsController implements IncomeTopicsOffset
         }
     }
 
-    protected void internalSeekItem(@NotNull final IncomeTopicLoadingDescriptor<?, ?> topicDescriptor, int partition, long offset) {
+    protected void internalSeekItem(@NotNull final IncomeTopicLoadingDescriptor topicDescriptor, int partition, long offset) {
         final var consumer = topicDescriptor.getConsumer();
         final var tp = new TopicPartition(topicDescriptor.getTopic(), partition);
         consumer.seek(tp, offset > 0 ? offset : 0);
         topicDescriptor.setOffset(tp.partition(), consumer.position(tp));
+    }
+
+    @SuppressWarnings("CodeBlock2Expr")
+    @Override
+    public Collection<TopicPartitionOffset> getOffsetsByConfiguration(@NotNull IncomeTopicsConfiguration configuration) {
+        final var offsets = new ArrayList<TopicPartitionOffset>();
+        configuration.getAll()
+                .forEach(descriptor -> {
+                    descriptor.getPartitions()
+                            .forEach(p -> {
+                                offsets.add(new TopicPartitionOffset(descriptor.getTopic(), p, descriptor.getOffset(p)));
+                            });
+                });
+        return offsets;
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------

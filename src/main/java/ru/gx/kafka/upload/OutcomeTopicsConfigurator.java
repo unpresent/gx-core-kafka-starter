@@ -11,7 +11,7 @@ import ru.gx.kafka.load.IncomeTopicsConfiguration;
 public interface OutcomeTopicsConfigurator {
     /**
      * Вызывается после настройки бинов (в BeanPostProcessor-е).
-     * @param uploader Передается бин, реализующий интерфейс OutcomeTopicsConfigurator. Данный бин в методе реализации требуется настроить.
+     * @param configurator Передается бин, реализующий интерфейс OutcomeTopicsConfiguration. Данный бин в методе реализации требуется настроить.
      */
-    void configureOutcomeTopics(@NotNull final OutcomeTopicUploader uploader);
+    void configureOutcomeTopics(@NotNull final OutcomeTopicsConfiguration configurator);
 }

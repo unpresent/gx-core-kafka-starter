@@ -20,20 +20,24 @@ public interface IncomeTopicsLoader {
 
     /**
      * Загрузка и обработка данных по списку топиков по конфигурации.
-     * @param descriptor                        Описатель загрузки из Топика.
-     * @param durationOnPoll                    Длительность, в течение которой ожидать данных из Топика.
-     * @throws JsonProcessingException          Ошибки при десериализации из Json-а.
-     * @return                                  Список загруженных объектов.
+     *
+     * @param descriptor     Описатель загрузки из Топика.
+     * @param durationOnPoll Длительность, в течение которой ожидать данных из Топика.
+     * @return Список загруженных Record (для {@link RawDataIncomeTopicLoadingDescriptor})
+     * или список загруженных объектов (для {@link StandardIncomeTopicLoadingDescriptor}).
+     * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     @NotNull
-    <O extends DataObject, P extends DataPackage<O>> Collection<O> processByTopic(@NotNull final IncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull final Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
+    Collection<Object> processByTopic(@NotNull final IncomeTopicLoadingDescriptor descriptor, @NotNull final Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
 
     /**
      * Загрузка и обработка данных по списку топиков по конфигурации.
-     * @param durationOnPoll                    Длительность, в течение которой ожидать данных из Топика.
-     * @throws JsonProcessingException          Ошибки при десериализации из Json-а.
-     * @return                                  Map-а, в которой для каждого дескриптора указан список загруженных объектов.
+     *
+     * @param durationOnPoll Длительность, в течение которой ожидать данных из Топика.
+     * @return Map-а, в которой для каждого дескриптора указан список загруженных объектов.
+     * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     @NotNull
-    Map<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>, Collection<DataObject>> processAllTopics(@NotNull final IncomeTopicsConfiguration configuration, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException, InvalidParameterException;
+    Map<IncomeTopicLoadingDescriptor, Collection<Object>>
+    processAllTopics(@NotNull final IncomeTopicsConfiguration configuration, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException, InvalidParameterException;
 }

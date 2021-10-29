@@ -17,10 +17,12 @@ public interface IncomeTopicsConfiguration {
 
     /**
      * Проверка регистрации описателя топика в конфигурации.
+     *
      * @param topic Топик.
      * @return true - описатель топика зарегистрирован.
      */
     boolean contains(@NotNull final String topic);
+
 
     /**
      * Получение описателя обработчика по топику.
@@ -29,8 +31,7 @@ public interface IncomeTopicsConfiguration {
      * @return Описатель обработчика одной очереди.
      */
     @NotNull
-    <O extends DataObject, P extends DataPackage<O>> IncomeTopicLoadingDescriptor<O, P> get(@NotNull final String topic);
-
+    IncomeTopicLoadingDescriptor get(@NotNull final String topic);
 
     /**
      * Получение описателя обработчика по топику.
@@ -39,25 +40,18 @@ public interface IncomeTopicsConfiguration {
      * @return Описатель обработчика одной очереди. Если не найден, то возвращается null.
      */
     @Nullable
-    <O extends DataObject, P extends DataPackage<O>> IncomeTopicLoadingDescriptor<O, P> tryGet(@NotNull final String topic);
+    IncomeTopicLoadingDescriptor tryGet(@NotNull final String topic);
 
     /**
      * Регистрация описателя обработчика одной очереди.
      *
-     * @param item Описатель обработчика одной очереди.
+     * @param topic           Топик, для которого создается описатель.
+     * @param descriptorClass Класс описателя.
      * @return this.
      */
     @NotNull
-    <O extends DataObject, P extends DataPackage<O>> IncomeTopicsConfiguration register(@NotNull final IncomeTopicLoadingDescriptor<O, P> item) throws InvalidParameterException;
-
-    /**
-     * Дерегистрация обработчика очереди.
-     *
-     * @param topic Имя топика очереди.
-     * @return this.
-     */
-    @NotNull
-    IncomeTopicsConfiguration unregister(@NotNull final String topic);
+    <D extends IncomeTopicLoadingDescriptor>
+    D newDescriptor(@NotNull final String topic, Class<D> descriptorClass) throws InvalidParameterException;
 
     /**
      * @return Настройки по умолчанию для новых описателей загрузки из топиков.
@@ -77,11 +71,11 @@ public interface IncomeTopicsConfiguration {
      * @return Список описателей обработчиков.
      */
     @Nullable
-    Iterable<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> getByPriority(int priority);
+    Iterable<IncomeTopicLoadingDescriptor> getByPriority(int priority);
 
     /**
      * @return Список всех описателей обработчиков очередей.
      */
     @NotNull
-    Iterable<IncomeTopicLoadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> getAll();
+    Iterable<IncomeTopicLoadingDescriptor> getAll();
 }

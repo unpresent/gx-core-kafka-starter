@@ -30,6 +30,7 @@ public class IncomeTopicsConfiguratorCaller {
      * Обработчик события о том, что все бины построены. Приложение готово к запуску.
      * Вызываем конфигураторы настройки обработчиков входящих потоков.
      */
+    @SuppressWarnings("unused")
     @EventListener(ApplicationReadyEvent.class)
     @ConditionalOnProperty(value = "service.income-topics.configurator-caller.enabled", havingValue = "true")
     public void onApplicationApplicationReady(ApplicationReadyEvent __) {

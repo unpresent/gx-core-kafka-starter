@@ -5,11 +5,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.gx.kafka.load.IncomeTopicsConfiguratorCaller;
-import ru.gx.kafka.load.SimpleIncomeTopicsConfiguration;
-import ru.gx.kafka.load.StandardIncomeTopicsLoader;
-import ru.gx.kafka.load.StandardIncomeTopicsOffsetsController;
+import ru.gx.kafka.load.*;
 import ru.gx.kafka.upload.OutcomeTopicsConfiguratorCaller;
+import ru.gx.kafka.upload.SimpleOutcomeTopicsConfiguration;
 import ru.gx.kafka.upload.StandardOutcomeTopicsUploader;
 
 @Configuration
@@ -43,6 +41,19 @@ public class CommonAutoConfiguration {
     @ConditionalOnProperty(value = "service.income-topics.configurator-caller.enabled", havingValue = "true")
     public IncomeTopicsConfiguratorCaller incomeTopicsConfiguratorCaller() {
         return new IncomeTopicsConfiguratorCaller();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(value = "service.outcome-topics.simple-configuration.enabled", havingValue = "true")
+    public SimpleOutcomeTopicsConfiguration simpleOutcomeTopicsConfiguration() {
+        return new SimpleOutcomeTopicsConfiguration();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public IncomeTopicsLoadingDescriptorsFactory incomeTopicsLoadingDescriptorsFactory() {
+        return new StandardIncomeTopicsLoadingDescriptorsFactory();
     }
 
     @Bean
