@@ -118,7 +118,7 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
         final var loadedRecords = internalLoadRecordsFromTopic(descriptor, durationOnPoll);
         var msLoaded = System.currentTimeMillis();
 
-        // Бросаем событие о завершении загрузки
+        // Бросаем событие о загрузке сырых данных
         final var eventLoaded = descriptor.getOnRawDataLoadedEvent(this.applicationContext);
         if (eventLoaded != null) {
             eventLoaded.reset(this, descriptor, IncomeTopicsLoaderContinueMode.Auto, loadedRecords);
@@ -150,6 +150,10 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
 
         final var statistics = descriptor.getLoadingStatistics().reset();
         var msStart = System.currentTimeMillis();
+
+        // TODO: Переработать на получение сырых данных из очереди, потом предоставление события,
+        // потом уже десеприализация и загрузка в MemoryRepo
+
         // Получаем данные из очереди.
         final var loadedObjects = internalLoadObjectsFromTopic(descriptor, durationOnPoll);
         var msLoaded = System.currentTimeMillis();
