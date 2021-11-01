@@ -8,6 +8,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
+import ru.gx.kafka.SerializeMode;
 import ru.gx.kafka.TopicMessageMode;
 import ru.gx.kafka.events.OnRawDataLoadedFromIncomeTopicEvent;
 
@@ -52,6 +53,10 @@ public abstract class AbstractIncomeTopicLoadingDescriptor implements IncomeTopi
     @NotNull
     private TopicMessageMode messageMode;
 
+    @Getter
+    @NotNull
+    private SerializeMode serializeMode;
+
     /**
      * Объект-получатель сообщений.
      */
@@ -95,7 +100,8 @@ public abstract class AbstractIncomeTopicLoadingDescriptor implements IncomeTopi
     protected AbstractIncomeTopicLoadingDescriptor(@NotNull final AbstractIncomeTopicsConfiguration owner, @NotNull final String topic, @Nullable final IncomeTopicLoadingDescriptorsDefaults defaults) {
         this.owner = owner;
         this.topic = topic;
-        this.messageMode = TopicMessageMode.OBJECT;
+        this.messageMode = TopicMessageMode.Object;
+        this.serializeMode = SerializeMode.String;
         this.loadingMode = LoadingMode.Auto;
         if (defaults != null) {
             this
@@ -165,6 +171,12 @@ public abstract class AbstractIncomeTopicLoadingDescriptor implements IncomeTopi
     public @NotNull AbstractIncomeTopicLoadingDescriptor setMessageMode(@NotNull final TopicMessageMode messageMode) {
         checkChangeable("messageMode");
         this.messageMode = messageMode;
+        return this;
+    }
+
+    public @NotNull AbstractIncomeTopicLoadingDescriptor setSerializeMode(@NotNull final SerializeMode serializeMode) {
+        checkChangeable("serializeMode");
+        this.serializeMode = serializeMode;
         return this;
     }
 

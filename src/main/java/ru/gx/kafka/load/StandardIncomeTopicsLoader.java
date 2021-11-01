@@ -38,8 +38,8 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
     /**
      * Объект контекста требуется для вызова событий и для получения бинов(!).
      */
-    @Getter
-    @Setter
+    @Getter(PROTECTED)
+    @Setter(value = PUBLIC, onMethod_ = @Autowired)
     private ApplicationContext applicationContext;
 
     /**
@@ -152,7 +152,7 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
         var msStart = System.currentTimeMillis();
 
         // TODO: Переработать на получение сырых данных из очереди, потом предоставление события,
-        // потом уже десеприализация и загрузка в MemoryRepo
+        // потом уже десериализация и загрузка в MemoryRepo
 
         // Получаем данные из очереди.
         final var loadedObjects = internalLoadObjectsFromTopic(descriptor, durationOnPoll);
@@ -221,11 +221,8 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
      * Проверка описателя на то, что прошла инициализация. Работать с неинициализированным описателем нельзя.
      *
      * @param descriptor описатель, который проверяем.
-     * @param <O>        тип объектов данных.
-     * @param <P>        тип пакета объектов данных.
      */
-    protected <O extends DataObject, P extends DataPackage<O>>
-    void checkDescriptorIsInitialized(@NotNull IncomeTopicLoadingDescriptor descriptor) {
+    protected void checkDescriptorIsInitialized(@NotNull IncomeTopicLoadingDescriptor descriptor) {
         if (!descriptor.isInitialized()) {
             throw new IncomeTopicsConfigurationException("Topic descriptor " + descriptor.getTopic() + " is not initialized!");
         }
@@ -243,14 +240,14 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
     protected <O extends DataObject, P extends DataPackage<O>>
     Collection<O> internalLoadObjectsFromTopic(@NotNull StandardIncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException {
         Collection<O> objects;
-        if (descriptor.getMessageMode() == TopicMessageMode.OBJECT) {
+        if (descriptor.getMessageMode() == TopicMessageMode.Object) {
             objects = this.internalLoadObjects(descriptor, durationOnPoll);
             if (objects == null) {
                 return null;
             }
             descriptor.getLoadingStatistics()
                     .setLoadedObjectsCount(objects.size());
-        } else /*if (topic.getMessageMode() == TopicMessageMode.PACKAGE)*/ {
+        } else /*if (topic.getMessageMode() == TopicMessageMode.Package)*/ {
             var packagesCount = 0;
             var count = 0;
             final var packages = this.internalLoadPackages(descriptor, durationOnPoll);
@@ -283,7 +280,7 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
      */
     protected <O extends DataObject, P extends DataPackage<O>>
     Collection<P> internalLoadPackages(@NotNull StandardIncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException {
-        if (descriptor.getMessageMode() != TopicMessageMode.PACKAGE) {
+        if (descriptor.getMessageMode() != TopicMessageMode.Package) {
             throw new IncomeTopicsConfigurationException("Can't load packages from topic: " + descriptor.getTopic());
         }
 
@@ -327,7 +324,7 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
      */
     protected <O extends DataObject, P extends DataPackage<O>>
     Collection<O> internalLoadObjects(@NotNull StandardIncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException {
-        if (descriptor.getMessageMode() != TopicMessageMode.OBJECT) {
+        if (descriptor.getMessageMode() != TopicMessageMode.Object) {
             throw new IncomeTopicsConfigurationException("Can't load objects from topic: " + descriptor.getTopic());
         }
 
@@ -374,13 +371,13 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
 
         final var records = internalPoll(descriptor, durationOnPoll);
 
-        if (descriptor.getMessageMode() == TopicMessageMode.OBJECT) {
+        if (descriptor.getMessageMode() == TopicMessageMode.Object) {
             statistics.setLoadedObjectsCount(records.count());
             for (var rec : records) {
                 result.add(rec);
                 descriptor.setProcessedPartitionOffset(rec.partition(), rec.offset());
             }
-        } else /*if (topic.getMessageMode() == TopicMessageMode.PACKAGE)*/ {
+        } else /*if (topic.getMessageMode() == TopicMessageMode.Package)*/ {
             statistics.setLoadedPackagesCount(records.count());
             var count = 0;
             for (var rec : records) {

@@ -1,153 +1,108 @@
 package ru.gx.kafka.upload;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.header.Header;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import ru.gx.data.DataMemoryRepository;
+import ru.gx.kafka.SerializeMode;
 import ru.gx.kafka.TopicMessageMode;
-import ru.gx.data.DataObject;
-import ru.gx.data.DataPackage;
 
-import java.lang.reflect.ParameterizedType;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
 import java.util.Properties;
 
-@Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-@ToString
-public class OutcomeTopicUploadingDescriptor<O extends DataObject, P extends DataPackage<O>> {
+public interface OutcomeTopicUploadingDescriptor {
     /**
      * Имя топика очереди.
      */
-    @Getter
     @NotNull
-    private final String topic;
+    String getTopic();
 
     /**
      * Режим данных в очереди: Пообъектно и пакетно.
      */
-    @Getter
-    @Setter
-    private TopicMessageMode messageMode;
-
-    @Getter
-    @Setter
-    @Nullable
-    private DataMemoryRepository<O, P> memoryRepository;
+    @NotNull
+    TopicMessageMode getMessageMode();
 
     /**
-     * Класс объектов данных
+     * @param messageMode Режим данных в очереди: Пообъектно и пакетно.
+     * @return this.
      */
-    @Getter
-    @Setter
-    private Class<? extends O> dataObjectClass;
+    @NotNull
+    OutcomeTopicUploadingDescriptor setMessageMode(@NotNull final TopicMessageMode messageMode);
 
     /**
-     * Класс пакетов объектов данных
+     * Режим сериализации: Строки или Байты.
      */
-    @Getter
-    @Setter
-    private Class<? extends P> dataPackageClass;
+    @NotNull
+    SerializeMode getSerializeMode();
 
-    @Getter
-    @Setter
-    private int maxPackageSize = 100;
+    /**
+     * @param serializeMode Режим сериализации: Строки или Байты.
+     * @return this.
+     */
+    @NotNull
+    OutcomeTopicUploadingDescriptor setSerializeMode(@NotNull final SerializeMode serializeMode);
 
     /**
      * Producer - публикатор сообщений в Kafka
      */
-    @Getter
-    private Producer<Long, String> producer;
+    Producer<Long, ?> getProducer();
 
+    /**
+     * @return Список Header-ов для отправляемых сообщений.
+     */
     @NotNull
-    private final ArrayList<Header> descriptorHeaders = new ArrayList<>();
+    Iterable<Header> getDescriptorHeaders();
 
-    public int getDescriptorHeadersSize() {
-        return this.descriptorHeaders.size();
-    }
+    /**
+     * @return Количество Header-ов для отправляемых сообщений.
+     */
+    int getDescriptorHeadersSize();
 
+    /**
+     * Заменить список всех Header-ов на целевой набор.
+     * @param headers целевой список Header-ов.
+     * @return this.
+     */
     @NotNull
-    public Iterable<Header> getDescriptorHeaders() {
-        return this.descriptorHeaders;
-    }
+    OutcomeTopicUploadingDescriptor setDescriptorHeaders(@NotNull final Iterable<Header> headers);
 
-    @SuppressWarnings("UnusedReturnValue")
+    /**
+     * Добавление одного Header-а (если header с таким ключом уже есть, то замена).
+     * @param header добавляемый Header.
+     * @return this.
+     */
     @NotNull
-    public final OutcomeTopicUploadingDescriptor<O, P> setDescriptorHeaders(Iterable<Header> headers) {
-        this.descriptorHeaders.clear();
-        headers.forEach(this.descriptorHeaders::add);
-        return this;
-    }
+    OutcomeTopicUploadingDescriptor addDescriptorHeader(Header header);
 
-    @SuppressWarnings("unused")
+    /**
+     * Добавление списка Header-а (если header-ы с такими ключами уже есть, то замена).
+     * @param headers добавляемые Header-ы.
+     * @return this.
+     */
     @NotNull
-    public final OutcomeTopicUploadingDescriptor<O, P> addDescriptorHeader(Header header) {
-        final var index = this.descriptorHeaders.indexOf(header);
-        if (index >= 0) {
-            this.descriptorHeaders.set(index, header);
-        } else {
-            this.descriptorHeaders.add(header);
-        }
-        return this;
-    }
+    OutcomeTopicUploadingDescriptor addDescriptorHeaders(@NotNull final Iterable<Header> headers);
 
     /**
      * Признак того, что описатель инициализирован
      */
-    @Getter
-    private boolean initialized;
+    boolean isInitialized();
 
-    @SuppressWarnings("unchecked")
-    public OutcomeTopicUploadingDescriptor(@NotNull String topic, OutcomeTopicUploadingDescriptorsDefaults defaults) {
-        this.topic = topic;
-
-        final var thisClass = this.getClass();
-        final var superClass = thisClass.getGenericSuperclass();
-        if (superClass instanceof ParameterizedType) {
-            this.dataObjectClass = (Class<O>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
-            this.dataPackageClass = (Class<P>) ((ParameterizedType) superClass).getActualTypeArguments()[1];
-        }
-
-        if (defaults != null) {
-            this
-                    .setMessageMode(defaults.getTopicMessageMode())
-                    .setDescriptorHeaders(defaults.getDefaultHeaders())
-                    .setMaxPackageSize(defaults.getMaxPackageSize());
-        }
-    }
+    /**
+     * Настройка Descriptor-а должна заканчиваться этим методом.
+     *
+     * @param producerProperties Свойства Producer-а, который будет создан.
+     * @return this.
+     */
+    @NotNull
+    OutcomeTopicUploadingDescriptor init(@NotNull final Properties producerProperties) throws InvalidParameterException;
 
     /**
      * Настройка Descriptor-а должна заканчиваться этим методом.
      *
      * @return this.
      */
-    @SuppressWarnings({"UnusedReturnValue", "unused"})
     @NotNull
-    public OutcomeTopicUploadingDescriptor<O, P> init(@NotNull final Properties producerProperties) throws InvalidParameterException {
-        if (this.dataObjectClass == null) {
-            throw new InvalidParameterException("Can't init descriptor " + this.getClass().getSimpleName() + " due undefined generic parameter[0].");
-        }
-        if (this.dataPackageClass == null) {
-            throw new InvalidParameterException("Can't init descriptor " + this.getClass().getSimpleName() + " due undefined generic parameter[1].");
-        }
+    OutcomeTopicUploadingDescriptor init() throws InvalidParameterException;
 
-        this.producer = new KafkaProducer<>(producerProperties);
-        this.initialized = true;
-        return this;
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    public OutcomeTopicUploadingDescriptor<O, P> unInit() {
-        this.initialized = false;
-        this.producer = null;
-        return this;
-    }
+    OutcomeTopicUploadingDescriptor unInit();
 }

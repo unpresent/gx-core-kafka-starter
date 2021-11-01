@@ -7,10 +7,10 @@ public enum TopicMessageMode {
     /**
      * В очереди каждое сообщение - это отдельный объект.
      */
-    OBJECT,
+    Object,
 
     /**
      * В очереди каждое сообщение - это пакет объектов.
      */
-    PACKAGE
+    Package
 }

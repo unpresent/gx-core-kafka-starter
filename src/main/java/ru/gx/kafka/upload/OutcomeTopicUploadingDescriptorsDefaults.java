@@ -5,15 +5,16 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.header.Header;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import ru.gx.kafka.SerializeMode;
 import ru.gx.kafka.TopicMessageMode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
 
+@SuppressWarnings("unused")
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
@@ -23,14 +24,21 @@ public class OutcomeTopicUploadingDescriptorsDefaults {
      */
     @Getter
     @Setter
-    private TopicMessageMode topicMessageMode = TopicMessageMode.OBJECT;
+    private TopicMessageMode topicMessageMode = TopicMessageMode.Object;
+
+    /**
+     * Режим сериализации: Строки или Байты.
+     */
+    @Getter
+    @Setter
+    private SerializeMode serializeMode = SerializeMode.String;
 
     /**
      * Свойства для создания Producer-а.
      */
     @Getter
     @Setter
-    @Nullable
+    @NotNull
     private Properties producerProperties;
 
     /**
@@ -44,7 +52,7 @@ public class OutcomeTopicUploadingDescriptorsDefaults {
 
     /**
      * @return Список Header-ов, которые будут установлены у описателей.
-     * @see OutcomeTopicUploadingDescriptor#getDescriptorHeaders()
+     * @see StandardOutcomeTopicUploadingDescriptor#getDescriptorHeaders()
      */
     public Iterable<Header> getDefaultHeaders() {
         return this.defaultHeaders;

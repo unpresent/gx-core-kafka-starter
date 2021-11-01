@@ -6,9 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.gx.kafka.load.*;
-import ru.gx.kafka.upload.OutcomeTopicsConfiguratorCaller;
-import ru.gx.kafka.upload.SimpleOutcomeTopicsConfiguration;
-import ru.gx.kafka.upload.StandardOutcomeTopicsUploader;
+import ru.gx.kafka.upload.*;
 
 @Configuration
 public class CommonAutoConfiguration {
@@ -68,5 +66,11 @@ public class CommonAutoConfiguration {
     @ConditionalOnProperty(value = "service.outcome-topics.configurator-caller.enabled", havingValue = "true")
     public OutcomeTopicsConfiguratorCaller outcomeTopicsConfiguratorCaller() {
         return new OutcomeTopicsConfiguratorCaller();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public OutcomeTopicsUploadingDescriptorsFactory outcomeTopicsUploadingDescriptorsFactory() {
+        return new StandardOutcomeTopicsUploadingDescriptorsFactory();
     }
 }

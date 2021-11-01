@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.gx.kafka.SerializeMode;
 import ru.gx.kafka.TopicMessageMode;
 
 import java.util.Properties;
@@ -22,15 +23,20 @@ public class IncomeTopicLoadingDescriptorsDefaults {
 
     @Setter
     @NotNull
-    private TopicMessageMode topicMessageMode = TopicMessageMode.OBJECT;
+    private TopicMessageMode topicMessageMode = TopicMessageMode.Object;
+
+    @Setter
+    @NotNull
+    private SerializeMode serializeMode = SerializeMode.String;
 
     @Setter
     @Nullable
     private LoadingFiltering loadingFiltering;
 
     @Getter
+    @Setter
     @NotNull
-    private final Properties consumerProperties = new Properties();
+    private Properties consumerProperties;
 
     private int[] partitions = new int[]{0};
 

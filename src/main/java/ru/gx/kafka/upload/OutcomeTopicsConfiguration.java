@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
+import ru.gx.kafka.load.IncomeTopicLoadingDescriptor;
+import ru.gx.kafka.load.IncomeTopicsConfigurationException;
 
 import java.security.InvalidParameterException;
 
@@ -27,7 +29,7 @@ public interface OutcomeTopicsConfiguration {
      */
     @NotNull
     <O extends DataObject, P extends DataPackage<O>>
-    OutcomeTopicUploadingDescriptor<O, P> get(@NotNull final String topic);
+    StandardOutcomeTopicUploadingDescriptor<O, P> get(@NotNull final String topic);
 
 
     /**
@@ -38,26 +40,17 @@ public interface OutcomeTopicsConfiguration {
      */
     @Nullable
     <O extends DataObject, P extends DataPackage<O>>
-    OutcomeTopicUploadingDescriptor<O, P> tryGet(@NotNull final String topic);
+    StandardOutcomeTopicUploadingDescriptor<O, P> tryGet(@NotNull final String topic);
 
     /**
      * Регистрация описателя обработчика одной очереди.
      *
-     * @param item Описатель обработчика одной очереди.
+     * @param topic           Топик, для которого создается описатель.
+     * @param descriptorClass Класс описателя.
      * @return this.
      */
-    @NotNull
-    <O extends DataObject, P extends DataPackage<O>>
-    OutcomeTopicsConfiguration register(@NotNull final OutcomeTopicUploadingDescriptor<O, P> item) throws InvalidParameterException;
-
-    /**
-     * Дерегистрация обработчика очереди.
-     *
-     * @param topic Имя топика очереди.
-     * @return this.
-     */
-    @NotNull
-    OutcomeTopicsConfiguration unregister(@NotNull final String topic);
+    <D extends OutcomeTopicUploadingDescriptor>
+    D newDescriptor(@NotNull final String topic, Class<D> descriptorClass) throws InvalidParameterException;
 
     /**
      * @return Настройки по умолчанию для новых описателей загрузки из топиков.
@@ -69,5 +62,5 @@ public interface OutcomeTopicsConfiguration {
      * @return Список всех описателей обработчиков очередей.
      */
     @NotNull
-    Iterable<OutcomeTopicUploadingDescriptor<? extends DataObject, ? extends DataPackage<DataObject>>> getAll();
+    Iterable<OutcomeTopicUploadingDescriptor> getAll();
 }

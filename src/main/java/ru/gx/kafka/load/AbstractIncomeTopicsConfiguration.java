@@ -103,7 +103,7 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
     }
 
     /**
-     * Регистрация описателя обработчика одной очереди.
+     * Создание описателя обработчика одной очереди.
      *
      * @param topic           Топик, для которого создается описатель.
      * @param descriptorClass Класс описателя.
@@ -156,7 +156,7 @@ public abstract class AbstractIncomeTopicsConfiguration implements IncomeTopicsC
         if (!this.topics.containsValue(descriptor) || !this.topics.containsKey(topic)) {
             throw new IncomeTopicsConfigurationException("Topic " + topic + " not registered!");
         }
-        if (this.get(topic) != descriptor) {
+        if (!descriptor.equals(this.get(topic))) {
             throw new IncomeTopicsConfigurationException("Descriptor by name " + topic + " not equal descriptor by parameter!");
         }
 

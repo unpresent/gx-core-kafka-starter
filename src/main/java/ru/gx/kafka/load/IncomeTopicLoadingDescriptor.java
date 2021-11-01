@@ -5,8 +5,10 @@ import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
+import ru.gx.kafka.SerializeMode;
 import ru.gx.kafka.TopicMessageMode;
 import ru.gx.kafka.events.OnRawDataLoadedFromIncomeTopicEvent;
+import ru.gx.kafka.upload.OutcomeTopicUploadingDescriptor;
 
 import java.security.InvalidParameterException;
 import java.util.Collection;
@@ -51,6 +53,20 @@ public interface IncomeTopicLoadingDescriptor {
      */
     @NotNull
     IncomeTopicLoadingDescriptor setMessageMode(@NotNull final TopicMessageMode messageMode);
+
+    /**
+     * Режим сериализации: Строки или Байты.
+     */
+    @NotNull
+    SerializeMode getSerializeMode();
+
+    /**
+     * @param serializeMode Режим сериализации: Строки или Байты.
+     * @return this.
+     */
+    @NotNull
+    IncomeTopicLoadingDescriptor setSerializeMode(@NotNull final SerializeMode serializeMode);
+
 
     /**
      * Объект-получатель сообщений.
