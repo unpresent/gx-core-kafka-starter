@@ -62,19 +62,18 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
      * Загрузка и обработка данных по списку топиков по конфигурации.
      *
      * @param descriptor     Описатель загрузки из Топика.
-     * @param durationOnPoll Длительность, в течение которой ожидать данных из Топика.
      * @return Список загруженных объектов.
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     @NotNull
-    public Collection<Object> processByTopic(@NotNull IncomeTopicLoadingDescriptor descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
+    public Collection<Object> processByTopic(@NotNull final IncomeTopicLoadingDescriptor descriptor) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         checkDescriptorIsInitialized(descriptor);
         if (descriptor instanceof StandardIncomeTopicLoadingDescriptor) {
-            return internalProcessByTopicStandardDescriptor((StandardIncomeTopicLoadingDescriptor) descriptor, durationOnPoll);
+            return internalProcessByTopicStandardDescriptor((StandardIncomeTopicLoadingDescriptor) descriptor);
         } else if (descriptor instanceof RawDataIncomeTopicLoadingDescriptor) {
-            return (Collection) internalProcessByTopicRawDataDescriptor((RawDataIncomeTopicLoadingDescriptor) descriptor, durationOnPoll);
+            return (Collection) internalProcessByTopicRawDataDescriptor((RawDataIncomeTopicLoadingDescriptor) descriptor);
         } else {
             throw new IncomeTopicsConfigurationException("Unsupported descriptor type " + descriptor.getClass().getName());
         }
@@ -88,7 +87,7 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
     @Override
     @NotNull
     public Map<IncomeTopicLoadingDescriptor, Collection<Object>>
-    processAllTopics(@NotNull final IncomeTopicsConfiguration configuration, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException, InvalidParameterException {
+    processAllTopics(@NotNull final IncomeTopicsConfiguration configuration) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException, InvalidParameterException {
         final var pCount = configuration.prioritiesCount();
         final var result = new HashMap<IncomeTopicLoadingDescriptor, Collection<Object>>();
         for (int p = 0; p < pCount; p++) {
@@ -98,7 +97,7 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
             }
             for (var topicDescriptor : topicDescriptors) {
                 log.debug("Loading working data from topic: {}", topicDescriptor.getTopic());
-                final var loadedObjects = processByTopic(topicDescriptor, durationOnPoll);
+                final var loadedObjects = processByTopic(topicDescriptor);
                 result.put(topicDescriptor, loadedObjects);
                 log.debug("Loaded working data from topic: {}; loadedObjects.size() == {}", topicDescriptor.getTopic(), loadedObjects.size());
             }
@@ -109,13 +108,13 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Внутренняя реализация">
-    protected Collection<ConsumerRecord<?, ?>> internalProcessByTopicRawDataDescriptor(@NotNull RawDataIncomeTopicLoadingDescriptor descriptor, @NotNull Duration durationOnPoll) {
+    protected Collection<ConsumerRecord<?, ?>> internalProcessByTopicRawDataDescriptor(@NotNull final RawDataIncomeTopicLoadingDescriptor descriptor) {
         checkDescriptorIsInitialized(descriptor);
 
         final var statistics = descriptor.getLoadingStatistics().reset();
         var msStart = System.currentTimeMillis();
         // Получаем данные из очереди.
-        final var loadedRecords = internalLoadRecordsFromTopic(descriptor, durationOnPoll);
+        final var loadedRecords = internalLoadRecordsFromTopic(descriptor);
         var msLoaded = System.currentTimeMillis();
 
         // Бросаем событие о загрузке сырых данных
@@ -145,7 +144,7 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
     }
 
     protected <O extends DataObject, P extends DataPackage<O>>
-    Collection<O> internalProcessByTopicStandardDescriptor(@NotNull StandardIncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
+    Collection<O> internalProcessByTopicStandardDescriptor(@NotNull final StandardIncomeTopicLoadingDescriptor<O, P> descriptor) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException {
         checkDescriptorIsInitialized(descriptor);
 
         final var statistics = descriptor.getLoadingStatistics().reset();
@@ -155,7 +154,7 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
         // потом уже десериализация и загрузка в MemoryRepo
 
         // Получаем данные из очереди.
-        final var loadedObjects = internalLoadObjectsFromTopic(descriptor, durationOnPoll);
+        final var loadedObjects = internalLoadObjectsFromTopic(descriptor);
         var msLoaded = System.currentTimeMillis();
 
         // Формируем список изменений
@@ -222,7 +221,7 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
      *
      * @param descriptor описатель, который проверяем.
      */
-    protected void checkDescriptorIsInitialized(@NotNull IncomeTopicLoadingDescriptor descriptor) {
+    protected void checkDescriptorIsInitialized(@NotNull final IncomeTopicLoadingDescriptor descriptor) {
         if (!descriptor.isInitialized()) {
             throw new IncomeTopicsConfigurationException("Topic descriptor " + descriptor.getTopic() + " is not initialized!");
         }
@@ -233,15 +232,14 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
      * то объекты из пакетов извлекаются в результирующую коллекцию.
      *
      * @param descriptor     Описатель загрузки из Топика.
-     * @param durationOnPoll Длительность, в течение которой ожидать данных из Топика.
      * @return Список объектов данных.
      * @throws JsonProcessingException Ошибка десериализации из Json-а.
      */
     protected <O extends DataObject, P extends DataPackage<O>>
-    Collection<O> internalLoadObjectsFromTopic(@NotNull StandardIncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException {
+    Collection<O> internalLoadObjectsFromTopic(@NotNull final StandardIncomeTopicLoadingDescriptor<O, P> descriptor) throws JsonProcessingException {
         Collection<O> objects;
         if (descriptor.getMessageMode() == TopicMessageMode.Object) {
-            objects = this.internalLoadObjects(descriptor, durationOnPoll);
+            objects = this.internalLoadObjects(descriptor);
             if (objects == null) {
                 return null;
             }
@@ -250,7 +248,7 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
         } else /*if (topic.getMessageMode() == TopicMessageMode.Package)*/ {
             var packagesCount = 0;
             var count = 0;
-            final var packages = this.internalLoadPackages(descriptor, durationOnPoll);
+            final var packages = this.internalLoadPackages(descriptor);
             final var objectsList = new ArrayList<O>();
             if (packages == null) {
                 return null;
@@ -274,18 +272,17 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
      * Чтение набора DataPackage-ей из очереди.
      *
      * @param descriptor     Описатель обработчика одной очереди.
-     * @param durationOnPoll Длительность ожидания данных в очереди.
      * @return Набор DataPackage-ей из очереди.
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     protected <O extends DataObject, P extends DataPackage<O>>
-    Collection<P> internalLoadPackages(@NotNull StandardIncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException {
+    Collection<P> internalLoadPackages(@NotNull final StandardIncomeTopicLoadingDescriptor<O, P> descriptor) throws JsonProcessingException {
         if (descriptor.getMessageMode() != TopicMessageMode.Package) {
             throw new IncomeTopicsConfigurationException("Can't load packages from topic: " + descriptor.getTopic());
         }
 
         final var result = new ArrayList<P>();
-        final var records = internalPoll(descriptor, durationOnPoll);
+        final var records = internalPoll(descriptor);
         if (records.isEmpty()) {
             return result;
         }
@@ -318,18 +315,17 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
      * Чтение набора DataObject-ов из очереди.
      *
      * @param descriptor     Описатель обработчика одной очереди.
-     * @param durationOnPoll Длительность ожидания данных в очереди.
      * @return Набор DataObject-ов из очереди.
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     protected <O extends DataObject, P extends DataPackage<O>>
-    Collection<O> internalLoadObjects(@NotNull StandardIncomeTopicLoadingDescriptor<O, P> descriptor, @NotNull Duration durationOnPoll) throws JsonProcessingException {
+    Collection<O> internalLoadObjects(@NotNull final StandardIncomeTopicLoadingDescriptor<O, P> descriptor) throws JsonProcessingException {
         if (descriptor.getMessageMode() != TopicMessageMode.Object) {
             throw new IncomeTopicsConfigurationException("Can't load objects from topic: " + descriptor.getTopic());
         }
 
         final var result = new ArrayList<O>();
-        final var records = internalPoll(descriptor, durationOnPoll);
+        final var records = internalPoll(descriptor);
         if (records.isEmpty()) {
             return result;
         }
@@ -362,14 +358,13 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
      * Получение списка Record-ов из Топика.
      *
      * @param descriptor     Описатель загрузки из Топика.
-     * @param durationOnPoll Длительность, в течение которой ожидать данных из Топика.
      * @return Список объектов данных.
      */
-    protected Collection<ConsumerRecord<?, ?>> internalLoadRecordsFromTopic(@NotNull RawDataIncomeTopicLoadingDescriptor descriptor, @NotNull Duration durationOnPoll) {
+    protected Collection<ConsumerRecord<?, ?>> internalLoadRecordsFromTopic(@NotNull final RawDataIncomeTopicLoadingDescriptor descriptor) {
         final var result = new ArrayList<ConsumerRecord<?, ?>>();
         final var statistics = descriptor.getLoadingStatistics();
 
-        final var records = internalPoll(descriptor, durationOnPoll);
+        final var records = internalPoll(descriptor);
 
         if (descriptor.getMessageMode() == TopicMessageMode.Object) {
             statistics.setLoadedObjectsCount(records.count());
@@ -398,14 +393,13 @@ public class StandardIncomeTopicsLoader implements IncomeTopicsLoader, Applicati
      * Получение данных из Consumer-а.
      *
      * @param descriptor     Описатель загрузки из Топика.
-     * @param durationOnPoll Длительность, в течение которой ожидать данных из Топика.
      * @return Записи Consumer-а.
      */
     @SuppressWarnings("unchecked")
     @NotNull
-    protected ConsumerRecords<Object, Object> internalPoll(@NotNull IncomeTopicLoadingDescriptor descriptor, @NotNull Duration durationOnPoll) {
+    protected ConsumerRecords<Object, Object> internalPoll(@NotNull final IncomeTopicLoadingDescriptor descriptor) {
         final var consumer = descriptor.getConsumer();
-        final ConsumerRecords<Object, Object> records = (ConsumerRecords<Object, Object>) consumer.poll(durationOnPoll);
+        final ConsumerRecords<Object, Object> records = (ConsumerRecords<Object, Object>) consumer.poll(descriptor.getDurationOnPoll());
         log.debug("Topic: {}; polled: {} records", descriptor.getTopic(), records.count());
         return records;
     }

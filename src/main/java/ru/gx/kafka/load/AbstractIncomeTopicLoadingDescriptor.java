@@ -13,6 +13,7 @@ import ru.gx.kafka.TopicMessageMode;
 import ru.gx.kafka.events.OnRawDataLoadedFromIncomeTopicEvent;
 
 import java.security.InvalidParameterException;
+import java.time.Duration;
 import java.util.*;
 
 /**
@@ -83,6 +84,15 @@ public abstract class AbstractIncomeTopicLoadingDescriptor implements IncomeTopi
     private LoadingFiltering loadingFiltering;
 
     /**
+     * Время на ожидание данных при чтении.
+     * Можно менять в RunTime (после инициализации).
+     */
+    @Getter
+    @Setter
+    @NotNull
+    private Duration durationOnPoll;
+
+    /**
      * Статистика чтения и обработки данных.
      */
     @Getter
@@ -103,11 +113,13 @@ public abstract class AbstractIncomeTopicLoadingDescriptor implements IncomeTopi
         this.messageMode = TopicMessageMode.Object;
         this.serializeMode = SerializeMode.String;
         this.loadingMode = LoadingMode.Auto;
+        this.durationOnPoll = Duration.ofMillis(100);
         if (defaults != null) {
             this
                     .setLoadingMode(defaults.getLoadingMode())
                     .setPartitions(defaults.getPartitions())
-                    .setMessageMode(defaults.getTopicMessageMode());
+                    .setMessageMode(defaults.getTopicMessageMode())
+                    .setDurationOnPoll(defaults.getDurationOnPoll());
         }
     }
 

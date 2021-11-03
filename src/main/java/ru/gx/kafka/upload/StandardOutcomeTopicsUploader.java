@@ -99,13 +99,12 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      * @param headers заголовки.
      * @return Смещение в очереди, с которым выгрузился объект.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    PartitionOffset uploadDataObject(
-            @NotNull final StandardOutcomeTopicUploadingDescriptor<O, P> descriptor,
-            @NotNull final O object,
+    public PartitionOffset uploadDataObject(
+            @NotNull final StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull final DataObject object,
             @Nullable Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsInitialized(descriptor);
@@ -130,13 +129,12 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      * @param headers    заголовки.
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    PartitionOffset uploadDataObjects(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor,
-            @NotNull Iterable<O> objects,
+    public PartitionOffset uploadDataObjects(
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull Iterable<DataObject> objects,
             @Nullable Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsInitialized(descriptor);
@@ -179,12 +177,12 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      * @param headers     заголовки.
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
+    @SuppressWarnings("rawtypes")
     @Override
     @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    PartitionOffset uploadDataPackage(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor,
-            @NotNull P dataPackage,
+    public PartitionOffset uploadDataPackage(
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull DataPackage dataPackage,
             @Nullable Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsInitialized(descriptor);
@@ -210,21 +208,19 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      *
      * @param descriptor описатель исходящей очереди.
      * @param headers    заголовки.
-     * @param <O>        тип объекта.
-     * @param <P>        тип пакета объектов.
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    PartitionOffset publishMemoryRepositorySnapshot(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor,
+    public PartitionOffset publishMemoryRepositorySnapshot(
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
             @Nullable Iterable<Header> headers) throws Exception {
         final var memoryRepository = descriptor.getMemoryRepository();
         if (memoryRepository == null) {
             throw new OutcomeTopicsConfigurationException("The descriptor " + descriptor.getTopic() + " doesn't have MemoryRepository!");
         }
-        return publishFullSnapshot(descriptor, memoryRepository.getAll(), headers);
+        return publishFullSnapshot(descriptor, (Iterable<DataObject>) memoryRepository.getAll(), headers);
     }
 
 
@@ -236,11 +232,11 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      * @param headers               заголовки.
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
+    @SuppressWarnings("rawtypes")
     @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    PartitionOffset publishFullSnapshot(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor,
-            @NotNull Iterable<O> snapshotOffAllObjects,
+    public PartitionOffset publishFullSnapshot(
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull Iterable<DataObject> snapshotOffAllObjects,
             @Nullable Iterable<Header> headers) throws Exception {
         final var result = uploadDataObjects(descriptor, snapshotOffAllObjects, headers);
         this.lastPublishedSnapshots.put(descriptor, result);
@@ -252,14 +248,12 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      * Получение offset-а последней выгрузки полного snapshot-а данных из MemoryRepository.
      *
      * @param descriptor описатель исходящей очереди.
-     * @param <O>        тип объекта.
-     * @param <P>        тип пакета объектов.
      * @return Смещение в очереди, с которым выгрузился первый объект в последнем snapshot-е.
      */
+    @SuppressWarnings("rawtypes")
     @Nullable
-    public <O extends DataObject, P extends DataPackage<O>>
-    PartitionOffset getLastPublishedSnapshotOffset(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor
+    public PartitionOffset getLastPublishedSnapshotOffset(
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor
     ) {
         return this.lastPublishedSnapshots.get(descriptor);
     }

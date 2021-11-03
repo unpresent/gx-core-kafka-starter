@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import ru.gx.kafka.SerializeMode;
 import ru.gx.kafka.TopicMessageMode;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;

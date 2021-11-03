@@ -22,22 +22,21 @@ public interface IncomeTopicsLoader {
      * Загрузка и обработка данных по списку топиков по конфигурации.
      *
      * @param descriptor     Описатель загрузки из Топика.
-     * @param durationOnPoll Длительность, в течение которой ожидать данных из Топика.
      * @return Список загруженных Record (для {@link RawDataIncomeTopicLoadingDescriptor})
      * или список загруженных объектов (для {@link StandardIncomeTopicLoadingDescriptor}).
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     @NotNull
-    Collection<Object> processByTopic(@NotNull final IncomeTopicLoadingDescriptor descriptor, @NotNull final Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
+    Collection<Object> processByTopic(@NotNull final IncomeTopicLoadingDescriptor descriptor) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException;
 
     /**
      * Загрузка и обработка данных по списку топиков по конфигурации.
      *
-     * @param durationOnPoll Длительность, в течение которой ожидать данных из Топика.
+     * @param configuration Конфигурация, топики которой требуется обработать.
      * @return Map-а, в которой для каждого дескриптора указан список загруженных объектов.
      * @throws JsonProcessingException Ошибки при десериализации из Json-а.
      */
     @NotNull
     Map<IncomeTopicLoadingDescriptor, Collection<Object>>
-    processAllTopics(@NotNull final IncomeTopicsConfiguration configuration, @NotNull Duration durationOnPoll) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException, InvalidParameterException;
+    processAllTopics(@NotNull final IncomeTopicsConfiguration configuration) throws JsonProcessingException, ObjectNotExistsException, ObjectAlreadyExistsException, InvalidParameterException;
 }

@@ -37,12 +37,14 @@ public class StandardIncomeTopicLoadingDescriptor<O extends DataObject, P extend
      * Класс объектов, которые будут читаться из очереди.
      */
     @Getter
+    @Setter
     private Class<? extends O> dataObjectClass;
 
     /**
      * Класс пакетов объектов, которые будут читаться из очереди.
      */
     @Getter
+    @Setter
     private Class<? extends P> dataPackageClass;
 
     /**

@@ -25,11 +25,11 @@ public interface OutcomeTopicUploader {
      * @param headers заголовки.
      * @return Смещение в очереди, с которым выгрузился объект.
      */
+    @SuppressWarnings("rawtypes")
     @NotNull
-    <O extends DataObject, P extends DataPackage<O>>
     PartitionOffset uploadDataObject(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor,
-            @NotNull O object,
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull DataObject object,
             @Nullable Iterable<Header> headers) throws Exception;
 
     /**
@@ -39,11 +39,11 @@ public interface OutcomeTopicUploader {
      * @param headers заголовки.
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
+    @SuppressWarnings("rawtypes")
     @NotNull
-    <O extends DataObject, P extends DataPackage<O>>
     PartitionOffset uploadDataObjects(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor,
-            @NotNull Iterable<O> objects,
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull Iterable<DataObject> objects,
             @Nullable Iterable<Header> headers) throws Exception;
 
     /**
@@ -53,25 +53,23 @@ public interface OutcomeTopicUploader {
      * @param headers заголовки.
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
+    @SuppressWarnings("rawtypes")
     @NotNull
-    <O extends DataObject, P extends DataPackage<O>>
     PartitionOffset uploadDataPackage(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor,
-            @NotNull P dataPackage,
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull DataPackage dataPackage,
             @Nullable Iterable<Header> headers) throws Exception;
 
     /**
      * Выгрузить все объекты из MemoryRepository в данном описателе.
      * @param descriptor описатель исходящей очереди.
      * @param headers заголовки.
-     * @param <O> тип объекта.
-     * @param <P> тип пакета объектов.
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
+    @SuppressWarnings("rawtypes")
     @NotNull
-    <O extends DataObject, P extends DataPackage<O>>
     PartitionOffset publishMemoryRepositorySnapshot(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor,
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
             @Nullable Iterable<Header> headers) throws Exception;
 
 
@@ -82,23 +80,21 @@ public interface OutcomeTopicUploader {
      * @param headers заголовки.
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
+    @SuppressWarnings("rawtypes")
     @NotNull
-    <O extends DataObject, P extends DataPackage<O>>
     PartitionOffset publishFullSnapshot(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor,
-            @NotNull Iterable<O> snapshotOffAllObjects,
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull Iterable<DataObject> snapshotOffAllObjects,
             @Nullable Iterable<Header> headers) throws Exception;
 
     /**
      * Получение offset-а последней выгрузки полного snapshot-а данных из MemoryRepository.
      * @param descriptor описатель исходящей очереди.
-     * @param <O> тип объекта.
-     * @param <P> тип пакета объектов.
      * @return Смещение в очереди, с которым выгрузился первый объект в последнем snapshot-е.
      */
+    @SuppressWarnings("rawtypes")
     @Nullable
-    <O extends DataObject, P extends DataPackage<O>>
     PartitionOffset getLastPublishedSnapshotOffset(
-            @NotNull StandardOutcomeTopicUploadingDescriptor<O, P> descriptor
+            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor
     );
 }

@@ -11,6 +11,7 @@ import ru.gx.kafka.events.OnRawDataLoadedFromIncomeTopicEvent;
 import ru.gx.kafka.upload.OutcomeTopicUploadingDescriptor;
 
 import java.security.InvalidParameterException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Properties;
 
@@ -66,7 +67,6 @@ public interface IncomeTopicLoadingDescriptor {
      */
     @NotNull
     IncomeTopicLoadingDescriptor setSerializeMode(@NotNull final SerializeMode serializeMode);
-
 
     /**
      * Объект-получатель сообщений.
@@ -139,6 +139,19 @@ public interface IncomeTopicLoadingDescriptor {
 
     @NotNull
     IncomeTopicLoadingDescriptor setLoadingFiltering(@Nullable final LoadingFiltering loadingFiltering);
+
+    /**
+     * @return Длительность, в течение которой ожидать данных из Топика.
+     */
+    @NotNull
+    Duration getDurationOnPoll();
+
+    /**
+     * @param durationOnPoll Длительность, в течение которой ожидать данных из Топика.
+     * @return this.
+     */
+    @NotNull
+    IncomeTopicLoadingDescriptor setDurationOnPoll(@NotNull final Duration durationOnPoll);
 
     /**
      * Статистика чтения и обработки данных.

@@ -112,7 +112,6 @@ public abstract class AbstractOutcomeTopicsConfiguration implements OutcomeTopic
         if (!descriptor.isInitialized()) {
             throw new OutcomeTopicsConfigurationException("Descriptor of topic '" + descriptor.getTopic() + "' doesn't initialized!");
         }
-
         topics.put(descriptor.getTopic(), descriptor);
     }
 

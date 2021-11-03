@@ -3,12 +3,14 @@ package ru.gx.kafka.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.gx.kafka.load.*;
 import ru.gx.kafka.upload.*;
 
 @Configuration
+@EnableConfigurationProperties({ConfigurationPropertiesService.class, ConfigurationPropertiesKafka.class})
 public class CommonAutoConfiguration {
     @Value("${service.name}")
     private String serviceName;

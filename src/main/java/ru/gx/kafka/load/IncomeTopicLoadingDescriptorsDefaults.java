@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import ru.gx.kafka.SerializeMode;
 import ru.gx.kafka.TopicMessageMode;
 
+import java.time.Duration;
 import java.util.Properties;
 
 @Getter
@@ -32,6 +33,13 @@ public class IncomeTopicLoadingDescriptorsDefaults {
     @Setter
     @Nullable
     private LoadingFiltering loadingFiltering;
+
+    /**
+     * Длительность, в течение которой ожидать данных из Топика.
+     */
+    @Setter
+    @NotNull
+    private Duration durationOnPoll = Duration.ofMillis(100);
 
     @Getter
     @Setter
