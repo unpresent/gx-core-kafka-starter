@@ -12,7 +12,9 @@ import ru.gx.kafka.load.IncomeTopicsConfigurationException;
 import ru.gx.kafka.load.IncomeTopicsLoadingDescriptorsFactory;
 
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static lombok.AccessLevel.PROTECTED;
@@ -23,6 +25,9 @@ public abstract class AbstractOutcomeTopicsConfiguration implements OutcomeTopic
     /**
      * Список описателей с группировкой по топикам.
      */
+    @NotNull
+    private final List<List<OutcomeTopicUploadingDescriptor>> priorities = new ArrayList<>();
+
     @NotNull
     private final Map<String, OutcomeTopicUploadingDescriptor> topics = new HashMap<>();
 
@@ -112,6 +117,14 @@ public abstract class AbstractOutcomeTopicsConfiguration implements OutcomeTopic
         if (!descriptor.isInitialized()) {
             throw new OutcomeTopicsConfigurationException("Descriptor of topic '" + descriptor.getTopic() + "' doesn't initialized!");
         }
+
+        final var priority = descriptor.getPriority();
+        while (priorities.size() <= priority) {
+            priorities.add(new ArrayList<>());
+        }
+        final var itemsList = priorities.get(priority);
+        itemsList.add(descriptor);
+
         topics.put(descriptor.getTopic(), descriptor);
     }
 
@@ -130,6 +143,32 @@ public abstract class AbstractOutcomeTopicsConfiguration implements OutcomeTopic
         }
 
         this.topics.remove(topic);
+        for (var pList : this.priorities) {
+            if (pList.remove(descriptor)) {
+                descriptor.unInit();
+                break;
+            }
+        }
+    }
+
+    /**
+     * @return Количество приоритетов.
+     */
+    @Override
+    public int prioritiesCount() {
+        return this.priorities.size();
+    }
+
+    /**
+     * Получение списка описателей обработчиков очередей по приоритету.
+     *
+     * @param priority Приоритет.
+     * @return Список описателей обработчиков.
+     */
+    @Override
+    @Nullable
+    public Iterable<OutcomeTopicUploadingDescriptor> getByPriority(int priority) {
+        return this.priorities.get(priority);
     }
 
     /**

@@ -58,6 +58,21 @@ public interface OutcomeTopicsConfiguration {
     @NotNull
     OutcomeTopicUploadingDescriptorsDefaults getDescriptorsDefaults();
 
+
+    /**
+     * @return Количество приоритетов.
+     */
+    int prioritiesCount();
+
+    /**
+     * Получение списка описателей обработчиков очередей по приоритету.
+     *
+     * @param priority Приоритет.
+     * @return Список описателей обработчиков.
+     */
+    @Nullable
+    Iterable<OutcomeTopicUploadingDescriptor> getByPriority(int priority);
+
     /**
      * @return Список всех описателей обработчиков очередей.
      */

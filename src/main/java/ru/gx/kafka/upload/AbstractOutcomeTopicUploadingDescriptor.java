@@ -34,6 +34,14 @@ public abstract class AbstractOutcomeTopicUploadingDescriptor implements Outcome
     private final String topic;
 
     /**
+     * Приоритет, с которым надо обрабатывать очередь.
+     * 0 - высший.
+     * > 0 - менее приоритетный.
+     */
+    @Getter
+    private int priority;
+
+    /**
      * Режим данных в очереди: Пообъектно и пакетно.
      */
     @Getter
@@ -120,15 +128,34 @@ public abstract class AbstractOutcomeTopicUploadingDescriptor implements Outcome
         }
     }
 
+    /**
+     * @param messageMode Режим данных в очереди: Пообъектно и пакетно.
+     * @return this.
+     */
     public @NotNull AbstractOutcomeTopicUploadingDescriptor setMessageMode(@NotNull final TopicMessageMode messageMode) {
         checkChangeable("messageMode");
         this.messageMode = messageMode;
         return this;
     }
 
+    /**
+     * @param serializeMode Режим сериализации: Строки или Байты.
+     * @return this.
+     */
     public @NotNull AbstractOutcomeTopicUploadingDescriptor setSerializeMode(@NotNull final SerializeMode serializeMode) {
         checkChangeable("serializeMode");
         this.serializeMode = serializeMode;
+        return this;
+    }
+
+    /**
+     * Установка приоритета у топика.
+     * @param priority приоритет.
+     * @return this.
+     */
+    public @NotNull AbstractOutcomeTopicUploadingDescriptor setPriority(final int priority) {
+        checkChangeable("priority");
+        this.priority = priority;
         return this;
     }
 

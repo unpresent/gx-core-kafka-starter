@@ -5,6 +5,7 @@ import org.apache.kafka.common.header.Header;
 import org.jetbrains.annotations.NotNull;
 import ru.gx.kafka.SerializeMode;
 import ru.gx.kafka.TopicMessageMode;
+import ru.gx.kafka.load.IncomeTopicLoadingDescriptor;
 
 import java.security.InvalidParameterException;
 import java.util.Properties;
@@ -15,6 +16,21 @@ public interface OutcomeTopicUploadingDescriptor {
      */
     @NotNull
     String getTopic();
+
+    /**
+     * Приоритет, с которым надо обрабатывать очередь.
+     * 0 - высший.
+     * > 0 - менее приоритетный.
+     */
+    int getPriority();
+
+    /**
+     * Установка приоритета у топика.
+     * @param priority приоритет.
+     * @return this.
+     */
+    @NotNull
+    OutcomeTopicUploadingDescriptor setPriority(int priority);
 
     /**
      * Режим данных в очереди: Пообъектно и пакетно.
