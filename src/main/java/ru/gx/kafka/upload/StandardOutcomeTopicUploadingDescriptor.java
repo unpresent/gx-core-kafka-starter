@@ -37,14 +37,14 @@ public class StandardOutcomeTopicUploadingDescriptor<O extends DataObject, P ext
      */
     @Getter
     @Setter
-    private Class<? extends O> dataObjectClass;
+    private Class<O> dataObjectClass;
 
     /**
      * Класс пакетов объектов данных
      */
     @Getter
     @Setter
-    private Class<? extends P> dataPackageClass;
+    private Class<P> dataPackageClass;
 
     /**
      * Ограничение по количеству Объектов в пакете (если отправка данных пакетная).
