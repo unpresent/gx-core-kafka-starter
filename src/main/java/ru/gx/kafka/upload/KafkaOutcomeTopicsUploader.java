@@ -10,19 +10,24 @@ import org.apache.kafka.common.header.Header;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.gx.channels.ChannelConfigurationException;
+import ru.gx.channels.ChannelMessageMode;
+import ru.gx.channels.SerializeMode;
 import ru.gx.data.DataObject;
 import ru.gx.data.DataPackage;
-import ru.gx.kafka.*;
+import ru.gx.kafka.LongHeader;
+import ru.gx.kafka.ServiceHeadersKeys;
+import ru.gx.kafka.StringHeader;
 import ru.gx.kafka.offsets.PartitionOffset;
+import ru.gx.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 
 import static lombok.AccessLevel.PROTECTED;
 
-public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
+public class KafkaOutcomeTopicsUploader {
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
     /**
@@ -32,10 +37,6 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
     @Setter(value = PROTECTED, onMethod_ = @Autowired)
     @NotNull
     private ObjectMapper objectMapper;
-
-    @NotNull
-    private final Map<OutcomeTopicUploadingDescriptor, PartitionOffset>
-            lastPublishedSnapshots = new HashMap<>();
 
     @NotNull
     private final ArrayList<Header> serviceHeaders = new ArrayList<>();
@@ -49,7 +50,7 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    public StandardOutcomeTopicsUploader() {
+    public KafkaOutcomeTopicsUploader() {
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
@@ -61,10 +62,9 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      * @return Смещение в очереди, с которым выгрузился объект.
      */
     @SuppressWarnings("unchecked")
-    @Override
     @NotNull
     public PartitionOffset uploadAnyData(
-            @NotNull final OutcomeTopicUploadingDescriptor descriptor,
+            @NotNull final KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor,
             @NotNull final Object data,
             @Nullable Iterable<Header> headers
     ) throws Exception {
@@ -72,19 +72,19 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
 
         if (data instanceof DataObject) {
             return uploadDataObject(
-                    (StandardOutcomeTopicUploadingDescriptor<DataObject, DataPackage<DataObject>>) descriptor,
+                    descriptor,
                     (DataObject) data,
                     headers
             );
         } else if (data instanceof DataPackage) {
             return uploadDataPackage(
-                    (StandardOutcomeTopicUploadingDescriptor<DataObject, DataPackage<DataObject>>) descriptor,
+                    descriptor,
                     (DataPackage<DataObject>) data,
                     headers
             );
         } else if (data instanceof Iterable) {
             return uploadDataObjects(
-                    (StandardOutcomeTopicUploadingDescriptor<DataObject, DataPackage<DataObject>>) descriptor,
+                    descriptor,
                     (Iterable<DataObject>) data,
                     headers
             );
@@ -99,18 +99,16 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      * @param headers заголовки.
      * @return Смещение в очереди, с которым выгрузился объект.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @Override
     @NotNull
     public PartitionOffset uploadDataObject(
-            @NotNull final StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull final KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor,
             @NotNull final DataObject object,
             @Nullable Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsInitialized(descriptor);
 
         this.serviceHeaders.clear();
-        if (descriptor.getMessageMode() == TopicMessageMode.Package) {
+        if (descriptor.getMessageMode() == ChannelMessageMode.Package) {
             final var dataPackage = createPackage(descriptor);
             dataPackage.getObjects().add(object);
             this.serviceHeaders.add(this.serviceHeaderPackageSize.setValue(dataPackage.size()));
@@ -129,11 +127,9 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      * @param headers    заголовки.
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @Override
     @NotNull
     public PartitionOffset uploadDataObjects(
-            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor,
             @NotNull Iterable<DataObject> objects,
             @Nullable Iterable<Header> headers
     ) throws Exception {
@@ -141,7 +137,7 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
 
         this.serviceHeaders.clear();
         PartitionOffset result = null;
-        if (descriptor.getMessageMode() == TopicMessageMode.Package) {
+        if (descriptor.getMessageMode() == ChannelMessageMode.Package) {
             this.serviceHeaders.add(this.serviceHeaderPackageSize);
             final var dataPackage = createPackage(descriptor);
             var i = 0;
@@ -178,17 +174,16 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
     @SuppressWarnings("rawtypes")
-    @Override
     @NotNull
     public PartitionOffset uploadDataPackage(
-            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor,
             @NotNull DataPackage dataPackage,
             @Nullable Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsInitialized(descriptor);
 
         this.serviceHeaders.clear();
-        if (descriptor.getMessageMode() == TopicMessageMode.Package) {
+        if (descriptor.getMessageMode() == ChannelMessageMode.Package) {
             this.serviceHeaders.add(this.serviceHeaderPackageSize.setValue(dataPackage.size()));
             return internalUploadPreparedData(descriptor, dataPackage, headers, this.serviceHeaders);
         } else {
@@ -202,80 +197,24 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
             return result != null ? result : new PartitionOffset(0, 0);
         }
     }
-
-    /**
-     * Выгрузить все объекты из MemoryRepository в данном описателе.
-     *
-     * @param descriptor описатель исходящей очереди.
-     * @param headers    заголовки.
-     * @return Смещение в очереди, с которым выгрузился первый объект.
-     */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @Override
-    @NotNull
-    public PartitionOffset publishMemoryRepositorySnapshot(
-            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
-            @Nullable Iterable<Header> headers) throws Exception {
-        final var memoryRepository = descriptor.getMemoryRepository();
-        if (memoryRepository == null) {
-            throw new OutcomeTopicsConfigurationException("The descriptor " + descriptor.getTopic() + " doesn't have MemoryRepository!");
-        }
-        return publishFullSnapshot(descriptor, (Iterable<DataObject>) memoryRepository.getAll(), headers);
-    }
-
-
-    /**
-     * Выгрузить все объекты из MemoryRepository в данном описателе.
-     *
-     * @param descriptor            описатель исходящей очереди.
-     * @param snapshotOffAllObjects полный snapshot - должен быть список всех объектов.
-     * @param headers               заголовки.
-     * @return Смещение в очереди, с которым выгрузился первый объект.
-     */
-    @SuppressWarnings("rawtypes")
-    @NotNull
-    public PartitionOffset publishFullSnapshot(
-            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor,
-            @NotNull Iterable<DataObject> snapshotOffAllObjects,
-            @Nullable Iterable<Header> headers) throws Exception {
-        final var result = uploadDataObjects(descriptor, snapshotOffAllObjects, headers);
-        this.lastPublishedSnapshots.put(descriptor, result);
-        return result;
-    }
-
-
-    /**
-     * Получение offset-а последней выгрузки полного snapshot-а данных из MemoryRepository.
-     *
-     * @param descriptor описатель исходящей очереди.
-     * @return Смещение в очереди, с которым выгрузился первый объект в последнем snapshot-е.
-     */
-    @SuppressWarnings("rawtypes")
-    @Nullable
-    public PartitionOffset getLastPublishedSnapshotOffset(
-            @NotNull StandardOutcomeTopicUploadingDescriptor descriptor
-    ) {
-        return this.lastPublishedSnapshots.get(descriptor);
-    }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Внутренняя логика">
-
     /**
      * Проверка на то, был ли инициализирован описатель.
      *
      * @param descriptor описатель.
      */
-    protected void checkDescriptorIsInitialized(@NotNull final OutcomeTopicUploadingDescriptor descriptor) {
+    protected void checkDescriptorIsInitialized(@NotNull final KafkaOutcomeTopicLoadingDescriptor<?, ?> descriptor) {
         if (!descriptor.isInitialized()) {
-            throw new OutcomeTopicsConfigurationException("Topic descriptor " + descriptor.getTopic() + " is not initialized!");
+            throw new ChannelConfigurationException("Topic descriptor " + descriptor.getName() + " is not initialized!");
         }
     }
 
     @SuppressWarnings("unchecked")
     @NotNull
     protected PartitionOffset internalUploadPreparedData(
-            @NotNull OutcomeTopicUploadingDescriptor descriptor,
+            @NotNull KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor,
             @NotNull Object data,
             @Nullable Iterable<Header> headers,
             @NotNull Collection<Header> theServiceHeaders
@@ -283,11 +222,17 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
 
         // Объединяем списки заголовков.
         // В подавляющем большинстве случаев будет 0 или 1 заголовок.
-        final var allHeadersMap = (descriptor.getDescriptorHeadersSize() > 0 || headers != null || theServiceHeaders.size() > 0)
+        final var allHeadersMap = (descriptor.metadataSize() > 0 || headers != null || theServiceHeaders.size() > 0)
                 ? new HashMap<String, Header>()
                 : null;
         if (allHeadersMap != null) {
-            descriptor.getDescriptorHeaders().forEach(header -> allHeadersMap.put(header.key(), header));
+            descriptor.getAllMetadata()
+                    .forEach(md -> {
+                        if (md.getValue() != null) {
+                            final var header = new StringHeader(md.getKey().toString(), md.getValue().toString());
+                            allHeadersMap.put(header.key(), header);
+                        }
+                    });
             theServiceHeaders.forEach(header -> allHeadersMap.put(header.key(), header));
             if (headers != null) {
                 headers.forEach(header -> allHeadersMap.put(header.key(), header));
@@ -298,16 +243,16 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
         final var allHeaders = allHeadersMap != null && allHeadersMap.size() > 0 ? allHeadersMap.values() : null;
 
         RecordMetadata recordMetadata;
-        if (descriptor.getSerializeMode() == SerializeMode.String) {
-            final var producer = (Producer<Long, String>)descriptor.getProducer();
+        if (descriptor.getSerializeMode() == SerializeMode.JsonString) {
+            final var producer = (Producer<Long, String>) descriptor.getProducer();
             final var message = this.objectMapper.writeValueAsString(data);
-            final var record = new ProducerRecord<Long, String>(descriptor.getTopic(), null, null, message, allHeaders);
+            final var record = new ProducerRecord<Long, String>(descriptor.getName(), null, null, message, allHeaders);
             // Собственно отправка в Kafka:
             recordMetadata = producer.send(record).get();
         } else {
-            final var producer = (Producer<Long, byte[]>)descriptor.getProducer();
+            final var producer = (Producer<Long, byte[]>) descriptor.getProducer();
             final var message = this.objectMapper.writeValueAsBytes(data);
-            final var record = new ProducerRecord<Long, byte[]>(descriptor.getTopic(), null, null, message, allHeaders);
+            final var record = new ProducerRecord<Long, byte[]>(descriptor.getName(), null, null, message, allHeaders);
             // Собственно отправка в Kafka:
             recordMetadata = producer.send(record).get();
         }
@@ -320,13 +265,12 @@ public class StandardOutcomeTopicsUploader implements OutcomeTopicUploader {
      * @param descriptor описатель.
      * @return пакет объектов.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @NotNull
-    public DataPackage createPackage(@NotNull final StandardOutcomeTopicUploadingDescriptor descriptor) throws Exception {
+    public DataPackage<DataObject> createPackage(@NotNull final KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor) throws Exception {
         final var packageClass = descriptor.getDataPackageClass();
         if (packageClass != null) {
             final var constructor = packageClass.getConstructor();
-            return (DataPackage) constructor.newInstance();
+            return constructor.newInstance();
         } else {
             throw new Exception("Can't create DataPackage!");
         }

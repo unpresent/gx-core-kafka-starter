@@ -1,7 +1,7 @@
 package ru.gx.kafka.offsets;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gx.kafka.TopicDirection;
+import ru.gx.channels.ChannelDirection;
 
 import java.util.Collection;
 
@@ -17,5 +17,5 @@ public interface TopicsOffsetsLoader {
      * @param serviceName Название сервиса, для которого надо прочитать смещения.
      * @return Список смещений.
      */
-    Collection<TopicPartitionOffset> loadOffsets(@NotNull final TopicDirection direction, @NotNull final String serviceName);
+    Collection<TopicPartitionOffset> loadOffsets(@NotNull final ChannelDirection direction, @NotNull final String serviceName);
 }

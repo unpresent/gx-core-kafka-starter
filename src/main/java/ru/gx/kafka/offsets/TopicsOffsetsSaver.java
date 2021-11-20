@@ -1,9 +1,7 @@
 package ru.gx.kafka.offsets;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gx.kafka.TopicDirection;
-import ru.gx.kafka.load.IncomeTopicsConfiguration;
-import ru.gx.kafka.offsets.TopicPartitionOffset;
+import ru.gx.channels.ChannelDirection;
 
 import java.util.Collection;
 
@@ -17,5 +15,5 @@ public interface TopicsOffsetsSaver {
      * Сохранение всех смещений, переданным в списке смещений.
      * @param offsets Список смещений, который требуется сохранить.
      */
-    void saveOffsets(@NotNull final TopicDirection direction, @NotNull final String serviceName, @NotNull final Collection<TopicPartitionOffset> offsets);
+    void saveOffsets(@NotNull final ChannelDirection direction, @NotNull final String serviceName, @NotNull final Collection<TopicPartitionOffset> offsets);
 }

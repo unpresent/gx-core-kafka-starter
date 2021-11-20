@@ -6,9 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import ru.gx.kafka.SerializeMode;
-import ru.gx.kafka.TopicMessageMode;
+import ru.gx.channels.IncomeChannelDescriptorsDefaults;
 
 import java.time.Duration;
 import java.util.Properties;
@@ -17,22 +15,7 @@ import java.util.Properties;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class IncomeTopicLoadingDescriptorsDefaults {
-    @Setter
-    @NotNull
-    private LoadingMode loadingMode = LoadingMode.Auto;
-
-    @Setter
-    @NotNull
-    private TopicMessageMode topicMessageMode = TopicMessageMode.Object;
-
-    @Setter
-    @NotNull
-    private SerializeMode serializeMode = SerializeMode.String;
-
-    @Setter
-    @Nullable
-    private LoadingFiltering loadingFiltering;
+public class KafkaIncomeTopicLoadingDescriptorsDefaults extends IncomeChannelDescriptorsDefaults {
 
     /**
      * Длительность, в течение которой ожидать данных из Топика.
@@ -48,8 +31,12 @@ public class IncomeTopicLoadingDescriptorsDefaults {
 
     private int[] partitions = new int[]{0};
 
+    protected KafkaIncomeTopicLoadingDescriptorsDefaults() {
+        super();
+    }
+
     @SuppressWarnings("unused")
-    public IncomeTopicLoadingDescriptorsDefaults setPartitions(int... partitions) {
+    public KafkaIncomeTopicLoadingDescriptorsDefaults setPartitions(int... partitions) {
         this.partitions = partitions;
         return this;
     }

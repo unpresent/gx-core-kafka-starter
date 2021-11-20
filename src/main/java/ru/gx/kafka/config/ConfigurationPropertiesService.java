@@ -19,9 +19,6 @@ public class ConfigurationPropertiesService {
     @Setter
     public static class IncomeTopics {
         @NestedConfigurationProperty
-        private ConfiguratorCaller configuratorCaller = new ConfiguratorCaller();
-
-        @NestedConfigurationProperty
         private SimpleConfiguration simpleConfiguration = new SimpleConfiguration();
 
         @NestedConfigurationProperty
@@ -35,22 +32,10 @@ public class ConfigurationPropertiesService {
     @Setter
     public static class OutcomeTopics {
         @NestedConfigurationProperty
-        private ConfiguratorCaller configuratorCaller = new ConfiguratorCaller();
-
-        @NestedConfigurationProperty
         private SimpleConfiguration simpleConfiguration = new SimpleConfiguration();
 
         @NestedConfigurationProperty
         private StandardUploader standardUploader = new StandardUploader();
-
-        @NestedConfigurationProperty
-        private StandardOffsetsController standardOffsetsController = new StandardOffsetsController();
-    }
-
-    @Getter
-    @Setter
-    public static class ConfiguratorCaller {
-        private boolean enabled = true;
     }
 
     @Getter

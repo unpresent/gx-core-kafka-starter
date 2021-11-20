@@ -6,73 +6,53 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.gx.kafka.load.*;
-import ru.gx.kafka.upload.*;
+import ru.gx.kafka.load.KafkaIncomeTopicsLoader;
+import ru.gx.kafka.load.KafkaIncomeTopicsOffsetsController;
+import ru.gx.kafka.load.SimpleKafkaIncomeTopicsConfiguration;
+import ru.gx.kafka.upload.KafkaOutcomeTopicsUploader;
+import ru.gx.kafka.upload.SimpleKafkaOutcomeTopicsConfiguration;
 
 @Configuration
 @EnableConfigurationProperties({ConfigurationPropertiesService.class, ConfigurationPropertiesKafka.class})
 public class CommonAutoConfiguration {
+    private static final String SIMPLE_INCOME_CONFIG_PREFIX = ":in:simple-kafka";
+    private static final String SIMPLE_OUTCOME_CONFIG_PREFIX = ":out:simple-kafka";
+
     @Value("${service.name}")
     private String serviceName;
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(value = "service.income-topics.simple-configuration.enabled", havingValue = "true")
-    public SimpleIncomeTopicsConfiguration simpleIncomeTopicsConfiguration() {
-        return new SimpleIncomeTopicsConfiguration(serviceName);
+    public SimpleKafkaIncomeTopicsConfiguration simpleIncomeTopicsConfiguration() {
+        return new SimpleKafkaIncomeTopicsConfiguration(this.serviceName + SIMPLE_INCOME_CONFIG_PREFIX);
     }
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(value = "service.income-topics.standard-loader.enabled", havingValue = "true")
-    public StandardIncomeTopicsLoader standardIncomeTopicsLoader() {
-        return new StandardIncomeTopicsLoader();
+    public KafkaIncomeTopicsLoader standardIncomeTopicsLoader() {
+        return new KafkaIncomeTopicsLoader();
     }
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(value = "service.income-topics.standard-offsets-controller.enabled", havingValue = "true")
-    public StandardIncomeTopicsOffsetsController standardIncomeTopicsOffsetsController() {
-        return new StandardIncomeTopicsOffsetsController();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "service.income-topics.configurator-caller.enabled", havingValue = "true")
-    public IncomeTopicsConfiguratorCaller incomeTopicsConfiguratorCaller() {
-        return new IncomeTopicsConfiguratorCaller();
+    public KafkaIncomeTopicsOffsetsController standardIncomeTopicsOffsetsController() {
+        return new KafkaIncomeTopicsOffsetsController();
     }
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(value = "service.outcome-topics.simple-configuration.enabled", havingValue = "true")
-    public SimpleOutcomeTopicsConfiguration simpleOutcomeTopicsConfiguration() {
-        return new SimpleOutcomeTopicsConfiguration();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public IncomeTopicsLoadingDescriptorsFactory incomeTopicsLoadingDescriptorsFactory() {
-        return new StandardIncomeTopicsLoadingDescriptorsFactory();
+    public SimpleKafkaOutcomeTopicsConfiguration simpleKafkaOutcomeTopicsConfiguration() {
+        return new SimpleKafkaOutcomeTopicsConfiguration(this.serviceName + SIMPLE_OUTCOME_CONFIG_PREFIX);
     }
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(value = "service.outcome-topics.standard-uploader.enabled", havingValue = "true")
-    public StandardOutcomeTopicsUploader standardOutcomeTopicsUploader() {
-        return new StandardOutcomeTopicsUploader();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "service.outcome-topics.configurator-caller.enabled", havingValue = "true")
-    public OutcomeTopicsConfiguratorCaller outcomeTopicsConfiguratorCaller() {
-        return new OutcomeTopicsConfiguratorCaller();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public OutcomeTopicsUploadingDescriptorsFactory outcomeTopicsUploadingDescriptorsFactory() {
-        return new StandardOutcomeTopicsUploadingDescriptorsFactory();
+    public KafkaOutcomeTopicsUploader standardOutcomeTopicsUploader() {
+        return new KafkaOutcomeTopicsUploader();
     }
 }
