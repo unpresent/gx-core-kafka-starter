@@ -157,6 +157,7 @@ public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
                 if (h != null) {
                     dataObjectsCount += BytesUtils.bytesToLong(h.value());
                 }
+                eventsCount++;
             }
         }
         return eventsCount;

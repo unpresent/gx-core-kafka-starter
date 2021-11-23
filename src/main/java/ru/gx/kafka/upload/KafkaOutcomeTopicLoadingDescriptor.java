@@ -19,7 +19,7 @@ import java.util.Properties;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public abstract class KafkaOutcomeTopicLoadingDescriptor<O extends DataObject, P extends DataPackage<O>>
+public class KafkaOutcomeTopicLoadingDescriptor<O extends DataObject, P extends DataPackage<O>>
         extends AbstractOutcomeChannelDescriptor<O, P> {
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
@@ -37,11 +37,6 @@ public abstract class KafkaOutcomeTopicLoadingDescriptor<O extends DataObject, P
     @Getter
     private Producer<Long, ?> producer;
 
-    /**
-     * Признак того, что описатель инициализирован
-     */
-    @Getter
-    private boolean initialized;
     // </editor-fold>
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialize">

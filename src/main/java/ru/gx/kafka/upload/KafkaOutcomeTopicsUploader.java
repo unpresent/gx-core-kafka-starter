@@ -63,8 +63,9 @@ public class KafkaOutcomeTopicsUploader {
      */
     @SuppressWarnings("unchecked")
     @NotNull
-    public PartitionOffset uploadAnyData(
-            @NotNull final KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor,
+    public <O extends DataObject, P extends DataPackage<O>>
+    PartitionOffset uploadAnyData(
+            @NotNull final KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor,
             @NotNull final Object data,
             @Nullable Iterable<Header> headers
     ) throws Exception {
@@ -73,19 +74,19 @@ public class KafkaOutcomeTopicsUploader {
         if (data instanceof DataObject) {
             return uploadDataObject(
                     descriptor,
-                    (DataObject) data,
+                    (O) data,
                     headers
             );
         } else if (data instanceof DataPackage) {
             return uploadDataPackage(
                     descriptor,
-                    (DataPackage<DataObject>) data,
+                    (P) data,
                     headers
             );
         } else if (data instanceof Iterable) {
             return uploadDataObjects(
                     descriptor,
-                    (Iterable<DataObject>) data,
+                    (Iterable<O>) data,
                     headers
             );
         } else {
@@ -100,9 +101,11 @@ public class KafkaOutcomeTopicsUploader {
      * @return Смещение в очереди, с которым выгрузился объект.
      */
     @NotNull
-    public PartitionOffset uploadDataObject(
-            @NotNull final KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor,
-            @NotNull final DataObject object,
+    public
+    <O extends DataObject, P extends DataPackage<O>>
+    PartitionOffset uploadDataObject(
+            @NotNull final KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor,
+            @NotNull final O object,
             @Nullable Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsInitialized(descriptor);
@@ -128,9 +131,10 @@ public class KafkaOutcomeTopicsUploader {
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
     @NotNull
-    public PartitionOffset uploadDataObjects(
-            @NotNull KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor,
-            @NotNull Iterable<DataObject> objects,
+    public <O extends DataObject, P extends DataPackage<O>>
+    PartitionOffset uploadDataObjects(
+            @NotNull KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor,
+            @NotNull Iterable<O> objects,
             @Nullable Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsInitialized(descriptor);
@@ -173,11 +177,11 @@ public class KafkaOutcomeTopicsUploader {
      * @param headers     заголовки.
      * @return Смещение в очереди, с которым выгрузился первый объект.
      */
-    @SuppressWarnings("rawtypes")
     @NotNull
-    public PartitionOffset uploadDataPackage(
-            @NotNull KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor,
-            @NotNull DataPackage dataPackage,
+    public <O extends DataObject, P extends DataPackage<O>>
+    PartitionOffset uploadDataPackage(
+            @NotNull KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor,
+            @NotNull P dataPackage,
             @Nullable Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsInitialized(descriptor);
@@ -213,8 +217,9 @@ public class KafkaOutcomeTopicsUploader {
 
     @SuppressWarnings("unchecked")
     @NotNull
-    protected PartitionOffset internalUploadPreparedData(
-            @NotNull KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor,
+    protected <O extends DataObject, P extends DataPackage<O>>
+    PartitionOffset internalUploadPreparedData(
+            @NotNull KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor,
             @NotNull Object data,
             @Nullable Iterable<Header> headers,
             @NotNull Collection<Header> theServiceHeaders
@@ -266,7 +271,8 @@ public class KafkaOutcomeTopicsUploader {
      * @return пакет объектов.
      */
     @NotNull
-    public DataPackage<DataObject> createPackage(@NotNull final KafkaOutcomeTopicLoadingDescriptor<DataObject, DataPackage<DataObject>> descriptor) throws Exception {
+    public <O extends DataObject, P extends DataPackage<O>>
+    P createPackage(@NotNull final KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor) throws Exception {
         final var packageClass = descriptor.getDataPackageClass();
         if (packageClass != null) {
             final var constructor = packageClass.getConstructor();

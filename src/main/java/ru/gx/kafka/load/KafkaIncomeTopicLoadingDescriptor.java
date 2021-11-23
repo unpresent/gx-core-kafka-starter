@@ -53,15 +53,10 @@ public class KafkaIncomeTopicLoadingDescriptor<O extends DataObject, P extends D
     @NotNull
     private Duration durationOnPoll;
 
-    /**
-     * Признак того, что описатель инициализирован.
-     */
-    @Getter
-    private boolean initialized = false;
     // </editor-fold>
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialize">
-    protected KafkaIncomeTopicLoadingDescriptor(@NotNull final AbstractKafkaIncomeTopicsConfiguration owner, @NotNull final String topic, @Nullable final KafkaIncomeTopicLoadingDescriptorsDefaults defaults) {
+    public KafkaIncomeTopicLoadingDescriptor(@NotNull final AbstractKafkaIncomeTopicsConfiguration owner, @NotNull final String topic, @Nullable final KafkaIncomeTopicLoadingDescriptorsDefaults defaults) {
         super(owner, topic, defaults);
         this.durationOnPoll = Duration.ofMillis(100);
         if (defaults != null) {
@@ -107,8 +102,8 @@ public class KafkaIncomeTopicLoadingDescriptor<O extends DataObject, P extends D
     @NotNull
     public KafkaIncomeTopicLoadingDescriptor<O, P> unInit() {
         this.getOwner().internalUnregisterDescriptor(this);
-        this.initialized = false;
         this.consumer = null;
+        super.unInit();
         return this;
     }
     // </editor-fold>
