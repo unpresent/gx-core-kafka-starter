@@ -1,4 +1,4 @@
-package ru.gx.kafka.config;
+package ru.gx.core.kafka.config;
 
 import lombok.Getter;
 import lombok.Setter;

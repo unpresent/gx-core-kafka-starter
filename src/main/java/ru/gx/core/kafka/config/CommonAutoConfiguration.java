@@ -1,4 +1,4 @@
-package ru.gx.kafka.config;
+package ru.gx.core.kafka.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -6,11 +6,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.gx.kafka.load.KafkaIncomeTopicsLoader;
-import ru.gx.kafka.load.KafkaIncomeTopicsOffsetsController;
-import ru.gx.kafka.load.SimpleKafkaIncomeTopicsConfiguration;
-import ru.gx.kafka.upload.KafkaOutcomeTopicsUploader;
-import ru.gx.kafka.upload.SimpleKafkaOutcomeTopicsConfiguration;
+import ru.gx.core.kafka.load.KafkaIncomeTopicsLoader;
+import ru.gx.core.kafka.upload.SimpleKafkaOutcomeTopicsConfiguration;
+import ru.gx.core.kafka.load.KafkaIncomeTopicsOffsetsController;
+import ru.gx.core.kafka.load.SimpleKafkaIncomeTopicsConfiguration;
+import ru.gx.core.kafka.upload.KafkaOutcomeTopicsUploader;
 
 @Configuration
 @EnableConfigurationProperties({ConfigurationPropertiesService.class, ConfigurationPropertiesKafka.class})

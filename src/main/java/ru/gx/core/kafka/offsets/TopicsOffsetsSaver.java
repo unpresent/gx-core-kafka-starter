@@ -1,7 +1,7 @@
-package ru.gx.kafka.offsets;
+package ru.gx.core.kafka.offsets;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gx.channels.ChannelDirection;
+import ru.gx.core.channels.ChannelDirection;
 
 import java.util.Collection;
 

@@ -1,4 +1,4 @@
-package ru.gx.kafka.load;
+package ru.gx.core.kafka.load;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,9 +10,9 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.gx.channels.AbstractIncomeChannelDescriptor;
-import ru.gx.data.DataObject;
-import ru.gx.data.DataPackage;
+import ru.gx.core.channels.AbstractIncomeChannelDescriptor;
+import ru.gx.core.data.DataObject;
+import ru.gx.core.data.DataPackage;
 
 import java.security.InvalidParameterException;
 import java.time.Duration;

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>ru.gx</groupId>
+    <groupId>ru.gx.core</groupId>
     <artifactId>gx-kafka-starter</artifactId>
     <version>1.2</version>
 
@@ -13,7 +13,7 @@
 
         <gx-starter.version>1.2</gx-starter.version>
 
-        <org.springframework.boot.version>2.5.5</org.springframework.boot.version>
+        <org.springframework.boot.version>2.6.0</org.springframework.boot.version>
 
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -45,7 +45,7 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.gx</groupId>
+            <groupId>ru.gx.core</groupId>
             <artifactId>gx-starter</artifactId>
             <version>${gx-starter.version}</version>
         </dependency>

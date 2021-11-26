@@ -1,4 +1,4 @@
-package ru.gx.kafka.upload;
+package ru.gx.core.kafka.upload;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -10,16 +10,15 @@ import org.apache.kafka.common.header.Header;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.gx.channels.ChannelConfigurationException;
-import ru.gx.channels.ChannelMessageMode;
-import ru.gx.channels.SerializeMode;
-import ru.gx.data.DataObject;
-import ru.gx.data.DataPackage;
-import ru.gx.kafka.LongHeader;
-import ru.gx.kafka.ServiceHeadersKeys;
-import ru.gx.kafka.StringHeader;
-import ru.gx.kafka.offsets.PartitionOffset;
-import ru.gx.utils.StringUtils;
+import ru.gx.core.channels.ChannelConfigurationException;
+import ru.gx.core.channels.ChannelMessageMode;
+import ru.gx.core.channels.SerializeMode;
+import ru.gx.core.data.DataObject;
+import ru.gx.core.data.DataPackage;
+import ru.gx.core.kafka.LongHeader;
+import ru.gx.core.kafka.ServiceHeadersKeys;
+import ru.gx.core.kafka.StringHeader;
+import ru.gx.core.kafka.offsets.PartitionOffset;
 
 import java.util.ArrayList;
 import java.util.Collection;

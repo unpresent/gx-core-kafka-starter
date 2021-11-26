@@ -1,4 +1,4 @@
-package ru.gx.kafka.load;
+package ru.gx.core.kafka.load;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
-import ru.gx.channels.IncomeChannelDescriptorsDefaults;
+import ru.gx.core.channels.IncomeChannelDescriptorsDefaults;
 
 import java.time.Duration;
 import java.util.Properties;

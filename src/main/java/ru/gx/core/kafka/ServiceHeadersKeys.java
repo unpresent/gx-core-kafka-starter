@@ -1,4 +1,4 @@
-package ru.gx.kafka;
+package ru.gx.core.kafka;
 
 @SuppressWarnings("unused")
 public abstract class ServiceHeadersKeys {

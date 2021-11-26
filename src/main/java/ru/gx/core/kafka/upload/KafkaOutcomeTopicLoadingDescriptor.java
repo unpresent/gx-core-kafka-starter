@@ -1,4 +1,4 @@
-package ru.gx.kafka.upload;
+package ru.gx.core.kafka.upload;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -8,10 +8,10 @@ import lombok.experimental.Accessors;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.jetbrains.annotations.NotNull;
-import ru.gx.channels.AbstractOutcomeChannelDescriptor;
-import ru.gx.channels.SerializeMode;
-import ru.gx.data.DataObject;
-import ru.gx.data.DataPackage;
+import ru.gx.core.channels.AbstractOutcomeChannelDescriptor;
+import ru.gx.core.channels.SerializeMode;
+import ru.gx.core.data.DataObject;
+import ru.gx.core.data.DataPackage;
 
 import java.security.InvalidParameterException;
 import java.util.Properties;

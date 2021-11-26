@@ -1,9 +1,9 @@
-package ru.gx.kafka.load;
+package ru.gx.core.kafka.load;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gx.channels.AbstractChannelsConfiguration;
-import ru.gx.channels.ChannelDescriptor;
-import ru.gx.channels.ChannelDirection;
+import ru.gx.core.channels.AbstractChannelsConfiguration;
+import ru.gx.core.channels.ChannelDescriptor;
+import ru.gx.core.channels.ChannelDirection;
 
 public abstract class AbstractKafkaIncomeTopicsConfiguration extends AbstractChannelsConfiguration {
     // -------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-package ru.gx.kafka.load;
+package ru.gx.core.kafka.load;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -12,14 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
-import ru.gx.channels.ChannelConfigurationException;
-import ru.gx.channels.ChannelMessageMode;
-import ru.gx.channels.IncomeDataProcessType;
-import ru.gx.events.Event;
-import ru.gx.events.EventsPrioritizedQueue;
-import ru.gx.kafka.KafkaConstants;
-import ru.gx.kafka.ServiceHeadersKeys;
-import ru.gx.utils.BytesUtils;
+import ru.gx.core.channels.ChannelConfigurationException;
+import ru.gx.core.channels.ChannelMessageMode;
+import ru.gx.core.channels.IncomeDataProcessType;
+import ru.gx.core.events.EventsPrioritizedQueue;
+import ru.gx.core.kafka.KafkaConstants;
+import ru.gx.core.kafka.ServiceHeadersKeys;
+import ru.gx.core.utils.BytesUtils;
 
 import java.security.InvalidParameterException;
 import java.util.HashMap;

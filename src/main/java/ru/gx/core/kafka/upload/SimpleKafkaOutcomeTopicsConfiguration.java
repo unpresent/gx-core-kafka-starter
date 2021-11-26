@@ -1,4 +1,4 @@
-package ru.gx.kafka.upload;
+package ru.gx.core.kafka.upload;
 
 import org.jetbrains.annotations.NotNull;
 

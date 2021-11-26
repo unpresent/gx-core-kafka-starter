@@ -1,11 +1,11 @@
-package ru.gx.kafka.load;
+package ru.gx.core.kafka.load;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
-import ru.gx.channels.ChannelDescriptor;
-import ru.gx.kafka.offsets.PartitionOffset;
-import ru.gx.kafka.offsets.TopicPartitionOffset;
+import ru.gx.core.channels.ChannelDescriptor;
+import ru.gx.core.kafka.offsets.PartitionOffset;
+import ru.gx.core.kafka.offsets.TopicPartitionOffset;
 
 import java.util.ArrayList;
 import java.util.Collection;

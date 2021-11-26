@@ -1,25 +1,26 @@
-package ru.gx.kafka;
+package ru.gx.core.kafka;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.header.Header;
-import org.apache.kafka.common.utils.ByteUtils;
 import org.jetbrains.annotations.NotNull;
-import ru.gx.utils.BytesUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 
 @Accessors(chain = true)
 @EqualsAndHashCode
 @ToString
-public class LongHeader implements Header {
+public class StringHeader implements Header {
     @NotNull
     private final String internalKey;
 
-    private long internalValue;
+    @Nullable
+    private String internalValue;
 
-    public LongHeader(@NotNull final String key, final long value) {
+    public StringHeader(@NotNull final String key, @Nullable final String value) {
         super();
         this.internalKey = key;
         this.internalValue = value;
@@ -32,10 +33,10 @@ public class LongHeader implements Header {
 
     @Override
     public byte[] value() {
-        return BytesUtils.longToBytes(this.internalValue);
+        return StringUtils.isEmpty(this.internalValue) ? null : this.internalValue.getBytes(StandardCharsets.UTF_8);
     }
 
-    public LongHeader setValue(final long value) {
+    public StringHeader setValue(@NotNull final String value) {
         this.internalValue = value;
         return this;
     }
