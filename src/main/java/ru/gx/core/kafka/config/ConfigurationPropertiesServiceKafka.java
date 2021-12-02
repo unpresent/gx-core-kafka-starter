@@ -5,10 +5,12 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
-@ConfigurationProperties(prefix = "service")
+@ConfigurationProperties(prefix = "service.kafka")
 @Getter
 @Setter
-public class ConfigurationPropertiesService {
+public class ConfigurationPropertiesServiceKafka {
+    private String server;
+
     @NestedConfigurationProperty
     private IncomeTopics incomeTopics;
 

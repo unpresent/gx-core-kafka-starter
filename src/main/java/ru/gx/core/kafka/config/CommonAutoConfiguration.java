@@ -13,7 +13,7 @@ import ru.gx.core.kafka.load.SimpleKafkaIncomeTopicsConfiguration;
 import ru.gx.core.kafka.upload.KafkaOutcomeTopicsUploader;
 
 @Configuration
-@EnableConfigurationProperties({ConfigurationPropertiesService.class, ConfigurationPropertiesKafka.class})
+@EnableConfigurationProperties({ConfigurationPropertiesServiceKafka.class})
 public class CommonAutoConfiguration {
     private static final String SIMPLE_INCOME_CONFIG_PREFIX = ":in:simple-kafka";
     private static final String SIMPLE_OUTCOME_CONFIG_PREFIX = ":out:simple-kafka";
@@ -23,35 +23,35 @@ public class CommonAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "service.income-topics.simple-configuration.enabled", havingValue = "true")
+    @ConditionalOnProperty(value = "service.kafka.income-topics.simple-configuration.enabled", havingValue = "true")
     public SimpleKafkaIncomeTopicsConfiguration simpleIncomeTopicsConfiguration() {
         return new SimpleKafkaIncomeTopicsConfiguration(this.serviceName + SIMPLE_INCOME_CONFIG_PREFIX);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "service.income-topics.standard-loader.enabled", havingValue = "true")
+    @ConditionalOnProperty(value = "service.kafka.income-topics.standard-loader.enabled", havingValue = "true")
     public KafkaIncomeTopicsLoader standardIncomeTopicsLoader() {
         return new KafkaIncomeTopicsLoader();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "service.income-topics.standard-offsets-controller.enabled", havingValue = "true")
+    @ConditionalOnProperty(value = "service.kafka.income-topics.standard-offsets-controller.enabled", havingValue = "true")
     public KafkaIncomeTopicsOffsetsController standardIncomeTopicsOffsetsController() {
         return new KafkaIncomeTopicsOffsetsController();
     }
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "service.outcome-topics.simple-configuration.enabled", havingValue = "true")
+    @ConditionalOnProperty(value = "service.kafka.outcome-topics.simple-configuration.enabled", havingValue = "true")
     public SimpleKafkaOutcomeTopicsConfiguration simpleKafkaOutcomeTopicsConfiguration() {
         return new SimpleKafkaOutcomeTopicsConfiguration(this.serviceName + SIMPLE_OUTCOME_CONFIG_PREFIX);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(value = "service.outcome-topics.standard-uploader.enabled", havingValue = "true")
+    @ConditionalOnProperty(value = "service.kafka.outcome-topics.standard-uploader.enabled", havingValue = "true")
     public KafkaOutcomeTopicsUploader standardOutcomeTopicsUploader() {
         return new KafkaOutcomeTopicsUploader();
     }
