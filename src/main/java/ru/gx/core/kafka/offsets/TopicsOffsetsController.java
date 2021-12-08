@@ -18,6 +18,7 @@ public interface TopicsOffsetsController {
      * @param serviceName Название сервиса, для которого надо прочитать смещения.
      * @return Список смещений.
      */
+    @NotNull
     Collection<TopicPartitionOffset> loadOffsets(@NotNull final ChannelDirection direction, @NotNull final String serviceName);
 
     /**
