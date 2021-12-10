@@ -26,6 +26,7 @@ import java.util.HashMap;
 
 import static lombok.AccessLevel.PROTECTED;
 
+@SuppressWarnings("unused")
 public class KafkaOutcomeTopicsUploader {
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
@@ -56,45 +57,6 @@ public class KafkaOutcomeTopicsUploader {
     // <editor-fold desc="Реализация OutcomeTopicUploader">
 
     /**
-     * @param data    выгружаемый объект.
-     * @param headers заголовки.
-     * @return Смещение в очереди, с которым выгрузился объект.
-     */
-    @SuppressWarnings("unchecked")
-    @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    PartitionOffset uploadAnyData(
-            @NotNull final KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor,
-            @NotNull final Object data,
-            @Nullable Iterable<Header> headers
-    ) throws Exception {
-        checkDescriptorIsInitialized(descriptor);
-
-        if (data instanceof DataObject) {
-            return uploadDataObject(
-                    descriptor,
-                    (O) data,
-                    headers
-            );
-        } else if (data instanceof DataPackage) {
-            return uploadDataPackage(
-                    descriptor,
-                    (P) data,
-                    headers
-            );
-        } else if (data instanceof Iterable) {
-            return uploadDataObjects(
-                    descriptor,
-                    (Iterable<O>) data,
-                    headers
-            );
-        } else {
-            this.serviceHeaders.clear();
-            return internalUploadPreparedData(descriptor, data, headers, this.serviceHeaders);
-        }
-    }
-
-    /**
      * @param object  выгружаемый объект.
      * @param headers заголовки.
      * @return Смещение в очереди, с которым выгрузился объект.
@@ -107,7 +69,7 @@ public class KafkaOutcomeTopicsUploader {
             @NotNull final O object,
             @Nullable Iterable<Header> headers
     ) throws Exception {
-        checkDescriptorIsInitialized(descriptor);
+        checkDescriptorIsActive(descriptor);
 
         this.serviceHeaders.clear();
         if (descriptor.getMessageMode() == ChannelMessageMode.Package) {
@@ -136,7 +98,7 @@ public class KafkaOutcomeTopicsUploader {
             @NotNull Iterable<O> objects,
             @Nullable Iterable<Header> headers
     ) throws Exception {
-        checkDescriptorIsInitialized(descriptor);
+        checkDescriptorIsActive(descriptor);
 
         this.serviceHeaders.clear();
         PartitionOffset result = null;
@@ -183,7 +145,7 @@ public class KafkaOutcomeTopicsUploader {
             @NotNull P dataPackage,
             @Nullable Iterable<Header> headers
     ) throws Exception {
-        checkDescriptorIsInitialized(descriptor);
+        checkDescriptorIsActive(descriptor);
 
         this.serviceHeaders.clear();
         if (descriptor.getMessageMode() == ChannelMessageMode.Package) {
@@ -208,9 +170,12 @@ public class KafkaOutcomeTopicsUploader {
      *
      * @param descriptor описатель.
      */
-    protected void checkDescriptorIsInitialized(@NotNull final KafkaOutcomeTopicLoadingDescriptor<?, ?> descriptor) {
+    protected void checkDescriptorIsActive(@NotNull final KafkaOutcomeTopicLoadingDescriptor<?, ?> descriptor) {
         if (!descriptor.isInitialized()) {
             throw new ChannelConfigurationException("Topic descriptor " + descriptor.getName() + " is not initialized!");
+        }
+        if (!descriptor.isEnabled()) {
+            throw new ChannelConfigurationException("Topic descriptor " + descriptor.getName() + " is not enabled!");
         }
     }
 

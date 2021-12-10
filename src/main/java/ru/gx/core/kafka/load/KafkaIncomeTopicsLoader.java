@@ -30,6 +30,7 @@ import static lombok.AccessLevel.PUBLIC;
 /**
  * Базовая реализация загрузчика, который упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
  */
+@SuppressWarnings("unused")
 @Slf4j
 public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
     private final static int MAX_SLEEP_MS = 64;
@@ -76,11 +77,11 @@ public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
     /**
      * Загрузка и обработка данных по списку топиков по конфигурации.
      *
-     * @param descriptor     Описатель загрузки из Топика.
+     * @param descriptor Описатель загрузки из Топика.
      * @return Список загруженных объектов.
      */
     public int processByTopic(@NotNull final KafkaIncomeTopicLoadingDescriptor<?, ?> descriptor) {
-        checkDescriptorIsInitialized(descriptor);
+        checkDescriptorIsActive(descriptor);
         return internalProcessDescriptor(descriptor);
     }
 
@@ -100,13 +101,15 @@ public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
                 throw new ChannelConfigurationException("Invalid null value getByPriority(" + p + ")");
             }
             for (var topicDescriptor : topicDescriptors) {
-                if (topicDescriptor instanceof final KafkaIncomeTopicLoadingDescriptor<?, ?> kafkaDescriptor) {
-                    log.debug("Loading working data from topic: {}", topicDescriptor.getName());
-                    final var eventsCount = processByTopic(kafkaDescriptor);
-                    result.put(kafkaDescriptor, eventsCount);
-                    log.debug("Loaded working data from topic. Events: {}", kafkaDescriptor.getName());
-                } else {
-                    throw new ChannelConfigurationException("Invalid class of descriptor " + topicDescriptor.getName());
+                if (topicDescriptor.isEnabled()) {
+                    if (topicDescriptor instanceof final KafkaIncomeTopicLoadingDescriptor<?, ?> kafkaDescriptor) {
+                        log.debug("Loading working data from topic: {}", topicDescriptor.getName());
+                        final var eventsCount = processByTopic(kafkaDescriptor);
+                        result.put(kafkaDescriptor, eventsCount);
+                        log.debug("Loaded working data from topic. Events: {}", kafkaDescriptor.getName());
+                    } else {
+                        throw new ChannelConfigurationException("Invalid class of descriptor " + topicDescriptor.getName());
+                    }
                 }
             }
         }
@@ -116,21 +119,25 @@ public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Внутренняя реализация">
+
     /**
      * Проверка описателя на то, что прошла инициализация. Работать с неинициализированным описателем нельзя.
      *
      * @param descriptor описатель, который проверяем.
      */
-    protected void checkDescriptorIsInitialized(@NotNull final KafkaIncomeTopicLoadingDescriptor<?, ?> descriptor) {
+    protected void checkDescriptorIsActive(@NotNull final KafkaIncomeTopicLoadingDescriptor<?, ?> descriptor) {
         if (!descriptor.isInitialized()) {
             throw new ChannelConfigurationException("Channel descriptor " + descriptor.getName() + " is not initialized!");
+        }
+        if (!descriptor.isEnabled()) {
+            throw new ChannelConfigurationException("Channel descriptor " + descriptor.getName() + " is not enabled!");
         }
     }
 
     /**
      * Обработка входящих данных для указанного канала.
      *
-     * @param descriptor     Описатель загрузки из Топика.
+     * @param descriptor Описатель загрузки из Топика.
      * @return Список событий на обработку.
      */
     @SneakyThrows
@@ -170,8 +177,9 @@ public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
      * Иначе пытаемся бросить событие в {@code eventsQueue}.
      * Перед вызовом {@link EventsPrioritizedQueue#pushEvent} сначала проверяем, можно ли в очередь положить событие:
      * {@link EventsPrioritizedQueue#allowPush()}
+     *
      * @param descriptor Описатель канала.
-     * @param record Запись, полученная из Kafka.
+     * @param record     Запись, полученная из Kafka.
      */
     @SuppressWarnings("BusyWait")
     @SneakyThrows(InterruptedException.class)
@@ -199,7 +207,7 @@ public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
             var sleepMs = 1;
             while (!this.eventsQueue.allowPush()) {
                 Thread.sleep(sleepMs);
-                if (sleepMs < MAX_SLEEP_MS){
+                if (sleepMs < MAX_SLEEP_MS) {
                     sleepMs *= 2;
                 }
             }
@@ -211,7 +219,7 @@ public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
     /**
      * Получение данных из Consumer-а.
      *
-     * @param descriptor     Описатель загрузки из Топика.
+     * @param descriptor Описатель загрузки из Топика.
      * @return Записи Consumer-а.
      */
     @SuppressWarnings("unchecked")
