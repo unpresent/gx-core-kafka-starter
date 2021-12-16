@@ -24,13 +24,6 @@ public class KafkaOutcomeTopicLoadingDescriptorsDefaults extends OutcomeChannelD
     @NotNull
     private Properties producerProperties;
 
-    /**
-     * Максимальное количество объектов в пакете данных.
-     */
-    @Getter
-    @Setter
-    private int maxPackageSize = 100;
-
     protected KafkaOutcomeTopicLoadingDescriptorsDefaults() {
         super();
     }

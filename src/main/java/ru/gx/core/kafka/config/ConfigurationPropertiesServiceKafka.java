@@ -21,9 +21,6 @@ public class ConfigurationPropertiesServiceKafka {
     @Setter
     public static class IncomeTopics {
         @NestedConfigurationProperty
-        private SimpleConfiguration simpleConfiguration = new SimpleConfiguration();
-
-        @NestedConfigurationProperty
         private StandardLoader standardLoader = new StandardLoader();
 
         @NestedConfigurationProperty
@@ -34,16 +31,7 @@ public class ConfigurationPropertiesServiceKafka {
     @Setter
     public static class OutcomeTopics {
         @NestedConfigurationProperty
-        private SimpleConfiguration simpleConfiguration = new SimpleConfiguration();
-
-        @NestedConfigurationProperty
         private StandardUploader standardUploader = new StandardUploader();
-    }
-
-    @Getter
-    @Setter
-    public static class SimpleConfiguration {
-        private boolean enabled = true;
     }
 
     @Getter

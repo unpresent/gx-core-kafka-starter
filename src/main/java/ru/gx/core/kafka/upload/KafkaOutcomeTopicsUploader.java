@@ -11,14 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.gx.core.channels.ChannelConfigurationException;
-import ru.gx.core.channels.ChannelMessageMode;
 import ru.gx.core.channels.SerializeMode;
-import ru.gx.core.data.DataObject;
-import ru.gx.core.data.DataPackage;
 import ru.gx.core.kafka.LongHeader;
 import ru.gx.core.kafka.ServiceHeadersKeys;
 import ru.gx.core.kafka.StringHeader;
 import ru.gx.core.kafka.offsets.PartitionOffset;
+import ru.gx.core.messaging.Message;
+import ru.gx.core.messaging.MessageBody;
+import ru.gx.core.messaging.MessageHeader;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,110 +57,21 @@ public class KafkaOutcomeTopicsUploader {
     // <editor-fold desc="Реализация OutcomeTopicUploader">
 
     /**
-     * @param object  выгружаемый объект.
+     * @param message выгружаемое сообщение.
      * @param headers заголовки.
      * @return Смещение в очереди, с которым выгрузился объект.
      */
     @NotNull
-    public
-    <O extends DataObject, P extends DataPackage<O>>
-    PartitionOffset uploadDataObject(
-            @NotNull final KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor,
-            @NotNull final O object,
+    public <M extends Message<? extends MessageHeader, ? extends MessageBody>> PartitionOffset uploadMessage(
+            @NotNull final KafkaOutcomeTopicLoadingDescriptor<M> descriptor,
+            @NotNull final M message,
             @Nullable Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsActive(descriptor);
 
         this.serviceHeaders.clear();
-        if (descriptor.getMessageMode() == ChannelMessageMode.Package) {
-            final var dataPackage = createPackage(descriptor);
-            dataPackage.getObjects().add(object);
-            this.serviceHeaders.add(this.serviceHeaderPackageSize.setValue(dataPackage.size()));
-            return internalUploadPreparedData(descriptor, dataPackage, headers, this.serviceHeaders);
-        } else {
-            this.serviceHeaders.add(this.serviceHeaderClassName.setValue(object.getClass().getSimpleName()));
-            return internalUploadPreparedData(descriptor, object, headers, this.serviceHeaders);
-        }
-    }
-
-    /**
-     * Выгрузить несколько объектов данных.
-     *
-     * @param descriptor описатель исходящей очереди.
-     * @param objects    коллекция объектов.
-     * @param headers    заголовки.
-     * @return Смещение в очереди, с которым выгрузился первый объект.
-     */
-    @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    PartitionOffset uploadDataObjects(
-            @NotNull KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor,
-            @NotNull Iterable<O> objects,
-            @Nullable Iterable<Header> headers
-    ) throws Exception {
-        checkDescriptorIsActive(descriptor);
-
-        this.serviceHeaders.clear();
-        PartitionOffset result = null;
-        if (descriptor.getMessageMode() == ChannelMessageMode.Package) {
-            this.serviceHeaders.add(this.serviceHeaderPackageSize);
-            final var dataPackage = createPackage(descriptor);
-            var i = 0;
-            for (var object : objects) {
-                if (i >= descriptor.getMaxPackageSize()) {
-                    this.serviceHeaderPackageSize.setValue(dataPackage.size());
-                    final var rs = internalUploadPreparedData(descriptor, dataPackage, headers, this.serviceHeaders);
-                    result = result == null ? rs : result;
-                    dataPackage.getObjects().clear();
-                    i = 0;
-                }
-                dataPackage.getObjects().add(object);
-                i++;
-            }
-            this.serviceHeaderPackageSize.setValue(dataPackage.size());
-            return internalUploadPreparedData(descriptor, dataPackage, headers, this.serviceHeaders);
-        } else {
-            this.serviceHeaders.add(this.serviceHeaderClassName);
-            for (var o : objects) {
-                this.serviceHeaderClassName.setValue(o.getClass().getSimpleName());
-                final var rs = internalUploadPreparedData(descriptor, o, headers, this.serviceHeaders);
-                result = result == null ? rs : result;
-            }
-            return result != null ? result : new PartitionOffset(0, 0);
-        }
-    }
-
-    /**
-     * Выгрузить пакет объектов данных.
-     *
-     * @param descriptor  описатель исходящей очереди.
-     * @param dataPackage пакет объектов.
-     * @param headers     заголовки.
-     * @return Смещение в очереди, с которым выгрузился первый объект.
-     */
-    @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    PartitionOffset uploadDataPackage(
-            @NotNull KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor,
-            @NotNull P dataPackage,
-            @Nullable Iterable<Header> headers
-    ) throws Exception {
-        checkDescriptorIsActive(descriptor);
-
-        this.serviceHeaders.clear();
-        if (descriptor.getMessageMode() == ChannelMessageMode.Package) {
-            this.serviceHeaders.add(this.serviceHeaderPackageSize.setValue(dataPackage.size()));
-            return internalUploadPreparedData(descriptor, dataPackage, headers, this.serviceHeaders);
-        } else {
-            this.serviceHeaders.add(this.serviceHeaderClassName);
-            PartitionOffset result = null;
-            for (var o : dataPackage.getObjects()) {
-                this.serviceHeaderClassName.setValue(o.getClass().getSimpleName());
-                final var rs = internalUploadPreparedData(descriptor, o, headers, this.serviceHeaders);
-                result = result == null ? rs : result;
-            }
-            return result != null ? result : new PartitionOffset(0, 0);
-        }
+        this.serviceHeaders.add(this.serviceHeaderClassName.setValue(message.getClass().getSimpleName()));
+        return internalUploadPreparedData(descriptor, message, headers, this.serviceHeaders);
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
@@ -170,21 +81,21 @@ public class KafkaOutcomeTopicsUploader {
      *
      * @param descriptor описатель.
      */
-    protected void checkDescriptorIsActive(@NotNull final KafkaOutcomeTopicLoadingDescriptor<?, ?> descriptor) {
+    protected void checkDescriptorIsActive(@NotNull final KafkaOutcomeTopicLoadingDescriptor<?> descriptor) {
         if (!descriptor.isInitialized()) {
-            throw new ChannelConfigurationException("Topic descriptor " + descriptor.getName() + " is not initialized!");
+            throw new ChannelConfigurationException("Topic descriptor " + descriptor.getApi().getName() + " is not initialized!");
         }
         if (!descriptor.isEnabled()) {
-            throw new ChannelConfigurationException("Topic descriptor " + descriptor.getName() + " is not enabled!");
+            throw new ChannelConfigurationException("Topic descriptor " + descriptor.getApi().getName() + " is not enabled!");
         }
     }
 
     @SuppressWarnings("unchecked")
     @NotNull
-    protected <O extends DataObject, P extends DataPackage<O>>
+    protected <M extends Message<? extends MessageHeader, ? extends MessageBody>>
     PartitionOffset internalUploadPreparedData(
-            @NotNull KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor,
-            @NotNull Object data,
+            @NotNull KafkaOutcomeTopicLoadingDescriptor<M> descriptor,
+            @NotNull M message,
             @Nullable Iterable<Header> headers,
             @NotNull Collection<Header> theServiceHeaders
     ) throws Exception {
@@ -212,38 +123,20 @@ public class KafkaOutcomeTopicsUploader {
         final var allHeaders = allHeadersMap != null && allHeadersMap.size() > 0 ? allHeadersMap.values() : null;
 
         RecordMetadata recordMetadata;
-        if (descriptor.getSerializeMode() == SerializeMode.JsonString) {
+        if (descriptor.getApi().getSerializeMode() == SerializeMode.JsonString) {
             final var producer = (Producer<Long, String>) descriptor.getProducer();
-            final var message = this.objectMapper.writeValueAsString(data);
-            final var record = new ProducerRecord<Long, String>(descriptor.getName(), null, null, message, allHeaders);
+            final var serializedMessage = this.objectMapper.writeValueAsString(message);
+            final var record = new ProducerRecord<Long, String>(descriptor.getApi().getName(), null, null, serializedMessage, allHeaders);
             // Собственно отправка в Kafka:
             recordMetadata = producer.send(record).get();
         } else {
             final var producer = (Producer<Long, byte[]>) descriptor.getProducer();
-            final var message = this.objectMapper.writeValueAsBytes(data);
-            final var record = new ProducerRecord<Long, byte[]>(descriptor.getName(), null, null, message, allHeaders);
+            final var serializedMessage = this.objectMapper.writeValueAsBytes(message);
+            final var record = new ProducerRecord<Long, byte[]>(descriptor.getApi().getName(), null, null, serializedMessage, allHeaders);
             // Собственно отправка в Kafka:
             recordMetadata = producer.send(record).get();
         }
         return new PartitionOffset(recordMetadata.partition(), recordMetadata.offset());
-    }
-
-    /**
-     * Создание нового экземпляра пакета объектов.
-     *
-     * @param descriptor описатель.
-     * @return пакет объектов.
-     */
-    @NotNull
-    public <O extends DataObject, P extends DataPackage<O>>
-    P createPackage(@NotNull final KafkaOutcomeTopicLoadingDescriptor<O, P> descriptor) throws Exception {
-        final var packageClass = descriptor.getDataPackageClass();
-        if (packageClass != null) {
-            final var constructor = packageClass.getConstructor();
-            return constructor.newInstance();
-        } else {
-            throw new Exception("Can't create DataPackage!");
-        }
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------

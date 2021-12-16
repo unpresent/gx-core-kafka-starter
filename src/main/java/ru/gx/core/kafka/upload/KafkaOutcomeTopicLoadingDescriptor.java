@@ -8,10 +8,13 @@ import lombok.experimental.Accessors;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.jetbrains.annotations.NotNull;
-import ru.gx.core.channels.AbstractOutcomeChannelDescriptor;
+import org.jetbrains.annotations.Nullable;
+import ru.gx.core.channels.AbstractOutcomeChannelHandleDescriptor;
+import ru.gx.core.channels.ChannelApiDescriptor;
 import ru.gx.core.channels.SerializeMode;
-import ru.gx.core.data.DataObject;
-import ru.gx.core.data.DataPackage;
+import ru.gx.core.messaging.Message;
+import ru.gx.core.messaging.MessageBody;
+import ru.gx.core.messaging.MessageHeader;
 
 import java.security.InvalidParameterException;
 import java.util.Properties;
@@ -19,17 +22,10 @@ import java.util.Properties;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class KafkaOutcomeTopicLoadingDescriptor<O extends DataObject, P extends DataPackage<O>>
-        extends AbstractOutcomeChannelDescriptor<O, P> {
+public class KafkaOutcomeTopicLoadingDescriptor<M extends Message<? extends MessageHeader, ? extends MessageBody>>
+        extends AbstractOutcomeChannelHandleDescriptor<M> {
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
-
-    /**
-     * Ограничение по количеству Record-ов, отправляемых за раз. Можно измениять после инициализации.
-     */
-    @Getter
-    @Setter
-    private int maxPackageSize = 100;
 
     /**
      * Producer - публикатор сообщений в Kafka
@@ -41,12 +37,12 @@ public class KafkaOutcomeTopicLoadingDescriptor<O extends DataObject, P extends 
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialize">
 
-    public KafkaOutcomeTopicLoadingDescriptor(@NotNull final AbstractKafkaOutcomeTopicsConfiguration owner, @NotNull final String topic, final KafkaOutcomeTopicLoadingDescriptorsDefaults defaults) {
-        super(owner, topic, defaults);
-        if (defaults != null) {
-            this
-                    .setMaxPackageSize(defaults.getMaxPackageSize());
-        }
+    public KafkaOutcomeTopicLoadingDescriptor(
+            @NotNull final AbstractKafkaOutcomeTopicsConfiguration owner,
+            @NotNull final ChannelApiDescriptor<M> api,
+            @Nullable final KafkaOutcomeTopicLoadingDescriptorsDefaults defaults
+    ) {
+        super(owner, api, defaults);
     }
 
     /**
@@ -55,8 +51,8 @@ public class KafkaOutcomeTopicLoadingDescriptor<O extends DataObject, P extends 
      * @return this.
      */
     @NotNull
-    public KafkaOutcomeTopicLoadingDescriptor<O, P> init(@NotNull final Properties producerProperties) throws InvalidParameterException {
-        if (this.getSerializeMode() == SerializeMode.JsonString) {
+    public KafkaOutcomeTopicLoadingDescriptor<M> init(@NotNull final Properties producerProperties) throws InvalidParameterException {
+        if (this.getApi().getSerializeMode() == SerializeMode.JsonString) {
             this.producer = new KafkaProducer<Long, String>(producerProperties);
         } else {
             this.producer = new KafkaProducer<Long, byte[]>(producerProperties);
@@ -67,12 +63,12 @@ public class KafkaOutcomeTopicLoadingDescriptor<O extends DataObject, P extends 
 
     @Override
     @NotNull
-    public KafkaOutcomeTopicLoadingDescriptor<O, P> init() throws InvalidParameterException {
+    public KafkaOutcomeTopicLoadingDescriptor<M> init() throws InvalidParameterException {
         return init(this.getOwner().getDescriptorsDefaults().getProducerProperties());
     }
 
     @NotNull
-    public KafkaOutcomeTopicLoadingDescriptor<O, P> unInit() {
+    public KafkaOutcomeTopicLoadingDescriptor<M> unInit() {
         this.producer = null;
         super.unInit();
         return this;

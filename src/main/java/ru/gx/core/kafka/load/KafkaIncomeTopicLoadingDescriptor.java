@@ -10,9 +10,11 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.gx.core.channels.AbstractIncomeChannelDescriptor;
-import ru.gx.core.data.DataObject;
-import ru.gx.core.data.DataPackage;
+import ru.gx.core.channels.AbstractIncomeChannelHandleDescriptor;
+import ru.gx.core.channels.ChannelApiDescriptor;
+import ru.gx.core.messaging.Message;
+import ru.gx.core.messaging.MessageBody;
+import ru.gx.core.messaging.MessageHeader;
 
 import java.security.InvalidParameterException;
 import java.time.Duration;
@@ -25,8 +27,8 @@ import java.util.*;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class KafkaIncomeTopicLoadingDescriptor<O extends DataObject, P extends DataPackage<O>>
-        extends AbstractIncomeChannelDescriptor<O, P> {
+public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends MessageHeader, ? extends MessageBody>>
+        extends AbstractIncomeChannelHandleDescriptor<M> {
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
 
@@ -56,8 +58,12 @@ public class KafkaIncomeTopicLoadingDescriptor<O extends DataObject, P extends D
     // </editor-fold>
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialize">
-    public KafkaIncomeTopicLoadingDescriptor(@NotNull final AbstractKafkaIncomeTopicsConfiguration owner, @NotNull final String topic, @Nullable final KafkaIncomeTopicLoadingDescriptorsDefaults defaults) {
-        super(owner, topic, defaults);
+    public KafkaIncomeTopicLoadingDescriptor(
+            @NotNull final AbstractKafkaIncomeTopicsConfiguration owner,
+            @NotNull final ChannelApiDescriptor<M> api,
+            @Nullable final KafkaIncomeTopicLoadingDescriptorsDefaults defaults
+    ) {
+        super(owner, api, defaults);
         this.durationOnPoll = Duration.ofMillis(100);
         if (defaults != null) {
             this
@@ -74,9 +80,9 @@ public class KafkaIncomeTopicLoadingDescriptor<O extends DataObject, P extends D
      */
     @SuppressWarnings({"UnusedReturnValue"})
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<O, P> init(@NotNull final Properties consumerProperties) throws InvalidParameterException {
+    public KafkaIncomeTopicLoadingDescriptor<M> init(@NotNull final Properties consumerProperties) throws InvalidParameterException {
         if (this.partitionOffsets.size() <= 0) {
-            throw new InvalidParameterException("Not defined partitions for topic " + this.getName());
+            throw new InvalidParameterException("Not defined partitions for topic " + this.getApi().getName());
         }
         this.consumer = new KafkaConsumer<>(consumerProperties);
         this.consumer.assign(getTopicPartitions());
@@ -92,7 +98,7 @@ public class KafkaIncomeTopicLoadingDescriptor<O extends DataObject, P extends D
     @SuppressWarnings({"UnusedReturnValue", "unused"})
     @Override
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<O, P> init() throws InvalidParameterException {
+    public KafkaIncomeTopicLoadingDescriptor<M> init() throws InvalidParameterException {
         return this.init(this.getOwner().getDescriptorsDefaults().getConsumerProperties());
     }
 
@@ -100,7 +106,7 @@ public class KafkaIncomeTopicLoadingDescriptor<O extends DataObject, P extends D
     @SuppressWarnings("UnusedReturnValue")
     @Override
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<O, P> unInit() {
+    public KafkaIncomeTopicLoadingDescriptor<M> unInit() {
         this.getOwner().internalUnregisterDescriptor(this);
         this.consumer = null;
         super.unInit();
@@ -132,7 +138,7 @@ public class KafkaIncomeTopicLoadingDescriptor<O extends DataObject, P extends D
      * @param offset само смещение, которое запоминаем в описателе.
      */
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<O, P> setOffset(int partition, long offset) {
+    public KafkaIncomeTopicLoadingDescriptor<M> setOffset(int partition, long offset) {
         this.partitionOffsets.put(partition, offset);
         return this;
     }
@@ -147,7 +153,7 @@ public class KafkaIncomeTopicLoadingDescriptor<O extends DataObject, P extends D
         final var result = new ArrayList<TopicPartition>();
         this.partitionOffsets
                 .keySet()
-                .forEach(p -> result.add(new TopicPartition(getName(), p)));
+                .forEach(p -> result.add(new TopicPartition(this.getApi().getName(), p)));
         return result;
     }
 
@@ -161,7 +167,8 @@ public class KafkaIncomeTopicLoadingDescriptor<O extends DataObject, P extends D
      */
     @SuppressWarnings({"UnusedReturnValue", "Convert2MethodRef"})
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<O, P> setPartitions(int... partitions) {
+    public KafkaIncomeTopicLoadingDescriptor<M> setPartitions(int... partitions) {
+        checkMutable("partitions");
         // Готовим список ключей для удаления - такие PartitionOffset-ы, которых нет в списке partitions:
         final var keyForRemove = new ArrayList<Integer>();
         this.partitionOffsets.keySet().stream()
