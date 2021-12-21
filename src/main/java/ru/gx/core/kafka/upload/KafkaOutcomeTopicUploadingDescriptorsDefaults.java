@@ -14,7 +14,7 @@ import java.util.Properties;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class KafkaOutcomeTopicLoadingDescriptorsDefaults extends OutcomeChannelDescriptorsDefaults {
+public class KafkaOutcomeTopicUploadingDescriptorsDefaults extends OutcomeChannelDescriptorsDefaults {
 
     /**
      * Свойства для создания Producer-а.
@@ -24,7 +24,7 @@ public class KafkaOutcomeTopicLoadingDescriptorsDefaults extends OutcomeChannelD
     @NotNull
     private Properties producerProperties;
 
-    protected KafkaOutcomeTopicLoadingDescriptorsDefaults() {
+    protected KafkaOutcomeTopicUploadingDescriptorsDefaults() {
         super();
     }
 }

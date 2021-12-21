@@ -37,7 +37,6 @@ public abstract class AbstractKafkaIncomeTopicsConfiguration extends AbstractCha
     public @NotNull KafkaIncomeTopicLoadingDescriptorsDefaults getDescriptorsDefaults() {
         return (KafkaIncomeTopicLoadingDescriptorsDefaults) super.getDescriptorsDefaults();
     }
-
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
 }

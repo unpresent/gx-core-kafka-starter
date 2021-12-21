@@ -2,7 +2,6 @@ package ru.gx.core.kafka.upload;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -22,7 +21,7 @@ import java.util.Properties;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class KafkaOutcomeTopicLoadingDescriptor<M extends Message<? extends MessageHeader, ? extends MessageBody>>
+public class KafkaOutcomeTopicUploadingDescriptor<M extends Message<? extends MessageHeader, ? extends MessageBody>>
         extends AbstractOutcomeChannelHandleDescriptor<M> {
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
@@ -37,10 +36,10 @@ public class KafkaOutcomeTopicLoadingDescriptor<M extends Message<? extends Mess
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialize">
 
-    public KafkaOutcomeTopicLoadingDescriptor(
+    public KafkaOutcomeTopicUploadingDescriptor(
             @NotNull final AbstractKafkaOutcomeTopicsConfiguration owner,
             @NotNull final ChannelApiDescriptor<M> api,
-            @Nullable final KafkaOutcomeTopicLoadingDescriptorsDefaults defaults
+            @Nullable final KafkaOutcomeTopicUploadingDescriptorsDefaults defaults
     ) {
         super(owner, api, defaults);
     }
@@ -51,7 +50,7 @@ public class KafkaOutcomeTopicLoadingDescriptor<M extends Message<? extends Mess
      * @return this.
      */
     @NotNull
-    public KafkaOutcomeTopicLoadingDescriptor<M> init(@NotNull final Properties producerProperties) throws InvalidParameterException {
+    public KafkaOutcomeTopicUploadingDescriptor<M> init(@NotNull final Properties producerProperties) throws InvalidParameterException {
         if (this.getApi().getSerializeMode() == SerializeMode.JsonString) {
             this.producer = new KafkaProducer<Long, String>(producerProperties);
         } else {
@@ -63,12 +62,12 @@ public class KafkaOutcomeTopicLoadingDescriptor<M extends Message<? extends Mess
 
     @Override
     @NotNull
-    public KafkaOutcomeTopicLoadingDescriptor<M> init() throws InvalidParameterException {
+    public KafkaOutcomeTopicUploadingDescriptor<M> init() throws InvalidParameterException {
         return init(this.getOwner().getDescriptorsDefaults().getProducerProperties());
     }
 
     @NotNull
-    public KafkaOutcomeTopicLoadingDescriptor<M> unInit() {
+    public KafkaOutcomeTopicUploadingDescriptor<M> unInit() {
         this.producer = null;
         super.unInit();
         return this;

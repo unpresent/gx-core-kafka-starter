@@ -63,7 +63,7 @@ public class KafkaOutcomeTopicsUploader {
      */
     @NotNull
     public <M extends Message<? extends MessageHeader, ? extends MessageBody>> PartitionOffset uploadMessage(
-            @NotNull final KafkaOutcomeTopicLoadingDescriptor<M> descriptor,
+            @NotNull final KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
             @NotNull final M message,
             @Nullable Iterable<Header> headers
     ) throws Exception {
@@ -81,7 +81,7 @@ public class KafkaOutcomeTopicsUploader {
      *
      * @param descriptor описатель.
      */
-    protected void checkDescriptorIsActive(@NotNull final KafkaOutcomeTopicLoadingDescriptor<?> descriptor) {
+    protected void checkDescriptorIsActive(@NotNull final KafkaOutcomeTopicUploadingDescriptor<?> descriptor) {
         if (!descriptor.isInitialized()) {
             throw new ChannelConfigurationException("Topic descriptor " + descriptor.getApi().getName() + " is not initialized!");
         }
@@ -94,7 +94,7 @@ public class KafkaOutcomeTopicsUploader {
     @NotNull
     protected <M extends Message<? extends MessageHeader, ? extends MessageBody>>
     PartitionOffset internalUploadPreparedData(
-            @NotNull KafkaOutcomeTopicLoadingDescriptor<M> descriptor,
+            @NotNull KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
             @NotNull M message,
             @Nullable Iterable<Header> headers,
             @NotNull Collection<Header> theServiceHeaders

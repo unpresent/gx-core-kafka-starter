@@ -20,8 +20,8 @@ public abstract class AbstractKafkaOutcomeTopicsConfiguration extends AbstractCh
     }
 
     @Override
-    protected KafkaOutcomeTopicLoadingDescriptorsDefaults createChannelDescriptorsDefaults() {
-        return new KafkaOutcomeTopicLoadingDescriptorsDefaults();
+    protected KafkaOutcomeTopicUploadingDescriptorsDefaults createChannelDescriptorsDefaults() {
+        return new KafkaOutcomeTopicUploadingDescriptorsDefaults();
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
@@ -29,12 +29,12 @@ public abstract class AbstractKafkaOutcomeTopicsConfiguration extends AbstractCh
     @Override
     protected <M extends Message<? extends MessageHeader, ? extends MessageBody>, D extends ChannelHandleDescriptor<M>>
     boolean allowCreateDescriptor(@NotNull Class<D> descriptorClass) {
-        return KafkaOutcomeTopicLoadingDescriptor.class.isAssignableFrom(descriptorClass);
+        return KafkaOutcomeTopicUploadingDescriptor.class.isAssignableFrom(descriptorClass);
     }
 
     @Override
-    public @NotNull KafkaOutcomeTopicLoadingDescriptorsDefaults getDescriptorsDefaults() {
-        return (KafkaOutcomeTopicLoadingDescriptorsDefaults)super.getDescriptorsDefaults();
+    public @NotNull KafkaOutcomeTopicUploadingDescriptorsDefaults getDescriptorsDefaults() {
+        return (KafkaOutcomeTopicUploadingDescriptorsDefaults)super.getDescriptorsDefaults();
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
