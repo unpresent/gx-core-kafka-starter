@@ -3,7 +3,7 @@ package ru.gx.core.kafka.load;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
-import ru.gx.core.channels.ChannelHandleDescriptor;
+import ru.gx.core.channels.ChannelHandlerDescriptor;
 import ru.gx.core.messaging.Message;
 import ru.gx.core.kafka.offsets.PartitionOffset;
 import ru.gx.core.kafka.offsets.TopicPartitionOffset;
@@ -101,11 +101,11 @@ public class KafkaIncomeTopicsOffsetsController {
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Внутренняя реализация">
-    protected void internalSeekTopicAllPartitionsToBegin(@NotNull ChannelHandleDescriptor<?> topicDescriptor) {
+    protected void internalSeekTopicAllPartitionsToBegin(@NotNull ChannelHandlerDescriptor<?> topicDescriptor) {
         this.internalSeekTopicAllPartitionsToBorder((KafkaIncomeTopicLoadingDescriptor<? extends Message<? extends MessageHeader, ? extends MessageBody>>) topicDescriptor, Consumer::seekToBeginning);
     }
 
-    protected void internalSeekTopicAllPartitionsToEnd(@NotNull ChannelHandleDescriptor<?> topicDescriptor) {
+    protected void internalSeekTopicAllPartitionsToEnd(@NotNull ChannelHandlerDescriptor<?> topicDescriptor) {
         this.internalSeekTopicAllPartitionsToBorder((KafkaIncomeTopicLoadingDescriptor<? extends Message<? extends MessageHeader, ? extends MessageBody>>) topicDescriptor, Consumer::seekToEnd);
     }
 

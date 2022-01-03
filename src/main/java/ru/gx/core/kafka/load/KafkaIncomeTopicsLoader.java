@@ -106,15 +106,11 @@ public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
             }
             for (var topicDescriptor : topicDescriptors) {
                 if (topicDescriptor.isEnabled()) {
-                    if (topicDescriptor instanceof final KafkaIncomeTopicLoadingDescriptor kafkaDescriptor) {
-                        log.debug("Loading working data from topic: {}", topicDescriptor.getApi().getName());
-                        final var eventsCount = this
-                                .processByTopic((KafkaIncomeTopicLoadingDescriptor<Message<MessageHeader, MessageBody>>)kafkaDescriptor);
-                        result.put(kafkaDescriptor, eventsCount);
-                        log.debug("Loaded working data from topic. Events: {}", kafkaDescriptor.getApi().getName());
-                    } else {
-                        throw new ChannelConfigurationException("Invalid class of descriptor " + topicDescriptor.getApi().getName());
-                    }
+                    final var kafkaDescriptor = (KafkaIncomeTopicLoadingDescriptor<Message<MessageHeader, MessageBody>>)topicDescriptor;
+                    log.debug("Loading working data from topic: {}", topicDescriptor.getApi().getName());
+                    final var eventsCount = this.processByTopic(kafkaDescriptor);
+                    result.put(kafkaDescriptor, eventsCount);
+                    log.debug("Loaded working data from topic. Events: {}", kafkaDescriptor.getApi().getName());
                 }
             }
         }

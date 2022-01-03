@@ -3,7 +3,7 @@ package ru.gx.core.kafka.load;
 import org.jetbrains.annotations.NotNull;
 import ru.gx.core.channels.AbstractChannelsConfiguration;
 import ru.gx.core.channels.ChannelDirection;
-import ru.gx.core.channels.ChannelHandleDescriptor;
+import ru.gx.core.channels.ChannelHandlerDescriptor;
 import ru.gx.core.messaging.Message;
 import ru.gx.core.messaging.MessageBody;
 import ru.gx.core.messaging.MessageHeader;
@@ -28,7 +28,7 @@ public abstract class AbstractKafkaIncomeTopicsConfiguration extends AbstractCha
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="реализация IncomeTopicsConfiguration">
     @Override
-    protected <M extends Message<? extends MessageHeader, ? extends MessageBody>, D extends ChannelHandleDescriptor<M>>
+    protected <M extends Message<? extends MessageHeader, ? extends MessageBody>, D extends ChannelHandlerDescriptor<M>>
     boolean allowCreateDescriptor(@NotNull Class<D> descriptorClass) {
         return KafkaIncomeTopicLoadingDescriptor.class.isAssignableFrom(descriptorClass);
     }

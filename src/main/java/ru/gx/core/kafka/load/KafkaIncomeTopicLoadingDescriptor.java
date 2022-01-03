@@ -10,7 +10,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.gx.core.channels.AbstractIncomeChannelHandleDescriptor;
+import ru.gx.core.channels.AbstractIncomeChannelHandlerDescriptor;
 import ru.gx.core.channels.ChannelApiDescriptor;
 import ru.gx.core.messaging.Message;
 import ru.gx.core.messaging.MessageBody;
@@ -28,7 +28,7 @@ import java.util.*;
 @EqualsAndHashCode(callSuper = false)
 @ToString
 public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends MessageHeader, ? extends MessageBody>>
-        extends AbstractIncomeChannelHandleDescriptor<M> {
+        extends AbstractIncomeChannelHandlerDescriptor<M> {
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
 

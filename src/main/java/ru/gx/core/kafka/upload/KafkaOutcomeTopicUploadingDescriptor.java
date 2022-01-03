@@ -8,7 +8,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.gx.core.channels.AbstractOutcomeChannelHandleDescriptor;
+import ru.gx.core.channels.AbstractOutcomeChannelHandlerDescriptor;
 import ru.gx.core.channels.ChannelApiDescriptor;
 import ru.gx.core.channels.SerializeMode;
 import ru.gx.core.messaging.Message;
@@ -22,7 +22,7 @@ import java.util.Properties;
 @EqualsAndHashCode(callSuper = false)
 @ToString
 public class KafkaOutcomeTopicUploadingDescriptor<M extends Message<? extends MessageHeader, ? extends MessageBody>>
-        extends AbstractOutcomeChannelHandleDescriptor<M> {
+        extends AbstractOutcomeChannelHandlerDescriptor<M> {
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
 
