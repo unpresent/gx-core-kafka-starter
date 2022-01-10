@@ -1,0 +1,49 @@
+plugins {
+    id "java-library"
+    id "maven-publish"
+    id "io.freefair.lombok" version "6.3.0"
+}
+
+compileJava.options.encoding("UTF-8")
+compileTestJava.options.encoding("UTF-8")
+
+// tag::repositories[]
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+// end::repositories[]
+
+publishing {
+    publications {
+        myLibrary(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+group = "ru.gx.core"
+version = "1.4.2"
+
+// tag::dependencies[]
+dependencies {
+    api platform("ru.gx.core:gx-core-dependencies:1.4.2")
+    api platform("org.springframework.boot:spring-boot-dependencies")
+
+    api("ru.gx.core:gx-starter")
+
+    compileOnly "org.projectlombok:lombok"
+    compileOnly "org.springframework.boot:spring-boot-configuration-processor"
+
+    implementation "org.apache.commons:commons-lang3"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "io.micrometer:micrometer-core"
+    implementation "io.micrometer:micrometer-registry-prometheus"
+    implementation "org.jetbrains:annotations"
+    implementation "org.springframework.kafka:spring-kafka"
+
+    testCompileOnly "org.springframework.boot:spring-boot-starter-test"
+    testCompileOnly "org.junit.jupiter:junit-jupiter-engine"
+    testCompileOnly "org.mockito:mockito-core"
+}
+// end::dependencies[]
