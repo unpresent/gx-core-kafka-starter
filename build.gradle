@@ -23,11 +23,11 @@ publishing {
 }
 
 group = "ru.gx.core"
-version = "1.4.2"
+version = "1.4.3"
 
 // tag::dependencies[]
 dependencies {
-    api platform("ru.gx.core:gx-core-dependencies:1.4.2")
+    api platform("ru.gx.core:gx-core-dependencies:1.4.3")
     api platform("org.springframework.boot:spring-boot-dependencies")
 
     api("ru.gx.core:gx-starter")
