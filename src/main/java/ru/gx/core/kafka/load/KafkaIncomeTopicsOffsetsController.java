@@ -28,10 +28,16 @@ public class KafkaIncomeTopicsOffsetsController {
      *                      указанных в {@code offsets} не будет описателя в указанной конфигурации, то такой топик игнорируется.
      * @param offsets       Список троек: Топик, Партиция, Смещение.
      */
-    public void seekTopicsByList(@NotNull final AbstractKafkaIncomeTopicsConfiguration configuration, @NotNull final Collection<TopicPartitionOffset> offsets) {
+    public void seekTopicsByList(
+            @NotNull final AbstractKafkaIncomeTopicsConfiguration configuration,
+            @NotNull final Collection<TopicPartitionOffset> offsets
+    ) {
         offsets.forEach(o -> {
-            final var topicDescriptor = configuration.tryGet(o.getTopic());
-            if (topicDescriptor instanceof final KafkaIncomeTopicLoadingDescriptor<? extends Message<? extends MessageHeader, ? extends MessageBody>> kafkaDescriptor) {
+            final var topicDescriptor =
+                    configuration.tryGet(o.getTopic());
+            if (topicDescriptor instanceof
+                    final KafkaIncomeTopicLoadingDescriptor<?
+                            extends Message<? extends MessageHeader, ? extends MessageBody>> kafkaDescriptor) {
                 internalSeekItem(kafkaDescriptor, o.getPartition(), o.getOffset());
             }
         });

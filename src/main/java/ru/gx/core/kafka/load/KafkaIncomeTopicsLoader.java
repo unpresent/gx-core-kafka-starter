@@ -2,15 +2,11 @@ package ru.gx.core.kafka.load;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import ru.gx.core.channels.ChannelConfigurationException;
 import ru.gx.core.channels.IncomeDataProcessType;
@@ -27,50 +23,49 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static lombok.AccessLevel.PROTECTED;
-import static lombok.AccessLevel.PUBLIC;
 
 /**
  * Базовая реализация загрузчика, который упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
  */
 @SuppressWarnings("unused")
 @Slf4j
-public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
+public class KafkaIncomeTopicsLoader {
     private final static int MAX_SLEEP_MS = 64;
 
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
     /**
-     * Объект контекста требуется для вызова событий и для получения бинов(!).
+     * Требуется для отправки сообщений в обработку.
      */
     @Getter(PROTECTED)
-    @Setter(value = PUBLIC, onMethod_ = @Autowired)
-    private ApplicationContext applicationContext;
+    @NotNull
+    private final MessagesPrioritizedQueue messagesQueue;
 
     /**
      * ObjectMapper требуется для десериализации данных в объекты.
      */
     @Getter(PROTECTED)
-    @Setter(value = PROTECTED, onMethod_ = @Autowired)
-    private ObjectMapper objectMapper;
+    @NotNull
+    private final ObjectMapper objectMapper;
 
     /**
      * Требуется для отправки сообщений в обработку.
      */
     @Getter(PROTECTED)
-    @Setter(value = PROTECTED, onMethod_ = @Autowired)
-    private MessagesPrioritizedQueue messagesQueue;
-
-    /**
-     * Требуется для отправки сообщений в обработку.
-     */
-    @Getter(PROTECTED)
-    @Setter(value = PROTECTED, onMethod_ = @Autowired)
-    private ApplicationEventPublisher eventPublisher;
+    @NotNull
+    private final ApplicationEventPublisher eventPublisher;
 
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    public KafkaIncomeTopicsLoader() {
+    public KafkaIncomeTopicsLoader(
+            @NotNull final ApplicationEventPublisher eventPublisher,
+            @NotNull final ObjectMapper objectMapper,
+            @NotNull final MessagesPrioritizedQueue messagesQueue
+    ) {
+        this.objectMapper = objectMapper;
+        this.messagesQueue = messagesQueue;
+        this.eventPublisher = eventPublisher;
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
@@ -218,9 +213,12 @@ public class KafkaIncomeTopicsLoader implements ApplicationContextAware {
      */
     @SuppressWarnings("unchecked")
     @NotNull
-    protected ConsumerRecords<Object, Object> internalPoll(@NotNull final KafkaIncomeTopicLoadingDescriptor<?> descriptor) {
+    protected ConsumerRecords<Object, Object> internalPoll(
+            @NotNull final KafkaIncomeTopicLoadingDescriptor<?> descriptor
+    ) {
         final var consumer = descriptor.getConsumer();
-        final ConsumerRecords<Object, Object> records = (ConsumerRecords<Object, Object>) consumer.poll(descriptor.getDurationOnPoll());
+        final ConsumerRecords<Object, Object> records =
+                (ConsumerRecords<Object, Object>) consumer.poll(descriptor.getDurationOnPoll());
         log.debug("Topic: {}; polled: {} records", descriptor.getApi().getName(), records.count());
         return records;
     }

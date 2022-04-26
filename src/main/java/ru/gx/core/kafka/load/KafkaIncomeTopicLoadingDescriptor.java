@@ -80,7 +80,9 @@ public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends Messa
      */
     @SuppressWarnings({"UnusedReturnValue"})
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<M> init(@NotNull final Properties consumerProperties) throws InvalidParameterException {
+    public KafkaIncomeTopicLoadingDescriptor<M> init(
+            @NotNull final Properties consumerProperties
+    ) throws InvalidParameterException {
         if (this.partitionOffsets.size() <= 0) {
             throw new InvalidParameterException("Not defined partitions for topic " + this.getApi().getName());
         }

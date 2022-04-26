@@ -2,13 +2,11 @@ package ru.gx.core.kafka.upload;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
- import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.Header;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import ru.gx.core.channels.ChannelConfigurationException;
 import ru.gx.core.channels.SerializeMode;
 import ru.gx.core.data.DataObject;
@@ -34,13 +32,12 @@ public class KafkaOutcomeTopicsUploader {
      * ObjectMapper требуется для десериализации данных в объекты.
      */
     @Getter(PROTECTED)
-    @Setter(value = PROTECTED, onMethod_ = @Autowired)
     @NotNull
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     @Getter(PROTECTED)
-    @Setter(value = PROTECTED, onMethod_ = @Autowired)
-    private DefaultMessagesFactory messagesFactory;
+    @NotNull
+    private final DefaultMessagesFactory messagesFactory;
 
     @NotNull
     private final ArrayList<Header> serviceHeaders = new ArrayList<>();
@@ -54,7 +51,9 @@ public class KafkaOutcomeTopicsUploader {
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    public KafkaOutcomeTopicsUploader() {
+    public KafkaOutcomeTopicsUploader(@NotNull final ObjectMapper objectMapper, @NotNull final DefaultMessagesFactory messagesFactory) {
+        this.objectMapper = objectMapper;
+        this.messagesFactory = messagesFactory;
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
