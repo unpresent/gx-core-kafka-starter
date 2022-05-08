@@ -3,7 +3,6 @@ package ru.gx.core.kafka.listener;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import ru.gx.core.settings.StandardSettingsController;
-import ru.gx.core.settings.UnknownApplicationSettingException;
 import ru.gx.core.worker.AbstractWorkerSettingsContainer;
 import ru.gx.core.worker.CommonWorkerSettingsDefaults;
 
