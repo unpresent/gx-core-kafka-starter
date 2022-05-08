@@ -21,11 +21,10 @@ import java.util.Properties;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class KafkaOutcomeTopicUploadingDescriptor<M extends Message<? extends MessageHeader, ? extends MessageBody>>
+public class KafkaOutcomeTopicUploadingDescriptor<M extends Message<? extends MessageBody>>
         extends AbstractOutcomeChannelHandlerDescriptor<M> {
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
-
     /**
      * Producer - публикатор сообщений в Kafka
      */
@@ -50,7 +49,9 @@ public class KafkaOutcomeTopicUploadingDescriptor<M extends Message<? extends Me
      * @return this.
      */
     @NotNull
-    public KafkaOutcomeTopicUploadingDescriptor<M> init(@NotNull final Properties producerProperties) throws InvalidParameterException {
+    public KafkaOutcomeTopicUploadingDescriptor<M> init(
+            @NotNull final Properties producerProperties
+    ) throws InvalidParameterException {
         if (this.getApi().getSerializeMode() == SerializeMode.JsonString) {
             this.producer = new KafkaProducer<Long, String>(producerProperties);
         } else {

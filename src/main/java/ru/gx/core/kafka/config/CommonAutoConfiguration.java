@@ -1,23 +1,33 @@
 package ru.gx.core.kafka.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.gx.core.kafka.listener.KafkaSimpleListener;
+import ru.gx.core.kafka.listener.KafkaSimpleListenerSettingsContainer;
+import ru.gx.core.kafka.load.AbstractKafkaIncomeTopicsConfiguration;
 import ru.gx.core.kafka.load.KafkaIncomeTopicsLoader;
 import ru.gx.core.kafka.load.KafkaIncomeTopicsOffsetsController;
+import ru.gx.core.kafka.offsets.TopicsOffsetsStorage;
 import ru.gx.core.kafka.upload.KafkaOutcomeTopicsUploader;
 import ru.gx.core.messaging.DefaultMessagesFactory;
 import ru.gx.core.messaging.MessagesPrioritizedQueue;
 
+import java.util.List;
+
 @Configuration
 @EnableConfigurationProperties({ConfigurationPropertiesServiceKafka.class})
 public class CommonAutoConfiguration {
+    private final static String DOT_ENABLED = ".enabled";
+    private final static String DOT_NAME = ".name";
 
     @Bean
     @ConditionalOnMissingBean
@@ -47,5 +57,39 @@ public class CommonAutoConfiguration {
             @NotNull final DefaultMessagesFactory messagesFactory
     ) {
         return new KafkaOutcomeTopicsUploader(objectMapper, messagesFactory);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(
+            value = KafkaSimpleListenerSettingsContainer.SIMPLE_LISTENER_SETTINGS_PREFIX + DOT_ENABLED,
+            havingValue = "true"
+    )
+    @Autowired
+    public KafkaSimpleListener KafkaSimpleListener(
+            @Value("${service.name}") @NotNull final String serviceName,
+            @Value("${"
+                    + KafkaSimpleListenerSettingsContainer.SIMPLE_LISTENER_SETTINGS_PREFIX + DOT_NAME
+                    + ":" + KafkaSimpleListener.SIMPLE_LISTENER_DEFAULT_NAME + "}"
+            ) final String name,
+            @NotNull final KafkaSimpleListenerSettingsContainer settingsContainer,
+            @NotNull final MeterRegistry meterRegistry,
+            @NotNull final ApplicationEventPublisher eventPublisher,
+            @NotNull final KafkaIncomeTopicsLoader kafkaIncomeTopicsLoader,
+            @NotNull final List<AbstractKafkaIncomeTopicsConfiguration> kafkaIncomeTopicsConfigurations,
+            @NotNull final TopicsOffsetsStorage topicsOffsetsStorage,
+            @NotNull final KafkaIncomeTopicsOffsetsController kafkaIncomeTopicsOffsetsController
+    ) {
+        return new KafkaSimpleListener(
+                serviceName,
+                name,
+                settingsContainer,
+                meterRegistry,
+                eventPublisher,
+                kafkaIncomeTopicsLoader,
+                kafkaIncomeTopicsConfigurations,
+                topicsOffsetsStorage,
+                kafkaIncomeTopicsOffsetsController
+        );
     }
 }

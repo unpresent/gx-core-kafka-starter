@@ -16,7 +16,6 @@ import ru.gx.core.kafka.StringHeader;
 import ru.gx.core.messaging.DefaultMessagesFactory;
 import ru.gx.core.messaging.Message;
 import ru.gx.core.messaging.MessageBody;
-import ru.gx.core.messaging.MessageHeader;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,11 +60,12 @@ public class KafkaOutcomeTopicsUploader {
 
     /**
      * Выгрузка сообщения.
+     *
      * @param descriptor описатель исходящего канала.
-     * @param message выгружаемое сообщение.
-     * @param headers заголовки.
+     * @param message    выгружаемое сообщение.
+     * @param headers    заголовки.
      */
-    public <M extends Message<? extends MessageHeader, ? extends MessageBody>>
+    public <M extends Message<? extends MessageBody>>
     void uploadMessage(
             @NotNull final KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
             @NotNull final M message,
@@ -80,11 +80,12 @@ public class KafkaOutcomeTopicsUploader {
 
     /**
      * Выгрузка объекта (с упаковкой в сообщение, класс и конструктор которого определяется в описателе).
+     *
      * @param descriptor описатель исходящего канала.
      * @param dataObject выгружаемый объект данных.
-     * @param headers заголовки.
+     * @param headers    заголовки.
      */
-    public <M extends Message<? extends MessageHeader, ? extends MessageBody>, D extends DataObject>
+    public <M extends Message<? extends MessageBody>, D extends DataObject>
     void uploadObject(
             @NotNull final KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
             @NotNull final D dataObject,
@@ -97,11 +98,12 @@ public class KafkaOutcomeTopicsUploader {
 
     /**
      * Выгрузка списка объектов (с упаковкой в сообщения, класс и конструктор которого определяется в описателе).
-     * @param descriptor описатель исходящего канала.
+     *
+     * @param descriptor  описатель исходящего канала.
      * @param dataObjects выгружаемый объект данных.
-     * @param headers заголовки.
+     * @param headers     заголовки.
      */
-    public <M extends Message<? extends MessageHeader, ? extends MessageBody>, D extends DataObject>
+    public <M extends Message<? extends MessageBody>, D extends DataObject>
     void uploadObjects(
             @NotNull final KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
             @NotNull final Iterable<D> dataObjects,
@@ -133,14 +135,20 @@ public class KafkaOutcomeTopicsUploader {
     }
 
     @SuppressWarnings("unchecked")
-    protected <M extends Message<? extends MessageHeader, ? extends MessageBody>, D extends DataObject>
+    protected <M extends Message<? extends MessageBody>, D extends DataObject>
     void internalUploadDataObject(
             @NotNull final KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
             @NotNull final D dataObject,
             @Nullable Iterable<Header> headers
     ) throws Exception {
-        final var message = (M)this.messagesFactory
-                .createByDataObject(null, descriptor.getApi().getMessageType(), descriptor.getApi().getVersion(), dataObject, null);
+        final var message = (M) this.messagesFactory
+                .createByDataObject(
+                        null,
+                        descriptor.getApi().getMessageType(),
+                        descriptor.getApi().getVersion(),
+                        dataObject,
+                        null
+                );
 
         this.serviceHeaders.clear();
         this.serviceHeaders.add(this.serviceHeaderClassName.setValue(message.getClass().getSimpleName()));
@@ -148,7 +156,7 @@ public class KafkaOutcomeTopicsUploader {
     }
 
     @SuppressWarnings("unchecked")
-    protected <M extends Message<? extends MessageHeader, ? extends MessageBody>>
+    protected <M extends Message<? extends MessageBody>>
     void internalUploadPreparedData(
             @NotNull KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
             @NotNull M message,
@@ -158,9 +166,10 @@ public class KafkaOutcomeTopicsUploader {
 
         // Объединяем списки заголовков.
         // В подавляющем большинстве случаев будет 0 или 1 заголовок.
-        final var allHeadersMap = (descriptor.metadataSize() > 0 || headers != null || theServiceHeaders.size() > 0)
-                ? new HashMap<String, Header>()
-                : null;
+        final var allHeadersMap =
+                descriptor.metadataSize() > 0 || headers != null || theServiceHeaders.size() > 0
+                        ? new HashMap<String, Header>()
+                        : null;
         if (allHeadersMap != null) {
             descriptor.getAllMetadata()
                     .forEach(md -> {
@@ -176,20 +185,35 @@ public class KafkaOutcomeTopicsUploader {
         }
 
         // Если 0 заголовков, то в конструктор ProducerRecord передаем null.
-        final var allHeaders = allHeadersMap != null && allHeadersMap.size() > 0 ? allHeadersMap.values() : null;
+        final var allHeaders =
+                allHeadersMap != null && allHeadersMap.size() > 0
+                        ? allHeadersMap.values()
+                        : null;
 
         // RecordMetadata recordMetadata;
         if (descriptor.getApi().getSerializeMode() == SerializeMode.JsonString) {
             final var producer = (Producer<Long, String>) descriptor.getProducer();
             final var serializedMessage = this.objectMapper.writeValueAsString(message);
-            final var record = new ProducerRecord<Long, String>(descriptor.getApi().getName(), null, null, serializedMessage, allHeaders);
+            final var record = new ProducerRecord<Long, String>(
+                    descriptor.getApi().getName(),
+                    null,
+                    null,
+                    serializedMessage,
+                    allHeaders
+            );
             // Собственно отправка в Kafka:
             // recordMetadata = producer.send(record).get();
             producer.send(record);
         } else {
             final var producer = (Producer<Long, byte[]>) descriptor.getProducer();
             final var serializedMessage = this.objectMapper.writeValueAsBytes(message);
-            final var record = new ProducerRecord<Long, byte[]>(descriptor.getApi().getName(), null, null, serializedMessage, allHeaders);
+            final var record = new ProducerRecord<Long, byte[]>(
+                    descriptor.getApi().getName(),
+                    null,
+                    null,
+                    serializedMessage,
+                    allHeaders
+            );
             // Собственно отправка в Kafka:
             // recordMetadata = producer.send(record).get();
             producer.send(record);

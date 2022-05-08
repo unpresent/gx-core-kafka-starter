@@ -11,7 +11,7 @@ import java.util.Collection;
  * а также сохранять туда же текущие смещения.
  */
 @SuppressWarnings("unused")
-public interface TopicsOffsetsController {
+public interface TopicsOffsetsStorage {
     /**
      * Загрузка смещений и выдача результата в виде коллекции.
      * @param direction Направление топиков, для которых надо прочитать смещения.

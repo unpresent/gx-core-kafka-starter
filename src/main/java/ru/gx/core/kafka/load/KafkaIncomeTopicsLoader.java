@@ -14,7 +14,6 @@ import ru.gx.core.channels.SerializeMode;
 import ru.gx.core.kafka.KafkaConstants;
 import ru.gx.core.messaging.Message;
 import ru.gx.core.messaging.MessageBody;
-import ru.gx.core.messaging.MessageHeader;
 import ru.gx.core.messaging.MessagesPrioritizedQueue;
 
 import java.io.IOException;
@@ -77,7 +76,7 @@ public class KafkaIncomeTopicsLoader {
      * @param descriptor Описатель загрузки из Топика.
      * @return Список загруженных объектов.
      */
-    public <H extends MessageHeader, B extends MessageBody, M extends Message<H, B>>
+    public <B extends MessageBody, M extends Message<B>>
     int processByTopic(@NotNull final KafkaIncomeTopicLoadingDescriptor<M> descriptor) {
         checkDescriptorIsActive(descriptor);
         return internalProcessDescriptor(descriptor);
@@ -101,7 +100,7 @@ public class KafkaIncomeTopicsLoader {
             }
             for (var topicDescriptor : topicDescriptors) {
                 if (topicDescriptor.isEnabled()) {
-                    final var kafkaDescriptor = (KafkaIncomeTopicLoadingDescriptor<Message<MessageHeader, MessageBody>>)topicDescriptor;
+                    final var kafkaDescriptor = (KafkaIncomeTopicLoadingDescriptor<Message<MessageBody>>)topicDescriptor;
                     log.debug("Loading working data from topic: {}", topicDescriptor.getApi().getName());
                     final var eventsCount = this.processByTopic(kafkaDescriptor);
                     result.put(kafkaDescriptor, eventsCount);
@@ -137,7 +136,7 @@ public class KafkaIncomeTopicsLoader {
      * @return Количество обработанных сообщений.
      */
     @SneakyThrows
-    protected <H extends MessageHeader, B extends MessageBody, M extends Message<H, B>>
+    protected <B extends MessageBody, M extends Message<B>>
     int internalProcessDescriptor(@NotNull final KafkaIncomeTopicLoadingDescriptor<M> descriptor) {
         // TODO: Добавить сбор статистики
         final var records = internalPoll(descriptor);
@@ -164,9 +163,12 @@ public class KafkaIncomeTopicsLoader {
      */
     @SuppressWarnings({"BusyWait"})
     @SneakyThrows({InterruptedException.class, IOException.class})
-    protected <H extends MessageHeader, B extends MessageBody, M extends Message<H, B>>
-    // <M extends Message<? extends MessageHeader, ? extends MessageBody>> // Fuck! Так не признает!
-    void internalProcessRecord(@NotNull final KafkaIncomeTopicLoadingDescriptor<M> descriptor, @NotNull final ConsumerRecord<Object, Object> record) {
+    protected <B extends MessageBody, M extends Message<B>>
+    // <M extends Message<? extends MessageBody>> // Fuck! Так не признает!
+    void internalProcessRecord(
+            @NotNull final KafkaIncomeTopicLoadingDescriptor<M> descriptor,
+            @NotNull final ConsumerRecord<Object, Object> record
+    ) {
         // Формируем объект-событие.
         M message;
         if (descriptor.getApi().getSerializeMode() == SerializeMode.JsonString) {
@@ -219,6 +221,9 @@ public class KafkaIncomeTopicsLoader {
         final var consumer = descriptor.getConsumer();
         final ConsumerRecords<Object, Object> records =
                 (ConsumerRecords<Object, Object>) consumer.poll(descriptor.getDurationOnPoll());
+
+        consumer.commitAsync();
+
         log.debug("Topic: {}; polled: {} records", descriptor.getApi().getName(), records.count());
         return records;
     }

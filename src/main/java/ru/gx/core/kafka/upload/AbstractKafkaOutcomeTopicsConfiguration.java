@@ -10,10 +10,6 @@ import ru.gx.core.messaging.MessageHeader;
 
 public abstract class AbstractKafkaOutcomeTopicsConfiguration extends AbstractChannelsConfiguration {
     // -------------------------------------------------------------------------------------------------------------
-    // <editor-fold desc="Fields">
-
-    // </editor-fold>
-    // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
     protected AbstractKafkaOutcomeTopicsConfiguration(@NotNull final String configurationName) {
         super(ChannelDirection.Out, configurationName);
@@ -27,7 +23,7 @@ public abstract class AbstractKafkaOutcomeTopicsConfiguration extends AbstractCh
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Реализация OutcomeTopicsConfiguration">
     @Override
-    protected <M extends Message<? extends MessageHeader, ? extends MessageBody>, D extends ChannelHandlerDescriptor<M>>
+    protected <M extends Message<? extends MessageBody>, D extends ChannelHandlerDescriptor<M>>
     boolean allowCreateDescriptor(@NotNull Class<D> descriptorClass) {
         return KafkaOutcomeTopicUploadingDescriptor.class.isAssignableFrom(descriptorClass);
     }

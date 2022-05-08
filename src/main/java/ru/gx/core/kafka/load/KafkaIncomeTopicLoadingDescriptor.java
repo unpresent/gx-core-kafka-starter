@@ -27,7 +27,7 @@ import java.util.*;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends MessageHeader, ? extends MessageBody>>
+public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends MessageBody>>
         extends AbstractIncomeChannelHandlerDescriptor<M> {
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
