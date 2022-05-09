@@ -1,7 +1,9 @@
 package ru.gx.core.kafka.offsets;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.gx.core.channels.ChannelDirection;
+import ru.gx.core.messaging.Message;
 
 import java.util.Collection;
 
@@ -14,16 +16,41 @@ import java.util.Collection;
 public interface TopicsOffsetsStorage {
     /**
      * Загрузка смещений и выдача результата в виде коллекции.
-     * @param direction Направление топиков, для которых надо прочитать смещения.
+     *
+     * @param direction   Направление топиков, для которых надо прочитать смещения.
      * @param serviceName Название сервиса, для которого надо прочитать смещения.
      * @return Список смещений.
      */
-    @NotNull
-    Collection<TopicPartitionOffset> loadOffsets(@NotNull final ChannelDirection direction, @NotNull final String serviceName);
+    @Nullable
+    Collection<TopicPartitionOffset> loadOffsets(
+            @NotNull final ChannelDirection direction,
+            @NotNull final String serviceName
+    );
 
     /**
      * Сохранение всех смещений, переданным в списке смещений.
-     * @param offsets Список смещений, который требуется сохранить.
+     *
+     * @param direction   Направление (относительно текущего сервиса) очередей для сохраняемых смещений.
+     * @param serviceName Имя текущего сервиса, для которого сохраняются смещения.
+     * @param offsets     Список смещений, который требуется сохранить.
      */
-    void saveOffsets(@NotNull final ChannelDirection direction, @NotNull final String serviceName, @NotNull final Collection<TopicPartitionOffset> offsets);
+    void saveOffsets(
+            @NotNull final ChannelDirection direction,
+            @NotNull final String serviceName,
+            @NotNull final Collection<TopicPartitionOffset> offsets
+    );
+
+    /**
+     * Сохранение всех смещений, переданным в списке смещений.
+     *
+     * @param direction   Направление (относительно текущего сервиса) очередей для сохраняемых смещений.
+     * @param serviceName Имя текущего сервиса, для которого сохраняются смещения.
+     * @param message     Список смещений извлекается из метаданных данного сообщения,
+     *                    см. {@link ru.gx.core.kafka.KafkaConstants}
+     */
+    void saveOffsetFromMessage(
+            @NotNull final ChannelDirection direction,
+            @NotNull final String serviceName,
+            @NotNull final Message<?> message
+    );
 }

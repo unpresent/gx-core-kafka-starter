@@ -20,6 +20,7 @@ import ru.gx.core.kafka.offsets.TopicsOffsetsStorage;
 import ru.gx.core.kafka.upload.KafkaOutcomeTopicsUploader;
 import ru.gx.core.messaging.DefaultMessagesFactory;
 import ru.gx.core.messaging.MessagesPrioritizedQueue;
+import ru.gx.core.settings.StandardSettingsController;
 
 import java.util.List;
 
@@ -57,6 +58,19 @@ public class CommonAutoConfiguration {
             @NotNull final DefaultMessagesFactory messagesFactory
     ) {
         return new KafkaOutcomeTopicsUploader(objectMapper, messagesFactory);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(
+            value = KafkaSimpleListenerSettingsContainer.SIMPLE_LISTENER_SETTINGS_PREFIX + DOT_ENABLED,
+            havingValue = "true"
+    )
+    @Autowired
+    public KafkaSimpleListenerSettingsContainer kafkaSimpleListenerSettingsContainer(
+            @NotNull final StandardSettingsController standardSettingsController
+    ) {
+        return new KafkaSimpleListenerSettingsContainer(standardSettingsController);
     }
 
     @Bean
