@@ -107,10 +107,9 @@ public class KafkaSimpleListener extends AbstractWorker {
     public void startKafkaListener(KafkaSimpleListenerOnStartingExecuteEvent __) {
         log.debug("Starting startKafkaListener()");
 
-        Collection<TopicPartitionOffset> topicPartitionOffsets =
-                this.topicsOffsetsStorage.loadOffsets(ChannelDirection.In, this.serviceName);
-
         for (final var config : this.kafkaIncomeTopicsConfigurations) {
+            final var topicPartitionOffsets =
+                    this.topicsOffsetsStorage.loadOffsets(ChannelDirection.In, this.serviceName, config);
             if (CollectionUtils.isEmpty(topicPartitionOffsets)) {
                 kafkaIncomeTopicsOffsetsController.seekAllToBegin(config);
             } else {
