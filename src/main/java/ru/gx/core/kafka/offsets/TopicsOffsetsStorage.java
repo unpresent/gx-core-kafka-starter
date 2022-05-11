@@ -2,8 +2,8 @@ package ru.gx.core.kafka.offsets;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.gx.core.channels.AbstractChannelsConfiguration;
 import ru.gx.core.channels.ChannelDirection;
+import ru.gx.core.channels.ChannelsConfiguration;
 import ru.gx.core.messaging.Message;
 
 import java.util.Collection;
@@ -26,7 +26,7 @@ public interface TopicsOffsetsStorage {
     Collection<TopicPartitionOffset> loadOffsets(
             @NotNull final ChannelDirection direction,
             @NotNull final String serviceName,
-            @NotNull final AbstractChannelsConfiguration configuration
+            @NotNull final ChannelsConfiguration configuration
     );
 
     /**
@@ -39,6 +39,7 @@ public interface TopicsOffsetsStorage {
     void saveOffsets(
             @NotNull final ChannelDirection direction,
             @NotNull final String serviceName,
+            @NotNull final ChannelsConfiguration configuration,
             @NotNull final Collection<TopicPartitionOffset> offsets
     );
 
