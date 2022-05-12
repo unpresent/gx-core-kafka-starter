@@ -192,7 +192,6 @@ public class KafkaOutcomeTopicsUploader {
 
         // RecordMetadata recordMetadata;
         if (descriptor.getApi().getSerializeMode() == SerializeMode.JsonString) {
-            final var producer = (Producer<Long, String>) descriptor.getProducer();
             final var serializedMessage = this.objectMapper.writeValueAsString(message);
             final var record = new ProducerRecord<Long, String>(
                     descriptor.getApi().getName(),
@@ -201,11 +200,14 @@ public class KafkaOutcomeTopicsUploader {
                     serializedMessage,
                     allHeaders
             );
-            // Собственно отправка в Kafka:
-            // recordMetadata = producer.send(record).get();
-            producer.send(record);
+            final var producer = (Producer<Long, String>) descriptor.getProducer();
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (producer) {
+                // Собственно отправка в Kafka:
+                // recordMetadata = producer.send(record).get();
+                producer.send(record);
+            }
         } else {
-            final var producer = (Producer<Long, byte[]>) descriptor.getProducer();
             final var serializedMessage = this.objectMapper.writeValueAsBytes(message);
             final var record = new ProducerRecord<Long, byte[]>(
                     descriptor.getApi().getName(),
@@ -214,9 +216,13 @@ public class KafkaOutcomeTopicsUploader {
                     serializedMessage,
                     allHeaders
             );
-            // Собственно отправка в Kafka:
-            // recordMetadata = producer.send(record).get();
-            producer.send(record);
+            final var producer = (Producer<Long, byte[]>) descriptor.getProducer();
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (producer) {
+                // Собственно отправка в Kafka:
+                // recordMetadata = producer.send(record).get();
+                producer.send(record);
+            }
         }
         // return new PartitionOffset(recordMetadata.partition(), recordMetadata.offset());
     }

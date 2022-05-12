@@ -11,11 +11,9 @@ import ru.gx.core.channels.ChannelDirection;
 import ru.gx.core.kafka.load.AbstractKafkaIncomeTopicsConfiguration;
 import ru.gx.core.kafka.load.KafkaIncomeTopicsLoader;
 import ru.gx.core.kafka.load.KafkaIncomeTopicsOffsetsController;
-import ru.gx.core.kafka.offsets.TopicPartitionOffset;
 import ru.gx.core.kafka.offsets.TopicsOffsetsStorage;
 import ru.gx.core.worker.AbstractWorker;
 
-import java.util.Collection;
 import java.util.List;
 
 @Slf4j

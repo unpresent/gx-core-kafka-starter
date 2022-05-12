@@ -100,7 +100,7 @@ public class KafkaIncomeTopicsLoader {
             }
             for (var topicDescriptor : topicDescriptors) {
                 if (topicDescriptor.isEnabled()) {
-                    final var kafkaDescriptor = (KafkaIncomeTopicLoadingDescriptor<Message<MessageBody>>)topicDescriptor;
+                    final var kafkaDescriptor = (KafkaIncomeTopicLoadingDescriptor<Message<MessageBody>>) topicDescriptor;
                     log.debug("Loading working data from topic: {}", topicDescriptor.getApi().getName());
                     final var eventsCount = this.processByTopic(kafkaDescriptor);
                     result.put(kafkaDescriptor, eventsCount);
@@ -213,17 +213,17 @@ public class KafkaIncomeTopicsLoader {
      * @param descriptor Описатель загрузки из Топика.
      * @return Записи Consumer-а.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "SynchronizationOnLocalVariableOrMethodParameter"})
     @NotNull
     protected ConsumerRecords<Object, Object> internalPoll(
             @NotNull final KafkaIncomeTopicLoadingDescriptor<?> descriptor
     ) {
         final var consumer = descriptor.getConsumer();
-        final ConsumerRecords<Object, Object> records =
-                (ConsumerRecords<Object, Object>) consumer.poll(descriptor.getDurationOnPoll());
-
-        consumer.commitAsync();
-
+        ConsumerRecords<Object, Object> records;
+        synchronized (consumer) {
+            records = (ConsumerRecords<Object, Object>) consumer
+                    .poll(descriptor.getDurationOnPoll());
+        }
         log.debug("Topic: {}; polled: {} records", descriptor.getApi().getName(), records.count());
         return records;
     }
