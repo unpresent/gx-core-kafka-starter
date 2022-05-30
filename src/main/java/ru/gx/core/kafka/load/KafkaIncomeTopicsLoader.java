@@ -190,6 +190,10 @@ public class KafkaIncomeTopicsLoader {
         message.putMetadata(KafkaConstants.METADATA_PARTITION, record.partition());
         message.putMetadata(KafkaConstants.METADATA_OFFSET, record.offset());
 
+        if (descriptor.getLoadingFiltrator() != null && !descriptor.getLoadingFiltrator().allowProcess(message)) {
+            return;
+        }
+
         if (descriptor.getProcessType() == IncomeDataProcessType.Immediate) {
             // Если обработка непосредственная, то прям в этом потоке вызываем обработчик(и) события.
             this.eventPublisher.publishEvent(message);

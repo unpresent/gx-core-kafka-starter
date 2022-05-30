@@ -32,6 +32,9 @@ public class KafkaIncomeTopicsOffsetsController {
             @NotNull final AbstractKafkaIncomeTopicsConfiguration configuration,
             @NotNull final Collection<TopicPartitionOffset> offsets
     ) {
+        final var list = new ArrayList<ChannelHandlerDescriptor<?>>();
+        configuration.getAll().forEach(list::add);
+
         offsets.forEach(o -> {
             final var topicDescriptor =
                     configuration.tryGet(o.getTopic());
@@ -39,8 +42,11 @@ public class KafkaIncomeTopicsOffsetsController {
                     final KafkaIncomeTopicLoadingDescriptor<?
                             extends Message<? extends MessageBody>> kafkaDescriptor) {
                 internalSeekItem(kafkaDescriptor, o.getPartition(), o.getOffset());
+                list.remove(kafkaDescriptor);
             }
         });
+
+        list.forEach(this::internalSeekTopicAllPartitionsToBegin);
     }
 
     /**
