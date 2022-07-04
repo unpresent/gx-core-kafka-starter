@@ -7,6 +7,7 @@ import org.apache.kafka.common.header.Header;
 import org.jetbrains.annotations.NotNull;
 import ru.gx.core.utils.BytesUtils;
 
+@SuppressWarnings("unused")
 @Accessors(chain = true)
 @EqualsAndHashCode
 @ToString

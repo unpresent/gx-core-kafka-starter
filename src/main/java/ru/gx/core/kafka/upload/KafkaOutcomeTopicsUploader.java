@@ -42,10 +42,10 @@ public class KafkaOutcomeTopicsUploader {
     private final ArrayList<Header> serviceHeaders = new ArrayList<>();
 
     @NotNull
-    private final StringHeader serviceHeaderClassName = new StringHeader(ServiceHeadersKeys.dataObjectClassName, null);
+    private final StringHeader serviceHeaderClassName = new StringHeader(ServiceHeadersKeys.DATA_OBJECT_CLASS_NAME, null);
 
     @NotNull
-    private final LongHeader serviceHeaderPackageSize = new LongHeader(ServiceHeadersKeys.dataPackageSize, 0);
+    private final LongHeader serviceHeaderPackageSize = new LongHeader(ServiceHeadersKeys.DATA_PACKAGE_SIZE, 0);
 
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
@@ -67,9 +67,9 @@ public class KafkaOutcomeTopicsUploader {
      */
     public <M extends Message<? extends MessageBody>>
     void uploadMessage(
-            @NotNull final KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
+            @NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor,
             @NotNull final M message,
-            @Nullable Iterable<Header> headers
+            @Nullable final Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsActive(descriptor);
 
@@ -87,9 +87,9 @@ public class KafkaOutcomeTopicsUploader {
      */
     public <M extends Message<? extends MessageBody>, D extends DataObject>
     void uploadObject(
-            @NotNull final KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
+            @NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor,
             @NotNull final D dataObject,
-            @Nullable Iterable<Header> headers
+            @Nullable final Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsActive(descriptor);
 
@@ -105,9 +105,9 @@ public class KafkaOutcomeTopicsUploader {
      */
     public <M extends Message<? extends MessageBody>, D extends DataObject>
     void uploadObjects(
-            @NotNull final KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
+            @NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor,
             @NotNull final Iterable<D> dataObjects,
-            @Nullable Iterable<Header> headers
+            @Nullable final Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsActive(descriptor);
 
@@ -125,27 +125,31 @@ public class KafkaOutcomeTopicsUploader {
      *
      * @param descriptor описатель.
      */
-    protected void checkDescriptorIsActive(@NotNull final KafkaOutcomeTopicUploadingDescriptor<?> descriptor) {
+    protected void checkDescriptorIsActive(@NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor) {
         if (!descriptor.isInitialized()) {
-            throw new ChannelConfigurationException("Topic descriptor " + descriptor.getApi().getName() + " is not initialized!");
+            throw new ChannelConfigurationException("Topic descriptor " + descriptor.getChannelName() + " is not initialized!");
         }
         if (!descriptor.isEnabled()) {
-            throw new ChannelConfigurationException("Topic descriptor " + descriptor.getApi().getName() + " is not enabled!");
+            throw new ChannelConfigurationException("Topic descriptor " + descriptor.getChannelName() + " is not enabled!");
         }
     }
 
     @SuppressWarnings("unchecked")
     protected <M extends Message<? extends MessageBody>, D extends DataObject>
     void internalUploadDataObject(
-            @NotNull final KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
+            @NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor,
             @NotNull final D dataObject,
-            @Nullable Iterable<Header> headers
+            @Nullable final Iterable<Header> headers
     ) throws Exception {
+        final var api = descriptor.getApi();
+        if (api == null) {
+            throw new NullPointerException("descriptor.getApi() is null!");
+        }
         final var message = (M) this.messagesFactory
                 .createByDataObject(
                         null,
-                        descriptor.getApi().getMessageType(),
-                        descriptor.getApi().getVersion(),
+                        api.getMessageType(),
+                        api.getVersion(),
                         dataObject,
                         null
                 );
@@ -158,11 +162,15 @@ public class KafkaOutcomeTopicsUploader {
     @SuppressWarnings("unchecked")
     protected <M extends Message<? extends MessageBody>>
     void internalUploadPreparedData(
-            @NotNull KafkaOutcomeTopicUploadingDescriptor<M> descriptor,
-            @NotNull M message,
-            @Nullable Iterable<Header> headers,
-            @NotNull Collection<Header> theServiceHeaders
+            @NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor,
+            @NotNull final M message,
+            @Nullable final Iterable<Header> headers,
+            @NotNull final Collection<Header> theServiceHeaders
     ) throws Exception {
+        final var api = descriptor.getApi();
+        if (api == null) {
+            throw new NullPointerException("descriptor.getApi() is null!");
+        }
 
         // Объединяем списки заголовков.
         // В подавляющем большинстве случаев будет 0 или 1 заголовок.
@@ -191,10 +199,10 @@ public class KafkaOutcomeTopicsUploader {
                         : null;
 
         // RecordMetadata recordMetadata;
-        if (descriptor.getApi().getSerializeMode() == SerializeMode.JsonString) {
+        if (api.getSerializeMode() == SerializeMode.JsonString) {
             final var serializedMessage = this.objectMapper.writeValueAsString(message);
             final var record = new ProducerRecord<Long, String>(
-                    descriptor.getApi().getName(),
+                    descriptor.getChannelName(),
                     null,
                     null,
                     serializedMessage,
@@ -210,7 +218,7 @@ public class KafkaOutcomeTopicsUploader {
         } else {
             final var serializedMessage = this.objectMapper.writeValueAsBytes(message);
             final var record = new ProducerRecord<Long, byte[]>(
-                    descriptor.getApi().getName(),
+                    descriptor.getChannelName(),
                     null,
                     null,
                     serializedMessage,

@@ -23,7 +23,7 @@ public abstract class AbstractKafkaOutcomeTopicsConfiguration extends AbstractCh
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Реализация OutcomeTopicsConfiguration">
     @Override
-    protected <M extends Message<? extends MessageBody>, D extends ChannelHandlerDescriptor<M>>
+    protected <D extends ChannelHandlerDescriptor>
     boolean allowCreateDescriptor(@NotNull Class<D> descriptorClass) {
         return KafkaOutcomeTopicUploadingDescriptor.class.isAssignableFrom(descriptorClass);
     }

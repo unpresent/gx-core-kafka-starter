@@ -26,7 +26,7 @@ import static lombok.AccessLevel.PROTECTED;
 /**
  * Базовая реализация загрузчика, который упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "ClassCanBeRecord"})
 @Slf4j
 public class KafkaIncomeTopicsLoader {
     private final static int MAX_SLEEP_MS = 64;
@@ -77,7 +77,7 @@ public class KafkaIncomeTopicsLoader {
      * @return Список загруженных объектов.
      */
     public <B extends MessageBody, M extends Message<B>>
-    int processByTopic(@NotNull final KafkaIncomeTopicLoadingDescriptor<M> descriptor) {
+    int processByTopic(@NotNull final KafkaIncomeTopicLoadingDescriptor descriptor) {
         checkDescriptorIsActive(descriptor);
         return internalProcessDescriptor(descriptor);
     }
@@ -87,12 +87,11 @@ public class KafkaIncomeTopicsLoader {
      *
      * @return Map-а, в которой для каждого дескриптора указан список загруженных объектов.
      */
-    @SuppressWarnings("unchecked")
     @NotNull
-    public Map<KafkaIncomeTopicLoadingDescriptor<?>, Integer>
+    public Map<KafkaIncomeTopicLoadingDescriptor, Integer>
     processAllTopics(@NotNull final AbstractKafkaIncomeTopicsConfiguration configuration) throws InvalidParameterException {
         final var pCount = configuration.prioritiesCount();
-        final var result = new HashMap<KafkaIncomeTopicLoadingDescriptor<?>, Integer>();
+        final var result = new HashMap<KafkaIncomeTopicLoadingDescriptor, Integer>();
         for (int p = 0; p < pCount; p++) {
             final var topicDescriptors = configuration.getByPriority(p);
             if (topicDescriptors == null) {
@@ -100,11 +99,11 @@ public class KafkaIncomeTopicsLoader {
             }
             for (var topicDescriptor : topicDescriptors) {
                 if (topicDescriptor.isEnabled()) {
-                    final var kafkaDescriptor = (KafkaIncomeTopicLoadingDescriptor<Message<MessageBody>>) topicDescriptor;
-                    log.debug("Loading working data from topic: {}", topicDescriptor.getApi().getName());
+                    final var kafkaDescriptor = (KafkaIncomeTopicLoadingDescriptor) topicDescriptor;
+                    log.debug("Loading working data from topic: {}", topicDescriptor.getChannelName());
                     final var eventsCount = this.processByTopic(kafkaDescriptor);
                     result.put(kafkaDescriptor, eventsCount);
-                    log.debug("Loaded working data from topic. Events: {}", kafkaDescriptor.getApi().getName());
+                    log.debug("Loaded working data from topic. Events: {}", kafkaDescriptor.getChannelName());
                 }
             }
         }
@@ -120,12 +119,12 @@ public class KafkaIncomeTopicsLoader {
      *
      * @param descriptor описатель, который проверяем.
      */
-    protected void checkDescriptorIsActive(@NotNull final KafkaIncomeTopicLoadingDescriptor<?> descriptor) {
+    protected void checkDescriptorIsActive(@NotNull final KafkaIncomeTopicLoadingDescriptor descriptor) {
         if (!descriptor.isInitialized()) {
-            throw new ChannelConfigurationException("Channel descriptor " + descriptor.getApi().getName() + " is not initialized!");
+            throw new ChannelConfigurationException("Channel descriptor " + descriptor.getChannelName() + " is not initialized!");
         }
         if (!descriptor.isEnabled()) {
-            throw new ChannelConfigurationException("Channel descriptor " + descriptor.getApi().getName() + " is not enabled!");
+            throw new ChannelConfigurationException("Channel descriptor " + descriptor.getChannelName() + " is not enabled!");
         }
     }
 
@@ -137,7 +136,7 @@ public class KafkaIncomeTopicsLoader {
      */
     @SneakyThrows
     protected <B extends MessageBody, M extends Message<B>>
-    int internalProcessDescriptor(@NotNull final KafkaIncomeTopicLoadingDescriptor<M> descriptor) {
+    int internalProcessDescriptor(@NotNull final KafkaIncomeTopicLoadingDescriptor descriptor) {
         // TODO: Добавить сбор статистики
         final var records = internalPoll(descriptor);
         var messagesCount = 0; // Количество сообщений. Для статистики.
@@ -161,22 +160,26 @@ public class KafkaIncomeTopicsLoader {
      * @param descriptor Описатель канала.
      * @param record     Запись, полученная из Kafka.
      */
-    @SuppressWarnings({"BusyWait"})
+    @SuppressWarnings({"BusyWait", "unchecked"})
     @SneakyThrows({InterruptedException.class, IOException.class})
     protected <B extends MessageBody, M extends Message<B>>
     // <M extends Message<? extends MessageBody>> // Fuck! Так не признает!
     void internalProcessRecord(
-            @NotNull final KafkaIncomeTopicLoadingDescriptor<M> descriptor,
+            @NotNull final KafkaIncomeTopicLoadingDescriptor descriptor,
             @NotNull final ConsumerRecord<Object, Object> record
     ) {
         // Формируем объект-событие.
         M message;
-        if (descriptor.getApi().getSerializeMode() == SerializeMode.JsonString) {
+        final var api = descriptor.getApi();
+        if (api == null) {
+            throw new NullPointerException("descriptor.getApi() is null!");
+        }
+        if (api.getSerializeMode() == SerializeMode.JsonString) {
             final var strValue = (String) record.value();
-            message = this.objectMapper.readValue(strValue, descriptor.getApi().getMessageClass());
+            message = (M)this.objectMapper.readValue(strValue, api.getMessageClass());
         } else {
             final var strValue = (byte[]) record.value();
-            message = this.objectMapper.readValue(strValue, descriptor.getApi().getMessageClass());
+            message = (M)this.objectMapper.readValue(strValue, api.getMessageClass());
         }
         message.setChannelDescriptor(descriptor);
 
@@ -220,7 +223,7 @@ public class KafkaIncomeTopicsLoader {
     @SuppressWarnings({"unchecked", "SynchronizationOnLocalVariableOrMethodParameter"})
     @NotNull
     protected ConsumerRecords<Object, Object> internalPoll(
-            @NotNull final KafkaIncomeTopicLoadingDescriptor<?> descriptor
+            @NotNull final KafkaIncomeTopicLoadingDescriptor descriptor
     ) {
         final var consumer = descriptor.getConsumer();
         ConsumerRecords<Object, Object> records;
@@ -228,7 +231,7 @@ public class KafkaIncomeTopicsLoader {
             records = (ConsumerRecords<Object, Object>) consumer
                     .poll(descriptor.getDurationOnPoll());
         }
-        log.debug("Topic: {}; polled: {} records", descriptor.getApi().getName(), records.count());
+        log.debug("Topic: {}; polled: {} records", descriptor.getChannelName(), records.count());
         return records;
     }
     // </editor-fold>

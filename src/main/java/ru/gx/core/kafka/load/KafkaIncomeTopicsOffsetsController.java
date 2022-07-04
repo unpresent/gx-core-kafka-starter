@@ -4,11 +4,10 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.TopicPartition;
 import org.jetbrains.annotations.NotNull;
 import ru.gx.core.channels.ChannelHandlerDescriptor;
-import ru.gx.core.messaging.Message;
 import ru.gx.core.kafka.offsets.PartitionOffset;
 import ru.gx.core.kafka.offsets.TopicPartitionOffset;
+import ru.gx.core.messaging.Message;
 import ru.gx.core.messaging.MessageBody;
-import ru.gx.core.messaging.MessageHeader;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,15 +31,14 @@ public class KafkaIncomeTopicsOffsetsController {
             @NotNull final AbstractKafkaIncomeTopicsConfiguration configuration,
             @NotNull final Collection<TopicPartitionOffset> offsets
     ) {
-        final var list = new ArrayList<ChannelHandlerDescriptor<?>>();
+        final var list = new ArrayList<ChannelHandlerDescriptor>();
         configuration.getAll().forEach(list::add);
 
         offsets.forEach(o -> {
             final var topicDescriptor =
                     configuration.tryGet(o.getTopic());
             if (topicDescriptor instanceof
-                    final KafkaIncomeTopicLoadingDescriptor<?
-                            extends Message<? extends MessageBody>> kafkaDescriptor) {
+                    final KafkaIncomeTopicLoadingDescriptor kafkaDescriptor) {
                 internalSeekItem(kafkaDescriptor, o.getPartition(), o.getOffset());
                 list.remove(kafkaDescriptor);
             }
@@ -71,7 +69,7 @@ public class KafkaIncomeTopicsOffsetsController {
      */
     public <M extends Message<? extends MessageBody>>
     void seekTopicAllPartitionsToBegin(
-            @NotNull final KafkaIncomeTopicLoadingDescriptor<M> topicDescriptor
+            @NotNull final KafkaIncomeTopicLoadingDescriptor topicDescriptor
     ) {
         internalSeekTopicAllPartitionsToBegin(topicDescriptor);
     }
@@ -83,7 +81,7 @@ public class KafkaIncomeTopicsOffsetsController {
      */
     public <M extends Message<? extends MessageBody>>
     void seekTopicAllPartitionsToEnd(
-            @NotNull final KafkaIncomeTopicLoadingDescriptor<M> topicDescriptor
+            @NotNull final KafkaIncomeTopicLoadingDescriptor topicDescriptor
     ) {
         internalSeekTopicAllPartitionsToEnd(topicDescriptor);
     }
@@ -96,7 +94,7 @@ public class KafkaIncomeTopicsOffsetsController {
      */
     public <M extends Message<? extends MessageBody>>
     void seekTopic(
-            @NotNull final KafkaIncomeTopicLoadingDescriptor<M> topicDescriptor,
+            @NotNull final KafkaIncomeTopicLoadingDescriptor topicDescriptor,
             @NotNull final Iterable<PartitionOffset> partitionOffsets
     ) {
         partitionOffsets
@@ -115,11 +113,11 @@ public class KafkaIncomeTopicsOffsetsController {
         final var offsets = new ArrayList<TopicPartitionOffset>();
         configuration.getAll()
                 .forEach(channelDescriptor -> {
-                    final var topicDescriptor = (KafkaIncomeTopicLoadingDescriptor<?>) channelDescriptor;
+                    final var topicDescriptor = (KafkaIncomeTopicLoadingDescriptor) channelDescriptor;
                     topicDescriptor.getPartitions()
                             .forEach(p -> offsets
                                     .add(new TopicPartitionOffset(
-                                            topicDescriptor.getApi().getName(),
+                                            topicDescriptor.getChannelName(),
                                             p,
                                             topicDescriptor.getOffset(p))
                                     ));
@@ -130,27 +128,25 @@ public class KafkaIncomeTopicsOffsetsController {
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Внутренняя реализация">
-    @SuppressWarnings("unchecked")
     protected <M extends Message<? extends MessageBody>>
-    void internalSeekTopicAllPartitionsToBegin(@NotNull ChannelHandlerDescriptor<?> topicDescriptor) {
+    void internalSeekTopicAllPartitionsToBegin(@NotNull ChannelHandlerDescriptor topicDescriptor) {
         this.internalSeekTopicAllPartitionsToBorder(
-                (KafkaIncomeTopicLoadingDescriptor<M>) topicDescriptor,
+                (KafkaIncomeTopicLoadingDescriptor) topicDescriptor,
                 Consumer::seekToBeginning
         );
     }
 
-    @SuppressWarnings("unchecked")
     protected <M extends Message<? extends MessageBody>>
-    void internalSeekTopicAllPartitionsToEnd(@NotNull ChannelHandlerDescriptor<?> topicDescriptor) {
+    void internalSeekTopicAllPartitionsToEnd(@NotNull ChannelHandlerDescriptor topicDescriptor) {
         this.internalSeekTopicAllPartitionsToBorder(
-                (KafkaIncomeTopicLoadingDescriptor<M>) topicDescriptor,
+                (KafkaIncomeTopicLoadingDescriptor) topicDescriptor,
                 Consumer::seekToEnd
         );
     }
 
     protected <M extends Message<? extends MessageBody>>
     void internalSeekTopicAllPartitionsToBorder(
-            @NotNull final KafkaIncomeTopicLoadingDescriptor<M> topicDescriptor,
+            @NotNull final KafkaIncomeTopicLoadingDescriptor topicDescriptor,
             @NotNull final ConsumerSeekToBorderFunction func
     ) {
         final Collection<TopicPartition> topicPartitions = topicDescriptor.getTopicPartitions();
@@ -164,12 +160,12 @@ public class KafkaIncomeTopicsOffsetsController {
 
     protected <M extends Message<? extends MessageBody>>
     void internalSeekItem(
-            @NotNull final KafkaIncomeTopicLoadingDescriptor<M> channelDescriptor,
+            @NotNull final KafkaIncomeTopicLoadingDescriptor channelDescriptor,
             int partition,
             long offset
     ) {
         final var consumer = channelDescriptor.getConsumer();
-        final var tp = new TopicPartition(channelDescriptor.getApi().getName(), partition);
+        final var tp = new TopicPartition(channelDescriptor.getChannelName(), partition);
         consumer.seek(tp, offset > 0 ? offset : 0);
         channelDescriptor.setOffset(tp.partition(), consumer.position(tp));
     }

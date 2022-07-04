@@ -12,9 +12,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.gx.core.channels.AbstractIncomeChannelHandlerDescriptor;
 import ru.gx.core.channels.ChannelApiDescriptor;
+import ru.gx.core.channels.ChannelsConfiguration;
+import ru.gx.core.channels.IncomeChannelDescriptorsDefaults;
 import ru.gx.core.messaging.Message;
 import ru.gx.core.messaging.MessageBody;
-import ru.gx.core.messaging.MessageHeader;
 
 import java.security.InvalidParameterException;
 import java.time.Duration;
@@ -27,8 +28,8 @@ import java.util.*;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends MessageBody>>
-        extends AbstractIncomeChannelHandlerDescriptor<M> {
+public class KafkaIncomeTopicLoadingDescriptor
+        extends AbstractIncomeChannelHandlerDescriptor {
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
 
@@ -58,17 +59,31 @@ public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends Messa
     // </editor-fold>
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialize">
-    public KafkaIncomeTopicLoadingDescriptor(
+    protected KafkaIncomeTopicLoadingDescriptor(
             @NotNull final AbstractKafkaIncomeTopicsConfiguration owner,
-            @NotNull final ChannelApiDescriptor<M> api,
+            @NotNull final ChannelApiDescriptor<? extends Message<? extends MessageBody>> api,
             @Nullable final KafkaIncomeTopicLoadingDescriptorsDefaults defaults
     ) {
         super(owner, api, defaults);
         this.durationOnPoll = Duration.ofMillis(100);
-        if (defaults != null) {
+    }
+
+    protected KafkaIncomeTopicLoadingDescriptor(
+            @NotNull final ChannelsConfiguration owner,
+            @NotNull final String channelName,
+            @Nullable final KafkaIncomeTopicLoadingDescriptorsDefaults defaults
+    ) {
+        super(owner, channelName, defaults);
+        this.durationOnPoll = Duration.ofMillis(100);
+    }
+
+    @Override
+    protected void internalInitDefaults(@Nullable IncomeChannelDescriptorsDefaults defaults) {
+        super.internalInitDefaults(defaults);
+        if (defaults instanceof final KafkaIncomeTopicLoadingDescriptorsDefaults kafkaIncomeTopicLoadingDescriptorsDefaults) {
             this
-                    .setPartitions(defaults.getPartitions())
-                    .setDurationOnPoll(defaults.getDurationOnPoll());
+                    .setPartitions(kafkaIncomeTopicLoadingDescriptorsDefaults.getPartitions())
+                    .setDurationOnPoll(kafkaIncomeTopicLoadingDescriptorsDefaults.getDurationOnPoll());
         }
     }
 
@@ -80,11 +95,11 @@ public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends Messa
      */
     @SuppressWarnings({"UnusedReturnValue"})
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<M> init(
+    public KafkaIncomeTopicLoadingDescriptor init(
             @NotNull final Properties consumerProperties
     ) throws InvalidParameterException {
         if (this.partitionOffsets.size() <= 0) {
-            throw new InvalidParameterException("Not defined partitions for topic " + this.getApi().getName());
+            throw new InvalidParameterException("Not defined partitions for topic " + this.getChannelName());
         }
         this.consumer = new KafkaConsumer<>(consumerProperties);
         this.consumer.assign(getTopicPartitions());
@@ -100,7 +115,7 @@ public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends Messa
     @SuppressWarnings({"UnusedReturnValue", "unused"})
     @Override
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<M> init() throws InvalidParameterException {
+    public KafkaIncomeTopicLoadingDescriptor init() throws InvalidParameterException {
         return this.init(this.getOwner().getDescriptorsDefaults().getConsumerProperties());
     }
 
@@ -108,19 +123,20 @@ public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends Messa
     @SuppressWarnings("UnusedReturnValue")
     @Override
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<M> unInit() {
+    public KafkaIncomeTopicLoadingDescriptor unInit() {
         this.getOwner().internalUnregisterDescriptor(this);
         this.consumer = null;
         super.unInit();
         return this;
     }
+
     // </editor-fold>
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Additional getters & setters">
     @Override
     @NotNull
     public AbstractKafkaIncomeTopicsConfiguration getOwner() {
-        return (AbstractKafkaIncomeTopicsConfiguration)super.getOwner();
+        return (AbstractKafkaIncomeTopicsConfiguration) super.getOwner();
     }
 
     @SuppressWarnings("unused")
@@ -136,11 +152,12 @@ public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends Messa
 
     /**
      * Метод предназначен только для сохранения смещения.
+     *
      * @param partition раздел, по которому запоминаем смещение в описателе.
-     * @param offset само смещение, которое запоминаем в описателе.
+     * @param offset    само смещение, которое запоминаем в описателе.
      */
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<M> setOffset(int partition, long offset) {
+    public KafkaIncomeTopicLoadingDescriptor setOffset(int partition, long offset) {
         this.partitionOffsets.put(partition, offset);
         return this;
     }
@@ -155,7 +172,7 @@ public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends Messa
         final var result = new ArrayList<TopicPartition>();
         this.partitionOffsets
                 .keySet()
-                .forEach(p -> result.add(new TopicPartition(this.getApi().getName(), p)));
+                .forEach(p -> result.add(new TopicPartition(this.getChannelName(), p)));
         return result;
     }
 
@@ -169,7 +186,7 @@ public class KafkaIncomeTopicLoadingDescriptor<M extends Message<? extends Messa
      */
     @SuppressWarnings({"UnusedReturnValue", "Convert2MethodRef"})
     @NotNull
-    public KafkaIncomeTopicLoadingDescriptor<M> setPartitions(int... partitions) {
+    public KafkaIncomeTopicLoadingDescriptor setPartitions(int... partitions) {
         checkMutable("partitions");
         // Готовим список ключей для удаления - такие PartitionOffset-ы, которых нет в списке partitions:
         final var keyForRemove = new ArrayList<Integer>();

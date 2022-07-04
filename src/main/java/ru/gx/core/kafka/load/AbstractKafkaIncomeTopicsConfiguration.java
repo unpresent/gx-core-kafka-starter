@@ -28,7 +28,7 @@ public abstract class AbstractKafkaIncomeTopicsConfiguration extends AbstractCha
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="реализация IncomeTopicsConfiguration">
     @Override
-    protected <M extends Message<? extends MessageBody>, D extends ChannelHandlerDescriptor<M>>
+    protected <D extends ChannelHandlerDescriptor>
     boolean allowCreateDescriptor(@NotNull Class<D> descriptorClass) {
         return KafkaIncomeTopicLoadingDescriptor.class.isAssignableFrom(descriptorClass);
     }

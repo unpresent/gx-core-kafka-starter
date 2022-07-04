@@ -8,12 +8,9 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.gx.core.channels.AbstractOutcomeChannelHandlerDescriptor;
-import ru.gx.core.channels.ChannelApiDescriptor;
-import ru.gx.core.channels.SerializeMode;
+import ru.gx.core.channels.*;
 import ru.gx.core.messaging.Message;
 import ru.gx.core.messaging.MessageBody;
-import ru.gx.core.messaging.MessageHeader;
 
 import java.security.InvalidParameterException;
 import java.util.Properties;
@@ -21,8 +18,8 @@ import java.util.Properties;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class KafkaOutcomeTopicUploadingDescriptor<M extends Message<? extends MessageBody>>
-        extends AbstractOutcomeChannelHandlerDescriptor<M> {
+public class KafkaOutcomeTopicUploadingDescriptor
+        extends AbstractOutcomeChannelHandlerDescriptor {
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Fields">
     /**
@@ -35,12 +32,23 @@ public class KafkaOutcomeTopicUploadingDescriptor<M extends Message<? extends Me
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialize">
 
-    public KafkaOutcomeTopicUploadingDescriptor(
+    @SuppressWarnings("unused")
+    protected KafkaOutcomeTopicUploadingDescriptor(
             @NotNull final AbstractKafkaOutcomeTopicsConfiguration owner,
-            @NotNull final ChannelApiDescriptor<M> api,
+            @NotNull final ChannelApiDescriptor<? extends Message<? extends MessageBody>> api,
             @Nullable final KafkaOutcomeTopicUploadingDescriptorsDefaults defaults
     ) {
         super(owner, api, defaults);
+    }
+
+    @SuppressWarnings("unused")
+    protected KafkaOutcomeTopicUploadingDescriptor(
+            @NotNull final ChannelsConfiguration owner,
+            @NotNull final String channelName,
+            @Nullable final OutcomeChannelDescriptorsDefaults defaults
+    ) {
+        super(owner, channelName, defaults);
+        throw new NullPointerException("getApi() is null!");
     }
 
     /**
@@ -49,10 +57,15 @@ public class KafkaOutcomeTopicUploadingDescriptor<M extends Message<? extends Me
      * @return this.
      */
     @NotNull
-    public KafkaOutcomeTopicUploadingDescriptor<M> init(
+    public KafkaOutcomeTopicUploadingDescriptor init(
             @NotNull final Properties producerProperties
     ) throws InvalidParameterException {
-        if (this.getApi().getSerializeMode() == SerializeMode.JsonString) {
+        final var api = getApi();
+        if (api == null) {
+            throw new NullPointerException("descriptor.getApi() is null!");
+        }
+
+        if (api.getSerializeMode() == SerializeMode.JsonString) {
             this.producer = new KafkaProducer<Long, String>(producerProperties);
         } else {
             this.producer = new KafkaProducer<Long, byte[]>(producerProperties);
@@ -63,12 +76,12 @@ public class KafkaOutcomeTopicUploadingDescriptor<M extends Message<? extends Me
 
     @Override
     @NotNull
-    public KafkaOutcomeTopicUploadingDescriptor<M> init() throws InvalidParameterException {
+    public KafkaOutcomeTopicUploadingDescriptor init() throws InvalidParameterException {
         return init(this.getOwner().getDescriptorsDefaults().getProducerProperties());
     }
 
     @NotNull
-    public KafkaOutcomeTopicUploadingDescriptor<M> unInit() {
+    public KafkaOutcomeTopicUploadingDescriptor unInit() {
         this.producer = null;
         super.unInit();
         return this;
