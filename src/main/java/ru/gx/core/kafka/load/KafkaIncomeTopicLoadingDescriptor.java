@@ -66,6 +66,7 @@ public class KafkaIncomeTopicLoadingDescriptor
     ) {
         super(owner, api, defaults);
         this.durationOnPoll = Duration.ofMillis(100);
+        internalInitDefaults(defaults);
     }
 
     public KafkaIncomeTopicLoadingDescriptor(
@@ -75,15 +76,14 @@ public class KafkaIncomeTopicLoadingDescriptor
     ) {
         super(owner, channelName, defaults);
         this.durationOnPoll = Duration.ofMillis(100);
+        internalInitDefaults(defaults);
     }
 
-    @Override
-    protected void internalInitDefaults(@Nullable IncomeChannelDescriptorsDefaults defaults) {
-        super.internalInitDefaults(defaults);
-        if (defaults instanceof final KafkaIncomeTopicLoadingDescriptorsDefaults kafkaIncomeTopicLoadingDescriptorsDefaults) {
+    private void internalInitDefaults(@Nullable KafkaIncomeTopicLoadingDescriptorsDefaults defaults) {
+        if (defaults != null) {
             this
-                    .setPartitions(kafkaIncomeTopicLoadingDescriptorsDefaults.getPartitions())
-                    .setDurationOnPoll(kafkaIncomeTopicLoadingDescriptorsDefaults.getDurationOnPoll());
+                    .setPartitions(defaults.getPartitions())
+                    .setDurationOnPoll(defaults.getDurationOnPoll());
         }
     }
 
