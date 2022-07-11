@@ -33,7 +33,7 @@ public class KafkaOutcomeTopicUploadingDescriptor
     // <editor-fold desc="Initialize">
 
     @SuppressWarnings("unused")
-    protected KafkaOutcomeTopicUploadingDescriptor(
+    public KafkaOutcomeTopicUploadingDescriptor(
             @NotNull final AbstractKafkaOutcomeTopicsConfiguration owner,
             @NotNull final ChannelApiDescriptor<? extends Message<? extends MessageBody>> api,
             @Nullable final KafkaOutcomeTopicUploadingDescriptorsDefaults defaults
@@ -42,7 +42,7 @@ public class KafkaOutcomeTopicUploadingDescriptor
     }
 
     @SuppressWarnings("unused")
-    protected KafkaOutcomeTopicUploadingDescriptor(
+    public KafkaOutcomeTopicUploadingDescriptor(
             @NotNull final ChannelsConfiguration owner,
             @NotNull final String channelName,
             @Nullable final OutcomeChannelDescriptorsDefaults defaults

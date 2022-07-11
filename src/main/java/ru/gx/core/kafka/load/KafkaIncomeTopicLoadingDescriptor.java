@@ -59,7 +59,7 @@ public class KafkaIncomeTopicLoadingDescriptor
     // </editor-fold>
     // -----------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialize">
-    protected KafkaIncomeTopicLoadingDescriptor(
+    public KafkaIncomeTopicLoadingDescriptor(
             @NotNull final AbstractKafkaIncomeTopicsConfiguration owner,
             @NotNull final ChannelApiDescriptor<? extends Message<? extends MessageBody>> api,
             @Nullable final KafkaIncomeTopicLoadingDescriptorsDefaults defaults
@@ -68,7 +68,7 @@ public class KafkaIncomeTopicLoadingDescriptor
         this.durationOnPoll = Duration.ofMillis(100);
     }
 
-    protected KafkaIncomeTopicLoadingDescriptor(
+    public KafkaIncomeTopicLoadingDescriptor(
             @NotNull final ChannelsConfiguration owner,
             @NotNull final String channelName,
             @Nullable final KafkaIncomeTopicLoadingDescriptorsDefaults defaults
