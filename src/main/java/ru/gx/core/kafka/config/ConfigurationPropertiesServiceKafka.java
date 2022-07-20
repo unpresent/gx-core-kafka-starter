@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import ru.gx.core.config.ConfigurationPropertiesService;
 import ru.gx.core.worker.CommonWorkerSettingsDefaults;
 
 @ConfigurationProperties(prefix = "service.kafka")
@@ -21,6 +20,9 @@ public class ConfigurationPropertiesServiceKafka {
 
     @NestedConfigurationProperty
     private SimpleListener simpleListener = new SimpleListener();
+
+    @NestedConfigurationProperty
+    private OffsetsControllers offsetsControllers;
 
     @Getter
     @Setter
@@ -55,6 +57,22 @@ public class ConfigurationPropertiesServiceKafka {
     @Setter
     public static class StandardUploader {
         private boolean enabled = true;
+    }
+
+    @Getter
+    @Setter
+    public static class OffsetsControllers {
+        @NestedConfigurationProperty
+        private OffsetController income;
+
+        @NestedConfigurationProperty
+        private OffsetController outcome;
+    }
+
+    @Getter
+    @Setter
+    public static class OffsetController {
+        boolean enabled = true;
     }
 
     @Getter
