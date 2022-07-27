@@ -1,6 +1,7 @@
 package ru.gx.core.kafka.listener;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,7 @@ public class KafkaSimpleListener extends AbstractWorker {
     @NotNull
     private final KafkaIncomeTopicsLoader kafkaIncomeTopicsLoader;
 
+    @Getter(AccessLevel.PROTECTED)
     @NotNull
     private final List<AbstractKafkaIncomeTopicsConfiguration> kafkaIncomeTopicsConfigurations;
 
@@ -103,19 +105,22 @@ public class KafkaSimpleListener extends AbstractWorker {
     @SuppressWarnings("unused")
     @EventListener(KafkaSimpleListenerOnStartingExecuteEvent.class)
     public void startKafkaListener(KafkaSimpleListenerOnStartingExecuteEvent __) {
-        log.debug("Starting startKafkaListener()");
+        log.info("Starting startKafkaListener()");
 
         for (final var config : this.kafkaIncomeTopicsConfigurations) {
             final var topicPartitionOffsets =
                     this.topicsOffsetsStorage.loadOffsets(ChannelDirection.In, this.serviceName, config);
+
             if (CollectionUtils.isEmpty(topicPartitionOffsets)) {
+                log.info("Loaded empty topicPartitionOffsets");
                 this.kafkaIncomeTopicsOffsetsController.seekAllToBegin(config);
             } else {
+                log.info("Loaded topicPartitionOffsets = {}", topicPartitionOffsets);
                 this.kafkaIncomeTopicsOffsetsController.seekTopicsByList(config, topicPartitionOffsets);
             }
         }
 
-        log.debug("Finished startKafkaListener()");
+        log.info("Finished startKafkaListener()");
     }
 
     @EventListener(KafkaSimpleListenerOnIterationExecuteEvent.class)
