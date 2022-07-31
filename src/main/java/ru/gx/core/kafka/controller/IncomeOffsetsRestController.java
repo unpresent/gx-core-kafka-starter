@@ -3,10 +3,7 @@ package ru.gx.core.kafka.controller;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.gx.core.kafka.load.AbstractKafkaIncomeTopicsConfiguration;
 import ru.gx.core.kafka.load.KafkaIncomeTopicLoadingDescriptor;
 import ru.gx.core.kafka.load.KafkaIncomeTopicsOffsetsController;
@@ -37,7 +34,7 @@ public class IncomeOffsetsRestController {
         final var result = new ArrayList<PartitionOffset>();
         this.configurations.forEach(config -> {
             if (config.contains(topic)) {
-                final var descriptor = (KafkaIncomeTopicLoadingDescriptor)config.get(topic);
+                final var descriptor = (KafkaIncomeTopicLoadingDescriptor) config.get(topic);
                 descriptor.getPartitions()
                         .forEach(p -> result.add(new PartitionOffset(p, descriptor.getOffset(p))));
             }
@@ -46,7 +43,7 @@ public class IncomeOffsetsRestController {
     }
 
     @SuppressWarnings("unused")
-    @GetMapping("/change-income-offset")
+    @PostMapping("/change-income-offset")
     public boolean changeIncomeOffset(
             @RequestParam("topic") @NotNull final String topic,
             @RequestParam("partition") final int partition,
@@ -55,7 +52,7 @@ public class IncomeOffsetsRestController {
         final var result = new AtomicBoolean(false);
         this.configurations.forEach(config -> {
             if (config.contains(topic)) {
-                final var descriptor = (KafkaIncomeTopicLoadingDescriptor)config.get(topic);
+                final var descriptor = (KafkaIncomeTopicLoadingDescriptor) config.get(topic);
                 final var partitionOffsets = new ArrayList<PartitionOffset>();
                 partitionOffsets.add(new PartitionOffset(partition, offset));
                 this.offsetsController.seekTopic(descriptor, partitionOffsets);
