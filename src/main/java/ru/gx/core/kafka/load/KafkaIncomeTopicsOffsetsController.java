@@ -144,6 +144,7 @@ public class KafkaIncomeTopicsOffsetsController {
         );
     }
 
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     protected <M extends Message<? extends MessageBody>>
     void internalSeekTopicAllPartitionsToBorder(
             @NotNull final KafkaIncomeTopicLoadingDescriptor topicDescriptor,
@@ -151,23 +152,28 @@ public class KafkaIncomeTopicsOffsetsController {
     ) {
         final Collection<TopicPartition> topicPartitions = topicDescriptor.getTopicPartitions();
         final var consumer = topicDescriptor.getConsumer();
-        func.seek(consumer, topicPartitions);
-        for (var tp : topicPartitions) {
-            final var position = consumer.position(tp);
-            topicDescriptor.setOffset(tp.partition(), position);
+        synchronized (consumer) {
+            func.seek(consumer, topicPartitions);
+            for (var tp : topicPartitions) {
+                final var position = consumer.position(tp);
+                topicDescriptor.setOffset(tp.partition(), position);
+            }
         }
     }
 
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     protected <M extends Message<? extends MessageBody>>
     void internalSeekItem(
             @NotNull final KafkaIncomeTopicLoadingDescriptor channelDescriptor,
             int partition,
             long offset
     ) {
-        final var consumer = channelDescriptor.getConsumer();
         final var tp = new TopicPartition(channelDescriptor.getChannelName(), partition);
-        consumer.seek(tp, offset > 0 ? offset : 0);
-        channelDescriptor.setOffset(tp.partition(), consumer.position(tp));
+        final var consumer = channelDescriptor.getConsumer();
+        synchronized (consumer) {
+            consumer.seek(tp, offset > 0 ? offset : 0);
+            channelDescriptor.setOffset(tp.partition(), consumer.position(tp));
+        }
     }
 
     // </editor-fold>

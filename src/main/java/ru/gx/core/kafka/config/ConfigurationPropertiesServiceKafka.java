@@ -22,7 +22,7 @@ public class ConfigurationPropertiesServiceKafka {
     private SimpleListener simpleListener = new SimpleListener();
 
     @NestedConfigurationProperty
-    private OffsetsControllers offsetsControllers;
+    private OffsetsControllers offsetsRestControllers;
 
     @Getter
     @Setter

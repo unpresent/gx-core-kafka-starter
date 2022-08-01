@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import ru.gx.core.kafka.listener.KafkaSimpleListener;
 import ru.gx.core.kafka.listener.KafkaSimpleListenerSettingsContainer;
@@ -25,6 +26,7 @@ import ru.gx.core.settings.StandardSettingsController;
 import java.util.List;
 
 @Configuration
+@ComponentScan("ru.gx.core.kafka")
 @EnableConfigurationProperties({ConfigurationPropertiesServiceKafka.class})
 public class CommonAutoConfiguration {
     private final static String DOT_ENABLED = ".enabled";

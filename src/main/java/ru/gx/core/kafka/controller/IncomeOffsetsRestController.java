@@ -3,7 +3,11 @@ package ru.gx.core.kafka.controller;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import ru.gx.core.kafka.load.AbstractKafkaIncomeTopicsConfiguration;
 import ru.gx.core.kafka.load.KafkaIncomeTopicLoadingDescriptor;
 import ru.gx.core.kafka.load.KafkaIncomeTopicsOffsetsController;
@@ -13,10 +17,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@SuppressWarnings("ClassCanBeRecord")
-@ConditionalOnProperty(name = "service.kafka.offsets-controllers.income.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "service.kafka.offsets-rest-controllers.income.enabled", havingValue = "true")
+@ConditionalOnWebApplication
 @RestController
-@RequestMapping("/kafka-offsets")
 @RequiredArgsConstructor
 public class IncomeOffsetsRestController {
 
@@ -27,7 +30,7 @@ public class IncomeOffsetsRestController {
     final KafkaIncomeTopicsOffsetsController offsetsController;
 
     @SuppressWarnings("unused")
-    @GetMapping("/get-income-offsets")
+    @GetMapping("/kafka/get-income-offsets")
     public Collection<PartitionOffset> getOffsets(
             @RequestParam("topic") @NotNull final String topic
     ) {
@@ -43,7 +46,7 @@ public class IncomeOffsetsRestController {
     }
 
     @SuppressWarnings("unused")
-    @PostMapping("/change-income-offset")
+    @PostMapping("/kafka/change-income-offset")
     public boolean changeIncomeOffset(
             @RequestParam("topic") @NotNull final String topic,
             @RequestParam("partition") final int partition,

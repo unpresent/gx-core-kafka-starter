@@ -26,7 +26,7 @@ import static lombok.AccessLevel.PROTECTED;
 /**
  * Базовая реализация загрузчика, который упрощает задачу чтения данных из очереди и десериалиазции их в объекты.
  */
-@SuppressWarnings({"unused", "ClassCanBeRecord"})
+@SuppressWarnings({"unused"})
 @Slf4j
 public class KafkaIncomeTopicsLoader {
     private final static int MAX_SLEEP_MS = 64;
@@ -225,8 +225,8 @@ public class KafkaIncomeTopicsLoader {
     protected ConsumerRecords<Object, Object> internalPoll(
             @NotNull final KafkaIncomeTopicLoadingDescriptor descriptor
     ) {
-        final var consumer = descriptor.getConsumer();
         ConsumerRecords<Object, Object> records;
+        final var consumer = descriptor.getConsumer();
         synchronized (consumer) {
             records = (ConsumerRecords<Object, Object>) consumer
                     .poll(descriptor.getDurationOnPoll());
