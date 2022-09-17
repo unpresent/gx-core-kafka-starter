@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationEventPublisher;
 import ru.gx.core.channels.ChannelConfigurationException;
 import ru.gx.core.channels.IncomeDataProcessType;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import static lombok.AccessLevel.PROTECTED;
 
@@ -77,12 +79,15 @@ public class KafkaIncomeTopicsLoader {
      * @return Количество загруженных объектов. -1 при наличии блокирующей ошибке в канале.
      */
     public <B extends MessageBody, M extends Message<B>>
-    int processByTopic(@NotNull final KafkaIncomeTopicLoadingDescriptor descriptor) {
+    int processByTopic(
+            @NotNull final KafkaIncomeTopicLoadingDescriptor descriptor,
+            @Nullable final Function<Object, Object> lifeNotifyCallback
+    ) {
         checkDescriptorIsActive(descriptor);
         if (descriptor.isBlockedByError()) {
             return -1;
         }
-        return internalProcessDescriptor(descriptor);
+        return internalProcessDescriptor(descriptor, lifeNotifyCallback);
     }
 
     /**
@@ -92,7 +97,10 @@ public class KafkaIncomeTopicsLoader {
      */
     @NotNull
     public Map<KafkaIncomeTopicLoadingDescriptor, Integer>
-    processAllTopics(@NotNull final AbstractKafkaIncomeTopicsConfiguration configuration) throws InvalidParameterException {
+    processAllTopics(
+            @NotNull final AbstractKafkaIncomeTopicsConfiguration configuration,
+            @Nullable final Function<Object, Object> lifeNotifyCallback
+    ) throws InvalidParameterException {
         final var pCount = configuration.prioritiesCount();
         final var result = new HashMap<KafkaIncomeTopicLoadingDescriptor, Integer>();
         for (int p = 0; p < pCount; p++) {
@@ -104,7 +112,7 @@ public class KafkaIncomeTopicsLoader {
                 if (topicDescriptor.isEnabled()) {
                     final var kafkaDescriptor = (KafkaIncomeTopicLoadingDescriptor) topicDescriptor;
                     log.debug("Loading working data from topic: {}", topicDescriptor.getChannelName());
-                    final var eventsCount = this.processByTopic(kafkaDescriptor);
+                    final var eventsCount = this.processByTopic(kafkaDescriptor, lifeNotifyCallback);
                     result.put(kafkaDescriptor, eventsCount);
                     log.debug("Loaded working data from topic. Events: {}", kafkaDescriptor.getChannelName());
                 }
@@ -139,13 +147,16 @@ public class KafkaIncomeTopicsLoader {
      */
     @SneakyThrows
     protected <B extends MessageBody, M extends Message<B>>
-    int internalProcessDescriptor(@NotNull final KafkaIncomeTopicLoadingDescriptor descriptor) {
+    int internalProcessDescriptor(
+            @NotNull final KafkaIncomeTopicLoadingDescriptor descriptor,
+            @Nullable final Function<Object, Object> lifeNotifyCallback
+    ) {
         // TODO: Добавить сбор статистики
         final var records = internalPoll(descriptor);
         var messagesCount = 0; // Количество сообщений. Для статистики.
 
         for (var rec : records) {
-            internalProcessRecord(descriptor, rec);
+            internalProcessRecord(descriptor, rec, lifeNotifyCallback);
             messagesCount++;
         }
         return messagesCount;
@@ -169,7 +180,8 @@ public class KafkaIncomeTopicsLoader {
     // <M extends Message<? extends MessageBody>> // Fuck! Так не признает!
     void internalProcessRecord(
             @NotNull final KafkaIncomeTopicLoadingDescriptor descriptor,
-            @NotNull final ConsumerRecord<Object, Object> record
+            @NotNull final ConsumerRecord<Object, Object> record,
+            @Nullable final Function<Object, Object> lifeNotifyCallback
     ) {
         // Формируем объект-событие.
         M message;
@@ -179,10 +191,10 @@ public class KafkaIncomeTopicsLoader {
         }
         if (api.getSerializeMode() == SerializeMode.JsonString) {
             final var strValue = (String) record.value();
-            message = (M)this.objectMapper.readValue(strValue, api.getMessageClass());
+            message = (M) this.objectMapper.readValue(strValue, api.getMessageClass());
         } else {
             final var strValue = (byte[]) record.value();
-            message = (M)this.objectMapper.readValue(strValue, api.getMessageClass());
+            message = (M) this.objectMapper.readValue(strValue, api.getMessageClass());
         }
         message.setChannelDescriptor(descriptor);
 
@@ -213,6 +225,9 @@ public class KafkaIncomeTopicsLoader {
                 if (sleepMs < MAX_SLEEP_MS) {
                     sleepMs *= 2;
                 }
+                if (lifeNotifyCallback != null) {
+                    lifeNotifyCallback.apply(this);
+                }
             }
             // Собственно только теперь бросаем событие в очередь
             this.messagesQueue.pushMessage(descriptor.getPriority(), message);
@@ -222,8 +237,9 @@ public class KafkaIncomeTopicsLoader {
     /**
      * Обработка фактов пропуска сообщений. В этом случае требуется периодически сдвигать offset,
      * но при этом надо это сделать аккуратно, чтобы не сохранить смещение после
+     *
      * @param descriptor Описатель канала
-     * @param message Сообщение, которое пропускаем
+     * @param message    Сообщение, которое пропускаем
      */
     protected void internalSkippedMessage(
             @NotNull final KafkaIncomeTopicLoadingDescriptor descriptor,
