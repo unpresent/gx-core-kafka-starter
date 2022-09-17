@@ -74,11 +74,14 @@ public class KafkaIncomeTopicsLoader {
      * Загрузка и обработка данных по списку топиков по конфигурации.
      *
      * @param descriptor Описатель загрузки из Топика.
-     * @return Список загруженных объектов.
+     * @return Количество загруженных объектов. -1 при наличии блокирующей ошибке в канале.
      */
     public <B extends MessageBody, M extends Message<B>>
     int processByTopic(@NotNull final KafkaIncomeTopicLoadingDescriptor descriptor) {
         checkDescriptorIsActive(descriptor);
+        if (descriptor.isBlockedByError()) {
+            return -1;
+        }
         return internalProcessDescriptor(descriptor);
     }
 
@@ -154,7 +157,7 @@ public class KafkaIncomeTopicsLoader {
      * Если в описателе канала {@code descriptor} указано, что обработка должна быть немедленной ({@link KafkaIncomeTopicLoadingDescriptor#getProcessType()}),
      * то событие бросается непосредственно в этом потоке.<br/>
      * Иначе пытаемся бросить событие в {@code eventsQueue}.
-     * Перед вызовом {@link MessagesPrioritizedQueue#pushMessage(int, Message)} сначала проверяем, можно ли в очередь положить событие:
+     * Перед вызовом {@link MessagesPrioritizedQueue#pushMessage(int, Object)} сначала проверяем, можно ли в очередь положить событие:
      * {@link MessagesPrioritizedQueue#allowPush()}
      *
      * @param descriptor Описатель канала.
@@ -194,6 +197,8 @@ public class KafkaIncomeTopicsLoader {
         message.putMetadata(KafkaConstants.METADATA_OFFSET, record.offset());
 
         if (descriptor.getLoadingFiltrator() != null && !descriptor.getLoadingFiltrator().allowProcess(message)) {
+            // Данные не пропущены фильтром
+            internalSkippedMessage(descriptor, message);
             return;
         }
 
@@ -212,6 +217,19 @@ public class KafkaIncomeTopicsLoader {
             // Собственно только теперь бросаем событие в очередь
             this.messagesQueue.pushMessage(descriptor.getPriority(), message);
         }
+    }
+
+    /**
+     * Обработка фактов пропуска сообщений. В этом случае требуется периодически сдвигать offset,
+     * но при этом надо это сделать аккуратно, чтобы не сохранить смещение после
+     * @param descriptor Описатель канала
+     * @param message Сообщение, которое пропускаем
+     */
+    protected void internalSkippedMessage(
+            @NotNull final KafkaIncomeTopicLoadingDescriptor descriptor,
+            @NotNull final Message<?> message
+    ) {
+        // TODO: ...
     }
 
     /**
