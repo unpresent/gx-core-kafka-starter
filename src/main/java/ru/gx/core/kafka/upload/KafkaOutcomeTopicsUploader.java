@@ -67,6 +67,7 @@ public class KafkaOutcomeTopicsUploader {
      */
     public <M extends Message<? extends MessageBody>>
     void uploadMessage(
+            @NotNull final String workerName,
             @NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor,
             @NotNull final M message,
             @Nullable final Iterable<Header> headers
@@ -75,7 +76,7 @@ public class KafkaOutcomeTopicsUploader {
 
         this.serviceHeaders.clear();
         this.serviceHeaders.add(this.serviceHeaderClassName.setValue(message.getClass().getSimpleName()));
-        internalUploadPreparedData(descriptor, message, headers, this.serviceHeaders);
+        internalUploadPreparedData(workerName, descriptor, message, headers, this.serviceHeaders);
     }
 
     /**
@@ -87,13 +88,14 @@ public class KafkaOutcomeTopicsUploader {
      */
     public <M extends Message<? extends MessageBody>, D extends DataObject>
     void uploadObject(
+            @NotNull final String workerName,
             @NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor,
             @NotNull final D dataObject,
             @Nullable final Iterable<Header> headers
     ) throws Exception {
         checkDescriptorIsActive(descriptor);
 
-        internalUploadDataObject(descriptor, dataObject, headers);
+        internalUploadDataObject(workerName, descriptor, dataObject, headers);
     }
 
     /**
@@ -105,6 +107,7 @@ public class KafkaOutcomeTopicsUploader {
      */
     public <M extends Message<? extends MessageBody>, D extends DataObject>
     void uploadObjects(
+            @NotNull final String workerName,
             @NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor,
             @NotNull final Iterable<D> dataObjects,
             @Nullable final Iterable<Header> headers
@@ -112,7 +115,7 @@ public class KafkaOutcomeTopicsUploader {
         checkDescriptorIsActive(descriptor);
 
         for (final var dataObject : dataObjects) {
-            internalUploadDataObject(descriptor, dataObject, headers);
+            internalUploadDataObject(workerName, descriptor, dataObject, headers);
         }
     }
 
@@ -137,6 +140,7 @@ public class KafkaOutcomeTopicsUploader {
     @SuppressWarnings("unchecked")
     protected <M extends Message<? extends MessageBody>, D extends DataObject>
     void internalUploadDataObject(
+            @NotNull final String workerName,
             @NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor,
             @NotNull final D dataObject,
             @Nullable final Iterable<Header> headers
@@ -156,17 +160,19 @@ public class KafkaOutcomeTopicsUploader {
 
         this.serviceHeaders.clear();
         this.serviceHeaders.add(this.serviceHeaderClassName.setValue(message.getClass().getSimpleName()));
-        internalUploadPreparedData(descriptor, message, headers, this.serviceHeaders);
+        internalUploadPreparedData(workerName, descriptor, message, headers, this.serviceHeaders);
     }
 
     @SuppressWarnings("unchecked")
     protected <M extends Message<? extends MessageBody>>
     void internalUploadPreparedData(
+            @NotNull final String workerName,
             @NotNull final KafkaOutcomeTopicUploadingDescriptor descriptor,
             @NotNull final M message,
             @Nullable final Iterable<Header> headers,
             @NotNull final Collection<Header> theServiceHeaders
     ) throws Exception {
+        final var started = System.currentTimeMillis();
         final var api = descriptor.getApi();
         if (api == null) {
             throw new NullPointerException("descriptor.getApi() is null!");
@@ -232,6 +238,8 @@ public class KafkaOutcomeTopicsUploader {
                 producer.send(record);
             }
         }
+
+        descriptor.recordMessageExecuted(workerName, System.currentTimeMillis() - started);
         // return new PartitionOffset(recordMetadata.partition(), recordMetadata.offset());
     }
     // </editor-fold>

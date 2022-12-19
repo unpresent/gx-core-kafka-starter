@@ -134,6 +134,7 @@ public class KafkaSimpleListener extends AbstractWorker {
                 final var loadedMessagesByTopic =
                         this.kafkaIncomeTopicsLoader
                                 .processAllTopics(
+                                        getWorkerName(),
                                         config,
                                         x -> {
                                             runnerIsLifeSet();

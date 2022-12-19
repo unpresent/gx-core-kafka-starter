@@ -1,12 +1,10 @@
 package ru.gx.core.kafka.load;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.jetbrains.annotations.NotNull;
 import ru.gx.core.channels.AbstractChannelsConfiguration;
 import ru.gx.core.channels.ChannelDirection;
 import ru.gx.core.channels.ChannelHandlerDescriptor;
-import ru.gx.core.messaging.Message;
-import ru.gx.core.messaging.MessageBody;
-import ru.gx.core.messaging.MessageHeader;
 
 public abstract class AbstractKafkaIncomeTopicsConfiguration extends AbstractChannelsConfiguration {
     // -------------------------------------------------------------------------------------------------------------
@@ -15,8 +13,11 @@ public abstract class AbstractKafkaIncomeTopicsConfiguration extends AbstractCha
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    protected AbstractKafkaIncomeTopicsConfiguration(@NotNull final String configurationName) {
-        super(ChannelDirection.In, configurationName);
+    protected AbstractKafkaIncomeTopicsConfiguration(
+            @NotNull final String configurationName,
+            @NotNull final MeterRegistry meterRegistry
+    ) {
+        super(ChannelDirection.In, configurationName, meterRegistry);
     }
 
     @Override

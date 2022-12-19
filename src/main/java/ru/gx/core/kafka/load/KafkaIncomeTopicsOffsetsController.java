@@ -11,6 +11,7 @@ import ru.gx.core.messaging.MessageBody;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
 @SuppressWarnings("unused")
 public class KafkaIncomeTopicsOffsetsController {
@@ -171,6 +172,11 @@ public class KafkaIncomeTopicsOffsetsController {
         final var tp = new TopicPartition(channelDescriptor.getChannelName(), partition);
         final var consumer = channelDescriptor.getConsumer();
         synchronized (consumer) {
+            final var beginningOffsets = consumer.beginningOffsets(Set.of(tp));
+            final var beginOffset = beginningOffsets.get(tp);
+            if (beginOffset != null && beginOffset > offset) {
+                offset = beginOffset;
+            }
             consumer.seek(tp, offset > 0 ? offset : 0);
             channelDescriptor.setOffset(tp.partition(), consumer.position(tp));
         }

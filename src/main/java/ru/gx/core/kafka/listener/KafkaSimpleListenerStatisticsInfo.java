@@ -28,6 +28,9 @@ public class KafkaSimpleListenerStatisticsInfo extends AbstractWorkerStatisticsI
                                             } else {
                                                 offsetsInfo.append("; ");
                                             }
+                                            if (descriptor.isBlockedByError()) {
+                                                offsetsInfo.append("<ERR>");
+                                            }
                                             offsetsInfo.append(descriptor.getChannelName());
                                             offsetsInfo.append(":");
                                             final var kafkaDescriptor =

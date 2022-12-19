@@ -80,6 +80,7 @@ public class KafkaIncomeTopicsLoader {
      */
     public <B extends MessageBody, M extends Message<B>>
     int processByTopic(
+            @NotNull final String workerName,
             @NotNull final KafkaIncomeTopicLoadingDescriptor descriptor,
             @Nullable final Function<Object, Object> lifeNotifyCallback
     ) {
@@ -87,7 +88,7 @@ public class KafkaIncomeTopicsLoader {
         if (descriptor.isBlockedByError()) {
             return -1;
         }
-        return internalProcessDescriptor(descriptor, lifeNotifyCallback);
+        return internalProcessDescriptor(workerName, descriptor, lifeNotifyCallback);
     }
 
     /**
@@ -98,6 +99,7 @@ public class KafkaIncomeTopicsLoader {
     @NotNull
     public Map<KafkaIncomeTopicLoadingDescriptor, Integer>
     processAllTopics(
+            @NotNull final String workerName,
             @NotNull final AbstractKafkaIncomeTopicsConfiguration configuration,
             @Nullable final Function<Object, Object> lifeNotifyCallback
     ) throws InvalidParameterException {
@@ -112,7 +114,7 @@ public class KafkaIncomeTopicsLoader {
                 if (topicDescriptor.isEnabled()) {
                     final var kafkaDescriptor = (KafkaIncomeTopicLoadingDescriptor) topicDescriptor;
                     log.debug("Loading working data from topic: {}", topicDescriptor.getChannelName());
-                    final var eventsCount = this.processByTopic(kafkaDescriptor, lifeNotifyCallback);
+                    final var eventsCount = this.processByTopic(workerName, kafkaDescriptor, lifeNotifyCallback);
                     result.put(kafkaDescriptor, eventsCount);
                     log.debug("Loaded working data from topic. Events: {}", kafkaDescriptor.getChannelName());
                 }
@@ -148,10 +150,12 @@ public class KafkaIncomeTopicsLoader {
     @SneakyThrows
     protected <B extends MessageBody, M extends Message<B>>
     int internalProcessDescriptor(
+            @NotNull final String workerName,
             @NotNull final KafkaIncomeTopicLoadingDescriptor descriptor,
             @Nullable final Function<Object, Object> lifeNotifyCallback
     ) {
-        // TODO: Добавить сбор статистики
+        final var started = System.currentTimeMillis();
+
         final var records = internalPoll(descriptor);
         var messagesCount = 0; // Количество сообщений. Для статистики.
 
@@ -159,6 +163,7 @@ public class KafkaIncomeTopicsLoader {
             internalProcessRecord(descriptor, rec, lifeNotifyCallback);
             messagesCount++;
         }
+        descriptor.recordMessagesExecuted(workerName, System.currentTimeMillis() - started, messagesCount);
         return messagesCount;
     }
 

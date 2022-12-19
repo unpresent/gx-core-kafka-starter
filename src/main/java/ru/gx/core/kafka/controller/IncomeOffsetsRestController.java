@@ -1,5 +1,8 @@
 package ru.gx.core.kafka.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -21,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @ConditionalOnWebApplication
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Управление входящими смещениями kafka.",
+        description = "Позволяет получать и устанавливать входящие смещения kafka.")
 public class IncomeOffsetsRestController {
 
     @NotNull
@@ -31,7 +36,9 @@ public class IncomeOffsetsRestController {
 
     @SuppressWarnings("unused")
     @GetMapping("/kafka/get-income-offsets")
+    @Operation(summary = "Получить входящие смещения по имени топика kafka.")
     public Collection<PartitionOffset> getOffsets(
+            @Parameter(description = "Имя топика kafka.")
             @RequestParam("topic") @NotNull final String topic
     ) {
         final var result = new ArrayList<PartitionOffset>();
@@ -47,9 +54,13 @@ public class IncomeOffsetsRestController {
 
     @SuppressWarnings("unused")
     @PostMapping("/kafka/change-income-offset")
+    @Operation(summary = "Изменить входящие смещения kafka.")
     public boolean changeIncomeOffset(
+            @Parameter(description = "Имя входящего топика kafka.")
             @RequestParam("topic") @NotNull final String topic,
+            @Parameter(description = "Номер раздела.")
             @RequestParam("partition") final int partition,
+            @Parameter(description = "Значение для установки смещения.")
             @RequestParam("offset") final long offset
     ) {
         final var result = new AtomicBoolean(false);

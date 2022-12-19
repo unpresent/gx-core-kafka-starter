@@ -14,6 +14,7 @@ import ru.gx.core.channels.AbstractIncomeChannelHandlerDescriptor;
 import ru.gx.core.channels.ChannelApiDescriptor;
 import ru.gx.core.channels.ChannelsConfiguration;
 import ru.gx.core.channels.IncomeChannelDescriptorsDefaults;
+import ru.gx.core.kafka.KafkaConstants;
 import ru.gx.core.messaging.Message;
 import ru.gx.core.messaging.MessageBody;
 
@@ -207,6 +208,16 @@ public class KafkaIncomeTopicLoadingDescriptor
         });
 
         return this;
+    }
+
+    public <B extends MessageBody, M extends Message<B>>
+    void confirmMessageProcessed(M message) {
+        final var partition = message.getMetadataValue(KafkaConstants.METADATA_PARTITION);
+        final var offset = message.getMetadataValue(KafkaConstants.METADATA_OFFSET);
+        if (partition == null || offset == null) {
+            return;
+        }
+        this.setOffset((int)partition, (long)offset);
     }
     // </editor-fold>
     // -----------------------------------------------------------------------------------------------------------------

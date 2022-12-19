@@ -1,24 +1,26 @@
 package ru.gx.core.kafka.upload;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.jetbrains.annotations.NotNull;
 import ru.gx.core.channels.AbstractChannelsConfiguration;
 import ru.gx.core.channels.ChannelDirection;
 import ru.gx.core.channels.ChannelHandlerDescriptor;
-import ru.gx.core.messaging.Message;
-import ru.gx.core.messaging.MessageBody;
-import ru.gx.core.messaging.MessageHeader;
 
 public abstract class AbstractKafkaOutcomeTopicsConfiguration extends AbstractChannelsConfiguration {
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Initialization">
-    protected AbstractKafkaOutcomeTopicsConfiguration(@NotNull final String configurationName) {
-        super(ChannelDirection.Out, configurationName);
+    protected AbstractKafkaOutcomeTopicsConfiguration(
+            @NotNull final String configurationName,
+            @NotNull final MeterRegistry meterRegistry
+    ) {
+        super(ChannelDirection.Out, configurationName, meterRegistry);
     }
 
     @Override
     protected KafkaOutcomeTopicUploadingDescriptorsDefaults createChannelDescriptorsDefaults() {
         return new KafkaOutcomeTopicUploadingDescriptorsDefaults();
     }
+
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
     // <editor-fold desc="Реализация OutcomeTopicsConfiguration">
@@ -30,7 +32,7 @@ public abstract class AbstractKafkaOutcomeTopicsConfiguration extends AbstractCh
 
     @Override
     public @NotNull KafkaOutcomeTopicUploadingDescriptorsDefaults getDescriptorsDefaults() {
-        return (KafkaOutcomeTopicUploadingDescriptorsDefaults)super.getDescriptorsDefaults();
+        return (KafkaOutcomeTopicUploadingDescriptorsDefaults) super.getDescriptorsDefaults();
     }
     // </editor-fold>
     // -------------------------------------------------------------------------------------------------------------
