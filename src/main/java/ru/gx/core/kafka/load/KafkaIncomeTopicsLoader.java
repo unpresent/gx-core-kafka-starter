@@ -76,7 +76,7 @@ public class KafkaIncomeTopicsLoader {
      * Загрузка и обработка данных по списку топиков по конфигурации.
      *
      * @param descriptor Описатель загрузки из Топика.
-     * @return Количество загруженных объектов. -1 при наличии блокирующей ошибке в канале.
+     * @return Количество обработанных из Kafka записей. -1 при наличии блокирующей ошибке в канале.
      */
     public <B extends MessageBody, M extends Message<B>>
     int processByTopic(
@@ -94,7 +94,7 @@ public class KafkaIncomeTopicsLoader {
     /**
      * Чтение объектов из очередей в порядке определенной в конфигурации.
      *
-     * @return Map-а, в которой для каждого дескриптора указан список загруженных объектов.
+     * @return Map-а, в которой для каждого дескриптора указано количество обработанных записей из Kafka.
      */
     @NotNull
     public Map<KafkaIncomeTopicLoadingDescriptor, Integer>

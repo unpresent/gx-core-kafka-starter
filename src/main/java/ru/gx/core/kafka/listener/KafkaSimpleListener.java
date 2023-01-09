@@ -142,12 +142,10 @@ public class KafkaSimpleListener extends AbstractWorker {
                                         }
                                 );
 
-                if (log.isDebugEnabled()) {
-                    for (final var entry : loadedMessagesByTopic.entrySet()) {
-                        if (entry.getValue() > 1) {
-                            log.debug("Loaded from {} {} records", entry.getKey().getChannelName(), entry.getValue());
-                            event.setImmediateRunNextIteration(true);
-                        }
+                for (final var entry : loadedMessagesByTopic.entrySet()) {
+                    if (entry.getValue() > 1) {
+                        log.debug("Loaded from {} {} records", entry.getKey().getChannelName(), entry.getValue());
+                        event.setImmediateRunNextIteration(true);
                     }
                 }
             }
